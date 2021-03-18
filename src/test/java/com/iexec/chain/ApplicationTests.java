@@ -1,4 +1,4 @@
-package com.iexec.chain.blockchainclient;
+package com.iexec.chain;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

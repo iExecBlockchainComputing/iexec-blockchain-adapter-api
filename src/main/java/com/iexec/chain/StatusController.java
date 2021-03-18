@@ -1,4 +1,4 @@
-package com.iexec.chain.blockchainclient;
+package com.iexec.chain;
 
 import com.iexec.common.replicate.ReplicateStatus;
 import org.springframework.http.ResponseEntity;

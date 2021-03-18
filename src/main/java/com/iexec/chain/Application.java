@@ -1,4 +1,4 @@
-package com.iexec.chain.blockchainclient;
+package com.iexec.chain;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
