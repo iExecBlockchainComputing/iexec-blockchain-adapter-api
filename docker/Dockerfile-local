@@ -1,0 +1,5 @@
+# Build app container
+FROM openjdk:11.0.3-jre-slim
+ARG JAR_PATH
+COPY $JAR_PATH app.jar
+ENTRYPOINT [ "/bin/sh", "-c", "exec java -Djava.security.egd=file:/dev/./urandom -jar app.jar" ]
