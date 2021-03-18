@@ -20,9 +20,6 @@ import com.iexec.common.chain.CredentialsAbstractService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.web3j.crypto.Credentials;
-import org.web3j.crypto.ECKeyPair;
 
 @Service
 @Getter
@@ -38,7 +35,4 @@ public class CredentialsService extends CredentialsAbstractService {
         this.walletPassword = walletPassword;
     }
 
-    public String getWalletPassword() {
-        return this.walletPassword;
-    }
 }

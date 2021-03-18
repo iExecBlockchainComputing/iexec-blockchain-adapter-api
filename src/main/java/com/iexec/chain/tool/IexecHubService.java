@@ -17,29 +17,18 @@
 package com.iexec.chain.tool;
 
 
-import com.iexec.common.chain.ChainAccount;
 import com.iexec.common.chain.IexecHubAbstractService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 
-    private final CredentialsService credentialsService;
-
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
                            ChainConfig chainConfig) {
-        super(credentialsService.getCredentials(), web3jService, chainConfig.getHubAddress());
-        this.credentialsService = credentialsService;
+        super(credentialsService.getCredentials(),
+                web3jService,
+                chainConfig.getHubAddress());
     }
 
-    public long getDeposit() {
-        return getChainAccount(credentialsService.getCredentials().getAddress())
-                .map(ChainAccount::getDeposit)
-                .orElse((long) -1);
-    }
-
-    public boolean hasEnoughGas() {
-        return super.hasEnoughGas(credentialsService.getCredentials().getAddress());
-    }
 }

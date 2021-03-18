@@ -2,8 +2,9 @@ chain:
   id: ${IEXEC_ADAPTER_API_CHAIN_ID:133}
   node-address: ${IEXEC_ADAPTER_API_NODE_ADDRESS:https://viviani.iex.ec/}
   hub-address: ${IEXEC_ADAPTER_API_HUB_ADDRESS:0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f}
-  pool-address: ${IEXEC_ADAPTER_API_POOL_ADDRESS:0xd698cABf5F8d5DDf174Bb69D40De98cCE8AAA7Da}
   is-sidechain: ${IEXEC_ADAPTER_API_IS_SIDECHAIN:true}
+  gas-price-multiplier: ${IEXEC_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be send with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
+  gas-price-cap: ${IEXEC_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
 
 wallet:
   path: ${IEXEC_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}

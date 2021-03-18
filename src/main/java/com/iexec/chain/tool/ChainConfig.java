@@ -37,10 +37,13 @@ public class ChainConfig {
     @Value("${chain.hub-address}")
     private String hubAddress;
 
-    @Value("${chain.pool-address}")
-    private String poolAddress;
-
     @Value("${chain.is-sidechain}")
     private boolean isSidechain;
+
+    @Value("${chain.gas-price-multiplier}")
+    private float gasPriceMultiplier;
+
+    @Value("${chain.gas-price-cap}")
+    private long gasPriceCap;
 
 }
