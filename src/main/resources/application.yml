@@ -1,3 +1,12 @@
+server:
+  port: ${IEXEC_ADAPTER_API_PORT:18070}
+
+spring:
+  security:
+    user:
+      name: ${IEXEC_ADAPTER_API_USERNAME:admin}
+      password: ${IEXEC_ADAPTER_API_PASSWORD:whatever}
+
 chain:
   id: ${IEXEC_ADAPTER_API_CHAIN_ID:133}
   node-address: ${IEXEC_ADAPTER_API_NODE_ADDRESS:https://viviani.iex.ec/}

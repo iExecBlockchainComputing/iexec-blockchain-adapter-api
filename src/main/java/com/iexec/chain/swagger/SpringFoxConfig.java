@@ -21,11 +21,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.BasicAuth;
+import springfox.documentation.service.SecurityScheme;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+import java.util.Collections;
+
 @Configuration
 public class SpringFoxConfig {
+
+    public static final String SWAGGER_BASIC_AUTH = "basicAuth";
 
     /**
      * Available at:    http://localhost:8080/swagger-ui/index.html
@@ -38,7 +44,12 @@ public class SpringFoxConfig {
                 .select()
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .securitySchemes(Collections.singletonList(basicAuthScheme()));
+    }
+
+    private SecurityScheme basicAuthScheme() {
+        return new BasicAuth(SWAGGER_BASIC_AUTH);
     }
 
 }
