@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package com.iexec.chain.tool;
+package com.iexec.blockchain.tool;
 
+public enum Status {
 
-import com.iexec.common.chain.IexecHubAbstractService;
-import org.springframework.stereotype.Service;
-
-@Service
-public class IexecHubService extends IexecHubAbstractService {
-
-    public IexecHubService(CredentialsService credentialsService,
-                           Web3jService web3jService,
-                           ChainConfig chainConfig) {
-        super(credentialsService.getCredentials(),
-                web3jService,
-                chainConfig.getHubAddress());
-    }
+    LOCALLY_CREATED,
+    PROCESSING,
+    SUCCESS,
+    FAILURE,
 
 }

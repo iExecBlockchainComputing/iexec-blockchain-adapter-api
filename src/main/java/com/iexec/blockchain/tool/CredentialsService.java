@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package com.iexec.chain.tool;
+package com.iexec.blockchain.tool;
 
-import com.iexec.common.chain.Web3jAbstractService;
+import com.iexec.common.chain.CredentialsAbstractService;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class Web3jService extends Web3jAbstractService {
+@Getter
+public class CredentialsService extends CredentialsAbstractService {
 
-    public Web3jService(ChainConfig chainConfig) {
-        super(
-                chainConfig.getNodeAddress(),
-                chainConfig.getGasPriceMultiplier(),
-                chainConfig.getGasPriceCap(),
-                chainConfig.isSidechain()
-        );
+    private final String walletPassword;
+
+    public CredentialsService(
+            @Value("${wallet.password}") String walletPassword,
+            @Value("${wallet.path}") String walletPath
+    ) throws Exception {
+        super(walletPassword, walletPath);
+        this.walletPassword = walletPassword;
     }
 
 }

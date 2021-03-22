@@ -1,4 +1,4 @@
-package com.iexec.chain;
+package com.iexec.blockchain.metric;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 
-import static com.iexec.chain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
+import static com.iexec.blockchain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
 
 @RestController
 @RequestMapping("/metrics")

@@ -5,7 +5,7 @@ plugins {
 	id 'com.palantir.docker' version '0.26.0'
 }
 
-group = 'com.iexec.chain'
+group = 'com.iexec.blockchain'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
@@ -34,6 +34,7 @@ dependencies {
 	implementation "io.springfox:springfox-boot-starter:3.0.0"
 	implementation "io.springfox:springfox-swagger-ui:3.0.0"
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// iexec
 	implementation "com.iexec.common:iexec-common:$iexecCommonVersion"

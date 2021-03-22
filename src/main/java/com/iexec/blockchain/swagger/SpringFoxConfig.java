@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.chain.swagger;
+package com.iexec.blockchain.swagger;
 
 
 import org.springframework.context.annotation.Bean;

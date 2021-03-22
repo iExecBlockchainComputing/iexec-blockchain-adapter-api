@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'com.iexec.chain.blockchain-client' is invalid and this project uses 'com.iexec.chain.blockchainclient' instead.
+* The original package name 'com.iexec.blockchain.blockchain-client' is invalid and this project uses 'com.iexec.blockchain.blockchainclient' instead.
 
 # Getting Started
 

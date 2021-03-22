@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.chain.tool;
+package com.iexec.blockchain.tool;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
