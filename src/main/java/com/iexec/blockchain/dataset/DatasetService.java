@@ -42,6 +42,15 @@ public class DatasetService {
         this.queueExecutor = queueExecutor;
     }
 
+    /**
+     * Prepare a dataset locally with its requestId (sync) and create a dataset
+     * on-chain (async)
+     *
+     * @param name         name of the dataset
+     * @param multiAddress uri of the dataset
+     * @param checksum     checksum of the dataset
+     * @return ID of the create dataset request
+     */
     public String createDataset(String name, String multiAddress, String checksum) {
         Dataset dataset = datasetRepository.save(Dataset.builder()
                 .status(Status.LOCALLY_CREATED)
@@ -50,12 +59,23 @@ public class DatasetService {
                 .checksum(checksum)
                 .build());
 
-        Runnable runnable = () -> createDatasetOnChainAndStore(dataset);
+        Runnable runnable = () -> createDatasetOnChainAndStore(dataset.getRequestId());
         queueExecutor.runAsync(runnable);
         return dataset.getRequestId();
     }
 
-    void createDatasetOnChainAndStore(Dataset dataset) {
+    /**
+     * Create a dataset on-chain, update status and retrieve address
+     *
+     * @param requestId ID of the create dataset request
+     */
+    void createDatasetOnChainAndStore(String requestId) {
+        Optional<Dataset> localDataset = datasetRepository.findByRequestId(requestId);
+        if (localDataset.isEmpty()) {
+            return;
+        }
+        Dataset dataset = localDataset.get();
+
         dataset.setStatus(Status.PROCESSING);
         datasetRepository.save(dataset);
         String datasetAddress = iexecHubService.createDataset(dataset.getName(),
@@ -78,11 +98,29 @@ public class DatasetService {
         datasetRepository.save(dataset);
     }
 
-    public Optional<Dataset> getDatasetByRequestId(String requestId) {
-        return datasetRepository.findByRequestId(requestId);
+    /**
+     * Get status for create dataset request
+     *
+     * @param requestId requestId ID of the create dataset request
+     * @return status for on-chain create dataset
+     */
+    public Optional<Status> getStatusForCreateDatasetRequest(String requestId) {
+        Status status = datasetRepository.findByRequestId(requestId)
+                .map(Dataset::getStatus)
+                .orElse(null);
+        if (status != null) {
+            return Optional.of(status);
+        }
+        return Optional.empty();
     }
 
-    public Optional<String> getDatasetAddressByRequestId(String requestId) {
+    /**
+     * Get deployed dataset address for create dataset request
+     *
+     * @param requestId requestId ID of the create dataset request
+     * @return dataset address for on-chain created dataset
+     */
+    public Optional<String> getDatasetAddressForCreateDatasetRequest(String requestId) {
         String datasetAddress = datasetRepository.findByRequestId(requestId)
                 .map(Dataset::getAddress)
                 .orElse("");
@@ -94,7 +132,7 @@ public class DatasetService {
 
 
     /**
-     * Find or fetch dataset
+     * Find in cache or fetch dataset on-chain
      *
      * @param address address of the dataset
      * @return dataset

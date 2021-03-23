@@ -49,7 +49,7 @@ public class DatasetController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}")
     public ResponseEntity<String> getAddressForCreateDatasetRequest(@RequestParam String requestId) {
-        return datasetService.getDatasetAddressByRequestId(requestId)
+        return datasetService.getDatasetAddressForCreateDatasetRequest(requestId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -63,16 +63,16 @@ public class DatasetController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}/status")
     public ResponseEntity<Status> getStatusForCreateDatasetRequest(@RequestParam String requestId) {
-        return datasetService.getDatasetByRequestId(requestId)
-                .map(dataset -> ResponseEntity.ok(dataset.getStatus()))
+        return datasetService.getStatusForCreateDatasetRequest(requestId)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Read dataset information on the blockchain
+     * Get dataset from the blockchain
      *
      * @param address address of the dataset
-     * @return dataset information
+     * @return dataset
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping

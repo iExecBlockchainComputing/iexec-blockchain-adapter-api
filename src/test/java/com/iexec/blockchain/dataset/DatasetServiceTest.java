@@ -25,6 +25,7 @@ class DatasetServiceTest {
     public static final String ID = "id";
     public static final String DATASET_ADDRESS = "datasetAddress";
     public static final String REQUEST_ID = "requestId";
+
     @InjectMocks
     private DatasetService datasetService;
     @Mock
@@ -64,20 +65,32 @@ class DatasetServiceTest {
     }
 
     @Test
+    void shouldNotCreateDatasetOnChainAndStoreSinceLocallyMissing() {
+        when(datasetRepository.findByRequestId(REQUEST_ID))
+                .thenReturn(Optional.empty());
+
+        datasetService.createDatasetOnChainAndStore(REQUEST_ID);
+        verify(datasetRepository, times(0)).save(any());
+    }
+
+    @Test
     void shouldCreateDatasetOnChainAndStoreSuccess() {
         Dataset dataset = Dataset.builder()
                 .id(ID)
+                .requestId(REQUEST_ID)
                 .status(Status.LOCALLY_CREATED)
                 .name(NAME)
                 .multiAddress(MULTI_ADDRESS)
                 .checksum(CHECKSUM)
                 .build();
 
+        when(datasetRepository.findByRequestId(REQUEST_ID))
+                .thenReturn(Optional.of(dataset));
         when(datasetRepository.save(dataset)).thenReturn(dataset);
         when(iexecHubService.createDataset(NAME, MULTI_ADDRESS, CHECKSUM))
                 .thenReturn(DATASET_ADDRESS);
 
-        datasetService.createDatasetOnChainAndStore(dataset);
+        datasetService.createDatasetOnChainAndStore(REQUEST_ID);
         verify(datasetRepository, times(2))
                 .save(dataset);
         assertThat(dataset.getStatus()).isEqualTo(Status.SUCCESS);
@@ -87,31 +100,46 @@ class DatasetServiceTest {
     void shouldTryCreateDatasetOnChainAndStoreFailure() {
         Dataset dataset = Dataset.builder()
                 .id(ID)
+                .requestId(REQUEST_ID)
                 .status(Status.LOCALLY_CREATED)
                 .name(NAME)
                 .multiAddress(MULTI_ADDRESS)
                 .checksum(CHECKSUM)
                 .build();
-
+        when(datasetRepository.findByRequestId(REQUEST_ID))
+                .thenReturn(Optional.of(dataset));
         when(datasetRepository.save(dataset)).thenReturn(dataset);
         when(iexecHubService.createDataset(NAME, MULTI_ADDRESS, CHECKSUM))
                 .thenReturn("");
 
-        datasetService.createDatasetOnChainAndStore(dataset);
+        datasetService.createDatasetOnChainAndStore(REQUEST_ID);
         verify(datasetRepository, times(2))
                 .save(dataset);
         assertThat(dataset.getStatus()).isEqualTo(Status.FAILURE);
     }
 
     @Test
-    void getDatasetByRequestId() {
+    void shouldGetStatusForCreateDatasetRequest() {
         Dataset dataset = mock(Dataset.class);
+        when(dataset.getStatus()).thenReturn(Status.PROCESSING);
         when(datasetRepository.findByRequestId(REQUEST_ID))
                 .thenReturn(Optional.of(dataset));
 
-        Assertions.assertEquals(Optional.of(dataset),
-                datasetService.getDatasetByRequestId(REQUEST_ID));
+        Assertions.assertEquals(Optional.of(Status.PROCESSING),
+                datasetService.getStatusForCreateDatasetRequest(REQUEST_ID));
     }
+
+    @Test
+    void shouldNotGetStatusForCreateDatasetRequest() {
+        Dataset dataset = mock(Dataset.class);
+        when(dataset.getStatus()).thenReturn(null);
+        when(datasetRepository.findByRequestId(REQUEST_ID))
+                .thenReturn(Optional.of(dataset));
+
+        Assertions.assertEquals(Optional.empty(),
+                datasetService.getStatusForCreateDatasetRequest(REQUEST_ID));
+    }
+
 
     @Test
     void shouldGetDatasetAddressByRequestId() {
@@ -121,7 +149,7 @@ class DatasetServiceTest {
                 .thenReturn(Optional.of(dataset));
 
         Assertions.assertEquals(Optional.of(DATASET_ADDRESS),
-                datasetService.getDatasetAddressByRequestId(REQUEST_ID));
+                datasetService.getDatasetAddressForCreateDatasetRequest(REQUEST_ID));
     }
 
     @Test
@@ -131,7 +159,7 @@ class DatasetServiceTest {
                 .thenReturn(Optional.of(dataset));
 
         Assertions.assertEquals(Optional.empty(),
-                datasetService.getDatasetAddressByRequestId(REQUEST_ID));
+                datasetService.getDatasetAddressForCreateDatasetRequest(REQUEST_ID));
     }
 
     @Test
