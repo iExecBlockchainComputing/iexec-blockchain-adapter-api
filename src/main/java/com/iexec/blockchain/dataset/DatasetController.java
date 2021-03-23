@@ -20,12 +20,12 @@ public class DatasetController {
     }
 
     /**
-     * Create dataset sync
+     * Create dataset async
      *
      * @param name         name of the dataset
      * @param multiAddress link of the dataset
      * @param checksum     checksum of the dataset
-     * @return local id of the dataset
+     * @return requestId ID of the request
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/requests")
@@ -69,7 +69,7 @@ public class DatasetController {
     }
 
     /**
-     * Get dataset from the blockchain
+     * Read dataset on the blockchain
      *
      * @param address address of the dataset
      * @return dataset

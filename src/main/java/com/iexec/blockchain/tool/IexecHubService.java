@@ -20,21 +20,15 @@ package com.iexec.blockchain.tool;
 import com.iexec.common.chain.IexecHubAbstractService;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 @Service
 public class IexecHubService extends IexecHubAbstractService {
-
-    private final ExecutorService executorService;
-
+    
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
                            ChainConfig chainConfig) {
         super(credentialsService.getCredentials(),
                 web3jService,
                 chainConfig.getHubAddress());
-        executorService = Executors.newFixedThreadPool(1);
     }
 
 }
