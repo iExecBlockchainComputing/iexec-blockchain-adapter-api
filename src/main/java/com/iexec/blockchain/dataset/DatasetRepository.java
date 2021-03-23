@@ -8,6 +8,6 @@ public interface DatasetRepository extends MongoRepository<Dataset, String> {
 
     Optional<Dataset> findByRequestId(String requestId);
 
-    Optional<Dataset> findByAddress(String id);
+    Optional<Dataset> findByAddress(String address);
 
 }

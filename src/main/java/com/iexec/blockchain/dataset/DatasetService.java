@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -51,12 +50,12 @@ public class DatasetService {
                 .checksum(checksum)
                 .build());
 
-        CompletableFuture.runAsync(() -> createDatasetOnChainAndStore(dataset),
-                queueExecutor.getExecutorService());
+        Runnable runnable = () -> createDatasetOnChainAndStore(dataset);
+        queueExecutor.runAsync(runnable);
         return dataset.getRequestId();
     }
 
-    private void createDatasetOnChainAndStore(Dataset dataset) {
+    void createDatasetOnChainAndStore(Dataset dataset) {
         dataset.setStatus(Status.PROCESSING);
         datasetRepository.save(dataset);
         String datasetAddress = iexecHubService.createDataset(dataset.getName(),
@@ -102,6 +101,7 @@ public class DatasetService {
      */
     public Optional<Dataset> getDatasetByAddress(String address) {
         Optional<Dataset> datasetFromCache = datasetRepository.findByAddress(address)
+                .filter(dataset -> dataset.getStatus() != null)
                 .filter(dataset -> dataset.getStatus().equals(Status.SUCCESS));
         if (datasetFromCache.isPresent()) {
             return datasetFromCache;
@@ -111,11 +111,13 @@ public class DatasetService {
                 .map(chainDataset -> {
                     Dataset dataset = datasetRepository.save(Dataset.builder()
                             .status(Status.SUCCESS)
+                            .address(chainDataset.getChainDatasetId())
                             .name(chainDataset.getName())
                             .multiAddress(chainDataset.getUri())
                             .checksum(chainDataset.getChecksum())
                             .build());
-                    log.info("Found dataset and added it to cache [address:{}, name:{}, url:{}, checksum:{}]",
+                    log.info("Found dataset and added it to cache " +
+                                    "[address:{}, name:{}, url:{}, checksum:{}]",
                             dataset.getAddress(),
                             dataset.getName(),
                             dataset.getMultiAddress(),
