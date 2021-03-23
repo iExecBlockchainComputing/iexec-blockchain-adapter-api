@@ -1,1 +1,25 @@
+server:
+  port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PORT:18070}
 
+spring:
+  security:
+    user:
+      name: ${IEXEC_BLOCKCHAIN_ADAPTER_API_USERNAME:admin}
+      password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PASSWORD:whatever}
+  data:
+    mongodb:
+      database: iexec-blockchain-adapter-api
+      host: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_HOST:localhost}
+      port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:18071}
+
+chain:
+  id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:133}
+  node-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_NODE_ADDRESS:https://viviani.iex.ec/}
+  hub-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_HUB_ADDRESS:0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f}
+  is-sidechain: ${IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN:true}
+  gas-price-multiplier: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be send with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
+  gas-price-cap: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
+
+wallet:
+  path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
+  password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}
