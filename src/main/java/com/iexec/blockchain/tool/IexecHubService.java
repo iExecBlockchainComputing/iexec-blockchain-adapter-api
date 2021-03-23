@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class IexecHubService extends IexecHubAbstractService {
-    
+
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
                            ChainConfig chainConfig) {
