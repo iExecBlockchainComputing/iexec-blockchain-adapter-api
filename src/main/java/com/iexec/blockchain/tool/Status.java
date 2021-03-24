@@ -18,7 +18,7 @@ package com.iexec.blockchain.tool;
 
 public enum Status {
 
-    LOCALLY_CREATED,
+    RECEIVED,
     PROCESSING,
     SUCCESS,
     FAILURE,

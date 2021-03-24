@@ -7,11 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
-public class QueueExecutor {
+public class QueueService {
 
     private final ExecutorService executorService;
 
-    public QueueExecutor() {
+    public QueueService() {
         executorService = Executors.newFixedThreadPool(1);
     }
 
