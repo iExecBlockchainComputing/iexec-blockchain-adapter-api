@@ -18,6 +18,7 @@ package com.iexec.blockchain.task.initialize;
 
 
 import com.iexec.blockchain.tool.Status;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -37,25 +38,26 @@ public class TaskInitializeUpdaterService {
     }
 
     public boolean setReceived(String chainDealId, int taskIndex, String chainTaskId) {
-        if (!StringUtils.hasText(chainDealId) || taskIndex < 0) {
+        if (!StringUtils.hasText(chainDealId) || taskIndex < 0
+                || !StringUtils.hasText(chainTaskId)) {
             return false;
         }
 
         if (taskInitializeRepository.findByChainTaskId(chainTaskId).isPresent()) {
-            log.warn("Task already locally created for initialize task" +
+            log.error("Already received initialize task" +
                     " [chainTaskId:{}]", chainTaskId);
             return false;
         }
 
         TaskInitialize taskInitialize = TaskInitialize.builder()
                 .status(Status.RECEIVED)
-                .chainTaskId(chainTaskId)
                 .chainDealId(chainDealId)
                 .taskIndex(taskIndex)
+                .chainTaskId(chainTaskId)
                 .creationDate(Instant.now())
                 .build();
         taskInitializeRepository.save(taskInitialize);
-        log.info("Locally created task for initialize task [chainTaskId:{}]",
+        log.info("Received initialize task [chainTaskId:{}]",
                 chainTaskId);
         return true;
     }
@@ -77,7 +79,7 @@ public class TaskInitializeUpdaterService {
         return true;
     }
 
-    public void setFinal(String chainTaskId, TransactionReceipt receipt) {
+    public void setFinal(String chainTaskId, @NonNull TransactionReceipt receipt) {
         Optional<TaskInitialize> localTask = taskInitializeRepository.findByChainTaskId(chainTaskId)
                 .filter(taskInitialize -> taskInitialize.getStatus() != null)
                 .filter(taskInitialize -> taskInitialize.getStatus() == Status.PROCESSING);
@@ -99,11 +101,10 @@ public class TaskInitializeUpdaterService {
             log.info("Failure after initialize task transaction " +
                     "[chainTaskId:{}, receipt:{}]", chainTaskId, receipt.toString());
         }
-        taskInitialize.setTransactionReceipt(receipt);
         taskInitialize.setStatus(status);
-        taskInitialize.setProcessingDate(Instant.now());
+        taskInitialize.setTransactionReceipt(receipt);
+        taskInitialize.setFinalDate(Instant.now());
         taskInitializeRepository.save(taskInitialize);
     }
-
 
 }
