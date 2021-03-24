@@ -49,6 +49,14 @@ public class TaskInitializeService {
         this.queueService = queueService;
     }
 
+    /**
+     * Start initialize task process. Request is synchronously updated to
+     * received, then rest of the workflow is done asynchronously
+     *
+     * @param chainDealId blockchain ID of the deal
+     * @param taskIndex   index of the task int the bag
+     * @return blockchain ID of the task
+     */
     public String initializeTask(String chainDealId, int taskIndex) {
         String chainTaskId = ChainUtils.generateChainTaskId(chainDealId,
                 taskIndex);
@@ -74,6 +82,15 @@ public class TaskInitializeService {
         return chainTaskId;
     }
 
+    /**
+     * Trigger initialize task process by :
+     * - firing the corresponding blockchain transaction
+     * - performing local updates
+     *
+     * @param chainDealId blockchain ID of the deal
+     * @param taskIndex   index of the task int the bag
+     * @param chainTaskId blockchain ID of the task
+     */
     void triggerInitializeTask(String chainDealId,
                                int taskIndex,
                                String chainTaskId) {
@@ -93,6 +110,12 @@ public class TaskInitializeService {
                 });
     }
 
+    /**
+     * Get status for the initialize task process (which is async)
+     *
+     * @param chainTaskId blockchain ID of the task
+     * @return status of the initialize task process
+     */
     public Optional<Status> getStatusForInitializeTaskRequest(String chainTaskId) {
         Status status = repository.findByChainTaskId(chainTaskId)
                 .map(TaskInitialize::getStatus)

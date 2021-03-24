@@ -37,6 +37,14 @@ public class TaskInitializeUpdaterService {
         this.taskInitializeRepository = taskInitializeRepository;
     }
 
+    /**
+     * Locally set status (and more) to received
+     *
+     * @param chainDealId blockchain ID of the deal
+     * @param taskIndex   index of the task int the bag
+     * @param chainTaskId blockchain ID of the task
+     * @return true on successful update
+     */
     public boolean setReceived(String chainDealId, int taskIndex, String chainTaskId) {
         if (!StringUtils.hasText(chainDealId) || taskIndex < 0
                 || !StringUtils.hasText(chainTaskId)) {
@@ -62,6 +70,12 @@ public class TaskInitializeUpdaterService {
         return true;
     }
 
+    /**
+     * Locally set status (and more) to processing
+     *
+     * @param chainTaskId blockchain ID of the task
+     * @return true on successful update
+     */
     public boolean setProcessing(String chainTaskId) {
         Optional<TaskInitialize> localTask = taskInitializeRepository.findByChainTaskId(chainTaskId)
                 .filter(taskInitialize -> taskInitialize.getStatus() != null)
@@ -79,8 +93,15 @@ public class TaskInitializeUpdaterService {
         return true;
     }
 
+    /**
+     * Locally set status (and more) to success or failure
+     *
+     * @param chainTaskId blockchain ID of the task
+     * @param receipt blockchain receipt
+     */
     public void setFinal(String chainTaskId, @NonNull TransactionReceipt receipt) {
-        Optional<TaskInitialize> localTask = taskInitializeRepository.findByChainTaskId(chainTaskId)
+        Optional<TaskInitialize> localTask = taskInitializeRepository
+                .findByChainTaskId(chainTaskId)
                 .filter(taskInitialize -> taskInitialize.getStatus() != null)
                 .filter(taskInitialize -> taskInitialize.getStatus() == Status.PROCESSING);
         if (localTask.isEmpty()) {

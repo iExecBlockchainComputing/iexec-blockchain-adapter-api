@@ -14,8 +14,7 @@ import static com.iexec.blockchain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-
-
+    
     private final IexecHubService iexecHubService;
     private final TaskInitializeService taskInitializeService;
 
@@ -25,6 +24,12 @@ public class TaskController {
         this.taskInitializeService = taskInitializeService;
     }
 
+    /**
+     * Get task metadata from the blockchain.
+     *
+     * @param chainTaskId blockchain ID of the task
+     * @return task metadata
+     */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping
     public ResponseEntity<ChainTask> getTask(@RequestParam String chainTaskId) {
@@ -33,6 +38,13 @@ public class TaskController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Start the initialize task async on-chain process.
+     *
+     * @param chainDealId blockchain ID of the deal
+     * @param taskIndex   index of the task int the bag
+     * @return blockchain ID of the task
+     */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/initialize")
     public ResponseEntity<String> initializeTask(@RequestParam String chainDealId,
@@ -44,6 +56,12 @@ public class TaskController {
         return ResponseEntity.badRequest().build();
     }
 
+    /**
+     * Get the status for the initialize task async process.
+     *
+     * @param chainTaskId blockchain ID of the task
+     * @return task initialize process status
+     */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
     public ResponseEntity<Status> getStatusForInitializeTaskRequest(@RequestParam String chainTaskId) {
@@ -51,6 +69,5 @@ public class TaskController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
 
 }

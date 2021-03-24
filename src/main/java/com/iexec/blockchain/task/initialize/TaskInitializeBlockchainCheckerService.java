@@ -31,6 +31,14 @@ public class TaskInitializeBlockchainCheckerService {
         this.iexecHubService = iexecHubService;
     }
 
+    /**
+     * Check if task can be initialized.
+     *
+     * @param chainDealId blockchain ID of the deal
+     * @param taskIndex   index of the task int the bag
+     * @param chainTaskId blockchain ID of the task
+     * @return true if task can be initialized on-chain
+     */
     public boolean canInitializeTask(String chainDealId, int taskIndex, String chainTaskId) {
         boolean hasEnoughGas =
                 iexecHubService.hasEnoughGas();
