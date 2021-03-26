@@ -1,4 +1,4 @@
-package com.iexec.blockchain.task.initialize;
+package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.ChainUtils;
@@ -15,13 +15,16 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-class TaskInitializeUpdaterServiceTest {
+class TaskInitializeStorageTest {
 
-    public static final String CHAIN_DEAL_ID = "0x000000000000000000000000000000000000000000000000000000000000dea1";
+    public static final String CHAIN_DEAL_ID =
+            "0x000000000000000000000000000000000000000000000000000000000000dea1";
     public static final int TASK_INDEX = 0;
-    public static final String CHAIN_TASK_ID = ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX);
+    public static final String CHAIN_TASK_ID =
+            ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX);
+
     @InjectMocks
-    private TaskInitializeUpdaterService updaterService;
+    private TaskInitializeStorageService updaterService;
     @Mock
     private TaskInitializeRepository repository;
 
@@ -32,10 +35,11 @@ class TaskInitializeUpdaterServiceTest {
 
     @Test
     void shouldSetReceived() {
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitializeArgs args = getArgs();
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.empty());
 
-        boolean isSet = updaterService.setReceived(CHAIN_DEAL_ID, TASK_INDEX, CHAIN_TASK_ID);
+        boolean isSet = updaterService.setReceived(args);
 
         Assertions.assertTrue(isSet);
         ArgumentCaptor<TaskInitialize> taskInitializeCaptor =
@@ -44,40 +48,19 @@ class TaskInitializeUpdaterServiceTest {
                 .save(taskInitializeCaptor.capture());
         TaskInitialize initializeCaptorValue = taskInitializeCaptor.getValue();
         Assertions.assertEquals(Status.RECEIVED, initializeCaptorValue.getStatus());
-        Assertions.assertEquals(CHAIN_DEAL_ID, initializeCaptorValue.getChainDealId());
-        Assertions.assertEquals(TASK_INDEX, initializeCaptorValue.getTaskIndex());
-        Assertions.assertEquals(CHAIN_TASK_ID, initializeCaptorValue.getChainTaskId());
+        Assertions.assertEquals(CHAIN_TASK_ID, initializeCaptorValue.getChainObjectId());
+        Assertions.assertEquals(args, initializeCaptorValue.getArgs());
         Assertions.assertNotNull(initializeCaptorValue.getCreationDate());
     }
 
-    @Test
-    void shouldNotSetReceivedSinceEmptyDeal() {
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
-                .thenReturn(Optional.empty());
-
-        boolean isSet = updaterService.setReceived("", TASK_INDEX, CHAIN_TASK_ID);
-
-        Assertions.assertFalse(isSet);
-        verify(repository, times(0)).save(any());
-    }
 
     @Test
-    void shouldNotSetReceivedSinceEmptyIndex() {
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
-                .thenReturn(Optional.empty());
+    void shouldNotSetReceivedSinceAlreadyPresent() {
+        TaskInitializeArgs args = getArgs();
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
+                .thenReturn(Optional.of(mock(TaskInitialize.class)));
 
-        boolean isSet = updaterService.setReceived(CHAIN_DEAL_ID, -1, CHAIN_TASK_ID);
-
-        Assertions.assertFalse(isSet);
-        verify(repository, times(0)).save(any());
-    }
-
-    @Test
-    void shouldNotSetReceivedSinceEmptyTask() {
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
-                .thenReturn(Optional.empty());
-
-        boolean isSet = updaterService.setReceived(CHAIN_DEAL_ID, TASK_INDEX, "");
+        boolean isSet = updaterService.setReceived(args);
 
         Assertions.assertFalse(isSet);
         verify(repository, times(0)).save(any());
@@ -85,9 +68,9 @@ class TaskInitializeUpdaterServiceTest {
 
     @Test
     void shouldSetProcessing() {
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(Status.RECEIVED).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitialize taskInitialize = new TaskInitialize();
+        taskInitialize.setStatus(Status.RECEIVED);
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
         boolean isSet = updaterService.setProcessing(CHAIN_TASK_ID);
@@ -103,23 +86,10 @@ class TaskInitializeUpdaterServiceTest {
     }
 
     @Test
-    void shouldNotSetProcessingSinceNullStatus() {
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(null).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
-                .thenReturn(Optional.of(taskInitialize));
-
-        boolean isSet = updaterService.setProcessing(CHAIN_TASK_ID);
-
-        Assertions.assertFalse(isSet);
-        verify(repository, times(0)).save(any());
-    }
-
-    @Test
     void shouldNotSetProcessingSinceBadStatus() {
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(Status.PROCESSING).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitialize taskInitialize = new TaskInitialize();
+        taskInitialize.setStatus(Status.PROCESSING);
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
         boolean isSet = updaterService.setProcessing(CHAIN_TASK_ID);
@@ -132,9 +102,9 @@ class TaskInitializeUpdaterServiceTest {
     void shouldSetFinalSuccess() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(receipt.getStatus()).thenReturn("0x1");
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(Status.PROCESSING).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitialize taskInitialize = new TaskInitialize();
+        taskInitialize.setStatus(Status.PROCESSING);
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
         updaterService.setFinal(CHAIN_TASK_ID, receipt);
@@ -153,9 +123,9 @@ class TaskInitializeUpdaterServiceTest {
     void shouldSetFinalFailure() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(receipt.getStatus()).thenReturn("0x0");
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(Status.PROCESSING).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitialize taskInitialize = new TaskInitialize();
+        taskInitialize.setStatus(Status.PROCESSING);
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
         updaterService.setFinal(CHAIN_TASK_ID, receipt);
@@ -171,11 +141,11 @@ class TaskInitializeUpdaterServiceTest {
     }
 
     @Test
-    void shouldNotSetFinalSinceNullStatus() {
+    void shouldNotSetFinalSinceBadStatus() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(null).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
+        TaskInitialize taskInitialize = new TaskInitialize();
+        taskInitialize.setStatus(Status.RECEIVED);
+        when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
         updaterService.setFinal(CHAIN_TASK_ID, receipt);
@@ -183,16 +153,11 @@ class TaskInitializeUpdaterServiceTest {
         verify(repository, times(0)).save(any());
     }
 
-    @Test
-    void shouldNotSetFinalSinceBadStatus() {
-        TransactionReceipt receipt = mock(TransactionReceipt.class);
-        TaskInitialize taskInitialize = TaskInitialize.builder()
-                .status(Status.RECEIVED).build();
-        when(repository.findByChainTaskId(CHAIN_TASK_ID))
-                .thenReturn(Optional.of(taskInitialize));
-
-        updaterService.setFinal(CHAIN_TASK_ID, receipt);
-
-        verify(repository, times(0)).save(any());
+    private TaskInitializeArgs getArgs() {
+        return TaskInitializeArgs.builder()
+                .chainDealId(CHAIN_DEAL_ID)
+                .taskIndex(TASK_INDEX)
+                .chainTaskId(ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX))
+                .build();
     }
 }

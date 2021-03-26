@@ -14,48 +14,50 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.task.initialize;
+package com.iexec.blockchain.command.task.initialize;
 
 
+import com.iexec.blockchain.command.generic.CommandBlockchain;
 import com.iexec.blockchain.tool.IexecHubService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
+import java.util.concurrent.CompletionStage;
 
 @Slf4j
 @Service
-public class TaskInitializeBlockchainCheckerService {
+public class TaskInitializeBlockchainService implements CommandBlockchain<TaskInitializeArgs> {
 
     private final IexecHubService iexecHubService;
 
-    public TaskInitializeBlockchainCheckerService(IexecHubService iexecHubService) {
+    public TaskInitializeBlockchainService(IexecHubService iexecHubService) {
         this.iexecHubService = iexecHubService;
     }
 
-    /**
-     * Check if task can be initialized.
-     *
-     * @param chainDealId blockchain ID of the deal
-     * @param taskIndex   index of the task int the bag
-     * @param chainTaskId blockchain ID of the task
-     * @return true if task can be initialized on-chain
-     */
-    public boolean canInitializeTask(String chainDealId, int taskIndex, String chainTaskId) {
+    @Override
+    public boolean canSendBlockchainCommand(TaskInitializeArgs args) {
         boolean hasEnoughGas =
                 iexecHubService.hasEnoughGas();
         boolean isTaskUnsetOnChain =
-                iexecHubService.isTaskInUnsetStatusOnChain(chainTaskId);
+                iexecHubService.isTaskInUnsetStatusOnChain(args.getChainTaskId());
         boolean isBeforeContributionDeadline =
-                iexecHubService.isBeforeContributionDeadline(chainDealId);
+                iexecHubService.isBeforeContributionDeadline(args.getChainDealId());
 
         if (!hasEnoughGas || !isTaskUnsetOnChain || !isBeforeContributionDeadline) {
             log.error("Cannot initialize task [chainDealId:{}, taskIndex:{}, chainTaskId:{}, " +
                             "hasEnoughGas:{}, isTaskUnsetOnChain:{}, isBeforeContributionDeadline:{}]",
-                    chainDealId, taskIndex, chainTaskId,
+                    args.getChainDealId(), args.getTaskIndex(), args.getChainTaskId(),
                     hasEnoughGas, isTaskUnsetOnChain, isBeforeContributionDeadline);
             //TODO eventually return cause
             return false;
         }
         return true;
+    }
+
+    @Override
+    public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskInitializeArgs args) {
+        return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex());
     }
 
 }

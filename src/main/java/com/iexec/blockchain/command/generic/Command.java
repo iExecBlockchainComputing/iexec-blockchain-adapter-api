@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.task.initialize;
+package com.iexec.blockchain.command.generic;
 
 import com.iexec.blockchain.tool.Status;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -31,25 +30,23 @@ import java.time.Instant;
 
 @Document
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskInitialize {
+public abstract class Command<A extends CommandArgs> {
 
     @Id
     private String id;
     @Indexed(unique = true)
-    private String chainTaskId;
+    private String chainObjectId;
     @Version
     private Long version;
-
-    private String chainDealId;
-    private int taskIndex;
 
     private Status status;
     private Instant creationDate;
     private Instant processingDate;
     private Instant finalDate;
     private TransactionReceipt transactionReceipt;
+
+    private A args;
 
 }

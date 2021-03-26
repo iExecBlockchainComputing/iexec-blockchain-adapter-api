@@ -1,4 +1,4 @@
-package com.iexec.blockchain.task.initialize;
+package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.ChainUtils;
@@ -11,14 +11,16 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.when;
 
-class TaskInitializeBlockchainCheckerServiceTest {
+class TaskInitializeBlockchainTest {
 
-    public static final String CHAIN_DEAL_ID = "0x000000000000000000000000000000000000000000000000000000000000dea1";
+    public static final String CHAIN_DEAL_ID =
+            "0x000000000000000000000000000000000000000000000000000000000000dea1";
     public static final int TASK_INDEX = 0;
-    public static final String CHAIN_TASK_ID = ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX);
+    public static final String CHAIN_TASK_ID =
+            ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX);
 
     @InjectMocks
-    private TaskInitializeBlockchainCheckerService checkerService;
+    private TaskInitializeBlockchainService checkerService;
     @Mock
     private IexecHubService iexecHubService;
 
@@ -28,7 +30,8 @@ class TaskInitializeBlockchainCheckerServiceTest {
     }
 
     @Test
-    void canInitializeTask() {
+    void canSendBlockchainCommand() {
+        TaskInitializeArgs args = getArgs();
         when(iexecHubService.hasEnoughGas())
                 .thenReturn(true);
         when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
@@ -36,11 +39,12 @@ class TaskInitializeBlockchainCheckerServiceTest {
         when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
                 .thenReturn(true);
 
-        Assertions.assertTrue(checkerService.canInitializeTask(CHAIN_DEAL_ID, TASK_INDEX, CHAIN_TASK_ID));
+        Assertions.assertTrue(checkerService.canSendBlockchainCommand(args));
     }
 
     @Test
     void cannotInitializeTaskSinceNotEnoughGas() {
+        TaskInitializeArgs args = getArgs();
         when(iexecHubService.hasEnoughGas())
                 .thenReturn(false);
         when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
@@ -48,11 +52,12 @@ class TaskInitializeBlockchainCheckerServiceTest {
         when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
                 .thenReturn(true);
 
-        Assertions.assertFalse(checkerService.canInitializeTask(CHAIN_DEAL_ID, TASK_INDEX, CHAIN_TASK_ID));
+        Assertions.assertFalse(checkerService.canSendBlockchainCommand(args));
     }
 
     @Test
     void cannotInitializeTaskSinceNotUnset() {
+        TaskInitializeArgs args = getArgs();
         when(iexecHubService.hasEnoughGas())
                 .thenReturn(true);
         when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
@@ -60,11 +65,12 @@ class TaskInitializeBlockchainCheckerServiceTest {
         when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
                 .thenReturn(true);
 
-        Assertions.assertFalse(checkerService.canInitializeTask(CHAIN_DEAL_ID, TASK_INDEX, CHAIN_TASK_ID));
+        Assertions.assertFalse(checkerService.canSendBlockchainCommand(args));
     }
 
     @Test
     void cannotInitializeTaskSinceNotBeforeDeadline() {
+        TaskInitializeArgs args = getArgs();
         when(iexecHubService.hasEnoughGas())
                 .thenReturn(true);
         when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
@@ -72,8 +78,14 @@ class TaskInitializeBlockchainCheckerServiceTest {
         when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
                 .thenReturn(false);
 
-        Assertions.assertFalse(checkerService.canInitializeTask(CHAIN_DEAL_ID, TASK_INDEX, CHAIN_TASK_ID));
+        Assertions.assertFalse(checkerService.canSendBlockchainCommand(args));
     }
 
-
+    private TaskInitializeArgs getArgs() {
+        return TaskInitializeArgs.builder()
+                .chainDealId(CHAIN_DEAL_ID)
+                .taskIndex(TASK_INDEX)
+                .chainTaskId(ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX))
+                .build();
+    }
 }
