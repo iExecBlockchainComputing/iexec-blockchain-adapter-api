@@ -46,9 +46,9 @@ public class TaskController {
      * @return task metadata
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @GetMapping
+    @GetMapping("/{chainTaskId}")
     public ResponseEntity<ChainTask> getTask(
-            @RequestParam String chainTaskId) {
+            @PathVariable String chainTaskId) {
         return iexecHubService.getChainTask(chainTaskId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -83,7 +83,7 @@ public class TaskController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
     public ResponseEntity<Status> getStatusForInitializeTaskRequest(
-            @RequestParam String chainTaskId) {
+            @PathVariable String chainTaskId) {
         return taskInitializeService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -97,9 +97,9 @@ public class TaskController {
      * @return blockchain task ID if successful
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @PostMapping("/contribute")
+    @PostMapping("/contribute/{chainTaskId}")
     public ResponseEntity<String> contributeTask(
-            @RequestParam String chainTaskId,
+            @PathVariable String chainTaskId,
             @RequestBody TaskContributeArgs args) {
         if (!taskContributeService.start(chainTaskId, args).isEmpty()) {
             return ResponseEntity.ok(chainTaskId);
@@ -116,7 +116,7 @@ public class TaskController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/contribute/{chainTaskId}/status")
     public ResponseEntity<Status> getStatusForContributeTaskRequest(
-            @RequestParam String chainTaskId) {
+            @PathVariable String chainTaskId) {
         return taskContributeService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -130,9 +130,9 @@ public class TaskController {
      * @return blockchain task ID if successful
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @PostMapping("/reveal")
+    @PostMapping("/reveal/{chainTaskId}")
     public ResponseEntity<String> revealTask(
-            @RequestParam String chainTaskId,
+            @PathVariable String chainTaskId,
             @RequestBody TaskRevealArgs args) {
         if (!taskRevealService.start(chainTaskId, args).isEmpty()) {
             return ResponseEntity.ok(chainTaskId);
@@ -149,7 +149,7 @@ public class TaskController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/reveal/{chainTaskId}/status")
     public ResponseEntity<Status> getStatusForRevealTaskRequest(
-            @RequestParam String chainTaskId) {
+            @PathVariable String chainTaskId) {
         return taskRevealService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -163,9 +163,9 @@ public class TaskController {
      * @return blockchain task ID if successful
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @PostMapping("/finalize")
+    @PostMapping("/finalize/{chainTaskId}")
     public ResponseEntity<String> finalizeTask(
-            @RequestParam String chainTaskId,
+            @PathVariable String chainTaskId,
             @RequestBody TaskFinalizeArgs args) {
         if (!taskFinalizeService.start(chainTaskId, args).isEmpty()) {
             return ResponseEntity.ok(chainTaskId);
@@ -182,7 +182,7 @@ public class TaskController {
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/finalize/{chainTaskId}/status")
     public ResponseEntity<Status> getStatusForFinalizeTaskRequest(
-            @RequestParam String chainTaskId) {
+            @PathVariable String chainTaskId) {
         return taskFinalizeService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
