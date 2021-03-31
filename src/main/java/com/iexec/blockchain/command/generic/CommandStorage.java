@@ -129,13 +129,8 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      *                      is performed
      */
     public Optional<Status> getStatusForCommand(String chainObjectId) {
-        Status status = commandRepository.findByChainObjectId(chainObjectId)
-                .map(Command::getStatus)
-                .orElse(null);
-        if (status != null) {
-            return Optional.of(status);
-        }
-        return Optional.empty();
+        return commandRepository.findByChainObjectId(chainObjectId)
+                .map(Command::getStatus);
     }
 
 }
