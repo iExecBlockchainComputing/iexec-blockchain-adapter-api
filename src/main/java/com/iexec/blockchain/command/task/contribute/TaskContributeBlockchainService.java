@@ -47,23 +47,33 @@ public class TaskContributeBlockchainService implements CommandBlockchain<TaskCo
         String workerWallet = credentialsService.getCredentials().getAddress();
         Optional<ChainTask> optionalChainTask = iexecHubService.getChainTask(chainTaskId);
         if (optionalChainTask.isEmpty()) {
+            logError(chainTaskId, args, "blockchain read");
             return false;
         }
         ChainTask chainTask = optionalChainTask.get();
 
         if (!iexecHubService.hasEnoughStakeToContribute(chainTask.getDealid(), workerWallet)) {
+            logError(chainTaskId, args, "stake too low");
             return false;
         }
-
         if (!iexecHubService.isChainTaskActive(chainTask.getStatus())) {
+            logError(chainTaskId, args, "task is not active");
             return false;
         }
-
         if (!iexecHubService.isBeforeContributionDeadlineToContribute(chainTask)) {
+            logError(chainTaskId, args, "after contribution deadline");
             return false;
         }
+        if (!iexecHubService.isContributionUnsetToContribute(chainTaskId, workerWallet)) {
+            logError(chainTaskId, args, "contribution already set");
+            return false;
+        }
+        return true;
+    }
 
-        return iexecHubService.isContributionUnsetToContribute(chainTaskId, workerWallet);
+    private void logError(String chainTaskId, TaskContributeArgs args, String error) {
+        log.error("Contribute task blockchain call is likely to revert ({}) " +
+                "[chainTaskId:{}, args:{}]", error, chainTaskId, args);
     }
 
     @Override

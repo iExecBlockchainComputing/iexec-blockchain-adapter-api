@@ -37,22 +37,25 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
 
     @Override
     public boolean canSendBlockchainCommand(TaskInitializeArgs args) {
-        boolean hasEnoughGas =
-                iexecHubService.hasEnoughGas();
-        boolean isTaskUnsetOnChain =
-                iexecHubService.isTaskInUnsetStatusOnChain(args.getChainTaskId());
-        boolean isBeforeContributionDeadline =
-                iexecHubService.isBeforeContributionDeadline(args.getChainDealId());
-
-        if (!hasEnoughGas || !isTaskUnsetOnChain || !isBeforeContributionDeadline) {
-            log.error("Cannot initialize task [chainDealId:{}, taskIndex:{}, chainTaskId:{}, " +
-                            "hasEnoughGas:{}, isTaskUnsetOnChain:{}, isBeforeContributionDeadline:{}]",
-                    args.getChainDealId(), args.getTaskIndex(), args.getChainTaskId(),
-                    hasEnoughGas, isTaskUnsetOnChain, isBeforeContributionDeadline);
-            //TODO eventually return cause
+        String chainTaskId = args.getChainTaskId();
+        if (!iexecHubService.hasEnoughGas()) {
+            logError(chainTaskId, args, "task is not revealing");
+            return false;
+        }
+        if (!iexecHubService.isTaskInUnsetStatusOnChain(args.getChainTaskId())) {
+            logError(chainTaskId, args, "task is not unset");
+            return false;
+        }
+        if (!iexecHubService.isBeforeContributionDeadline(args.getChainDealId())) {
+            logError(chainTaskId, args, "after contribution deadline");
             return false;
         }
         return true;
+    }
+
+    private void logError(String chainTaskId, TaskInitializeArgs args, String error) {
+        log.error("Initialize task blockchain call is likely to revert ({}) " +
+                "[chainTaskId:{}, args:{}]", error, chainTaskId, args);
     }
 
     @Override

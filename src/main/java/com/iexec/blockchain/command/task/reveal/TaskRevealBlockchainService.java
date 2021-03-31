@@ -51,52 +51,51 @@ public class TaskRevealBlockchainService implements CommandBlockchain<TaskReveal
         String resultDigest = args.getResultDigest();
         String workerWallet = credentialsService.getCredentials().getAddress();
         Optional<ChainTask> optionalChainTask = iexecHubService.getChainTask(chainTaskId);
-        if (!optionalChainTask.isPresent()) {
-            log.error("Task couldn't be retrieved [chainTaskId:{}]", chainTaskId);
+        if (optionalChainTask.isEmpty()) {
+            logError(chainTaskId, args, "task blockchain read");
             return false;
         }
         ChainTask chainTask = optionalChainTask.get();
 
-        boolean isChainTaskRevealing = iexecHubService.isChainTaskRevealing(chainTask.getStatus());
-        boolean isRevealDeadlineReached = chainTask.getRevealDeadline() < new Date().getTime();
-
-        Optional<ChainContribution> optionalContribution = iexecHubService.getChainContribution(chainTaskId, workerWallet);
-        if (!optionalContribution.isPresent()) {
-            log.error("Contribution couldn't be retrieved [chainTaskId:{}]", chainTaskId);
+        if (!iexecHubService.isChainTaskRevealing(chainTask.getStatus())) {
+            logError(chainTaskId, args, "task is not revealing");
+            return false;
+        }
+        if (!(chainTask.getRevealDeadline() < new Date().getTime())) {
+            logError(chainTaskId, args, "after reveal deadline");
+            return false;
+        }
+        Optional<ChainContribution> optionalContribution =
+                iexecHubService.getChainContribution(chainTaskId, workerWallet);
+        if (optionalContribution.isEmpty()) {
+            logError(chainTaskId, args, "contribution blockchain read");
             return false;
         }
         ChainContribution chainContribution = optionalContribution.get();
-        boolean isChainContributionStatusContributed = chainContribution.getStatus().equals(ChainContributionStatus.CONTRIBUTED);
-        boolean isContributionResultHashConsensusValue = chainContribution.getResultHash().equals(chainTask.getConsensusValue());
-
-        boolean isContributionResultHashCorrect = false;
-        boolean isContributionResultSealCorrect = false;
-
-        if (!resultDigest.isEmpty()) {//TODO
-            isContributionResultHashCorrect = chainContribution.getResultHash().equals(ResultUtils.computeResultHash(chainTaskId, resultDigest));
-
-            isContributionResultSealCorrect = chainContribution.getResultSeal().equals(
-                    ResultUtils.computeResultSeal(workerWallet, chainTaskId, resultDigest)
-            );
+        if (!chainContribution.getStatus().equals(ChainContributionStatus.CONTRIBUTED)) {
+            logError(chainTaskId, args, "task is not contributed");
+            return false;
         }
-
-        boolean ret = isChainTaskRevealing && !isRevealDeadlineReached &&
-                isChainContributionStatusContributed && isContributionResultHashConsensusValue &&
-                isContributionResultHashCorrect && isContributionResultSealCorrect;
-
-        if (ret) {
-            log.info("All the conditions are valid for the reveal to happen [chainTaskId:{}]", chainTaskId);
-        } else {
-            log.warn("One or more conditions are not met for the reveal to happen [chainTaskId:{}, " +
-                            "isChainTaskRevealing:{}, isRevealDeadlineReached:{}, " +
-                            "isChainContributionStatusContributed:{}, isContributionResultHashConsensusValue:{}, " +
-                            "isContributionResultHashCorrect:{}, isContributionResultSealCorrect:{}]", chainTaskId,
-                    isChainTaskRevealing, isRevealDeadlineReached,
-                    isChainContributionStatusContributed, isContributionResultHashConsensusValue,
-                    isContributionResultHashCorrect, isContributionResultSealCorrect);
+        if (!chainContribution.getResultHash().equals(chainTask.getConsensusValue())) {
+            logError(chainTaskId, args, "result hash does not match consensus");
+            return false;
         }
+        if (!chainContribution.getResultHash()
+                .equals(ResultUtils.computeResultHash(chainTaskId, resultDigest))) {
+            logError(chainTaskId, args, "result hash does not match contribution");
+            return false;
+        }
+        if (!chainContribution.getResultSeal().equals(
+                ResultUtils.computeResultSeal(workerWallet, chainTaskId, resultDigest))) {
+            logError(chainTaskId, args, "result seal does not match contribution");
+            return false;
+        }
+        return true;
+    }
 
-        return ret;
+    private void logError(String chainTaskId, TaskRevealArgs args, String error) {
+        log.error("Reveal task blockchain call is likely to revert ({}) " +
+                "[chainTaskId:{}, args:{}]", error, chainTaskId, args);
     }
 
     @Override

@@ -45,32 +45,35 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
         String chainTaskId = args.getChainTaskId();
 
         Optional<ChainTask> optional = iexecHubService.getChainTask(chainTaskId);
-        if (!optional.isPresent()) {
+        if (optional.isEmpty()) {
+            logError(chainTaskId, args, "blockchain read");
             return false;
         }
         ChainTask chainTask = optional.get();
 
-        boolean isChainTaskStatusRevealing = chainTask.getStatus().equals(ChainTaskStatus.REVEALING);
-        boolean isFinalDeadlineInFuture = now() < chainTask.getFinalDeadline();
-        boolean hasEnoughRevealors = (chainTask.getRevealCounter() == chainTask.getWinnerCounter())
-                || (chainTask.getRevealCounter() > 0 && chainTask.getRevealDeadline() <= now());
-
-        boolean ret = isChainTaskStatusRevealing && isFinalDeadlineInFuture && hasEnoughRevealors;
-        if (ret) {
-            log.info("Finalizable onchain [chainTaskId:{}]", chainTaskId);
-        } else {
-            log.warn("Can't finalize [chainTaskId:{}, " +
-                            "isChainTaskStatusRevealing:{}, " +
-                            "isFinalDeadlineInFuture:{}, " +
-                            "hasEnoughRevealors:{}]",
-                    chainTaskId,
-                    isChainTaskStatusRevealing,
-                    isFinalDeadlineInFuture,
-                    hasEnoughRevealors);
+        if (!chainTask.getStatus().equals(ChainTaskStatus.REVEALING)) {
+            logError(chainTaskId, args, "task is not revealing");
+            return false;
         }
-        return ret;
+        if (!(now() < chainTask.getFinalDeadline())) {
+            logError(chainTaskId, args, "after final deadline");
+            return false;
+        }
+        boolean hasEnoughRevealers =
+                chainTask.getRevealCounter() == chainTask.getWinnerCounter()
+                        || (chainTask.getRevealCounter() > 0
+                        && chainTask.getRevealDeadline() <= now());
+        if (!hasEnoughRevealers) {
+            logError(chainTaskId, args, "not enough revealers");
+            return false;
+        }
+        return true;
     }
 
+    private void logError(String chainTaskId, TaskFinalizeArgs args, String error) {
+        log.error("Finalize task blockchain call is likely to revert ({}) " +
+                "[chainTaskId:{}, args:{}]", error, chainTaskId, args);
+    }
 
     @Override
     public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskFinalizeArgs args) {
