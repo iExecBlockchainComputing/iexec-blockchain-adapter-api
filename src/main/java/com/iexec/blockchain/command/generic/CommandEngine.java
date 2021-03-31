@@ -50,14 +50,15 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
     public String startBlockchainCommand(A args) {
         String chainObjectId = args.getChainObjectId();
         if (!blockchainService.canSendBlockchainCommand(args)) {
-            log.error("Cannot startBlockchainCommand [chainObjectId:{}, " +
-                    "commandArgs:{}]", chainObjectId, args);
+            log.error("Starting blockchain command failed (failing on-chain" +
+                            " checks) [chainObjectId:{}, commandArgs:{}]",
+                    chainObjectId, args);
             return "";
         }
 
-        if (!updaterService.setReceived(args)) {
-            log.error("Cannot set received for startBlockchainCommand " +
-                            "[chainObjectId:{}, commandArgs:{}]",
+        if (!updaterService.updateToReceived(args)) {
+            log.error("Starting blockchain command failed (failing update " +
+                            "to received) [chainObjectId:{}, commandArgs:{}]",
                     chainObjectId, args);
             return "";
         }
@@ -80,9 +81,9 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      */
     public void triggerBlockchainCommand(A args) {
         String chainObjectId = args.getChainObjectId();
-        if (!updaterService.setProcessing(chainObjectId)) {
-            log.error("Cannot set processing for startBlockchainCommand " +
-                            "[chainObjectId:{}, commandArgs:{}]",
+        if (!updaterService.updateToProcessing(chainObjectId)) {
+            log.error("Triggering blockchain command failed (failing update" +
+                            " to processing) [chainObjectId:{}, commandArgs:{}]",
                     chainObjectId, args);
             return;
         }
@@ -91,12 +92,13 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
         blockchainService.sendBlockchainCommand(args)
                 .thenAccept(receipt -> {
                     if (receipt == null) {
-                        log.error("Cannot set final for startBlockchainCommand " +
+                        log.error("Triggering blockchain command failed " +
+                                        "(received null receipt after blockchain send) " +
                                         "[chainObjectId:{}, commandArgs:{}]",
                                 chainObjectId, args);
                         return;
                     }
-                    updaterService.setFinal(chainObjectId, receipt);
+                    updaterService.updateToFinal(chainObjectId, receipt);
                 });
     }
 

@@ -43,7 +43,7 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      * @param args input arguments for the blockchain command
      * @return true on successful update
      */
-    public boolean setReceived(A args) {
+    public boolean updateToReceived(A args) {
         String chainObjectId = args.getChainObjectId();
 
         if (commandRepository.findByChainObjectId(chainObjectId).isPresent()) {
@@ -67,7 +67,7 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      *                      is performed
      * @return true on successful update
      */
-    public boolean setProcessing(String chainObjectId) {
+    public boolean updateToProcessing(String chainObjectId) {
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
                 .filter(command -> command.getStatus() != null)
@@ -90,8 +90,8 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      *                      is performed
      * @param receipt       blockchain receipt
      */
-    public void setFinal(String chainObjectId,
-                         @NonNull TransactionReceipt receipt) {
+    public void updateToFinal(String chainObjectId,
+                              @NonNull TransactionReceipt receipt) {
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
                 .filter(command -> command.getStatus() != null)

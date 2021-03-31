@@ -39,7 +39,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.empty());
 
-        boolean isSet = updaterService.setReceived(args);
+        boolean isSet = updaterService.updateToReceived(args);
 
         Assertions.assertTrue(isSet);
         ArgumentCaptor<TaskInitialize> taskInitializeCaptor =
@@ -60,7 +60,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(mock(TaskInitialize.class)));
 
-        boolean isSet = updaterService.setReceived(args);
+        boolean isSet = updaterService.updateToReceived(args);
 
         Assertions.assertFalse(isSet);
         verify(repository, times(0)).save(any());
@@ -73,7 +73,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
-        boolean isSet = updaterService.setProcessing(CHAIN_TASK_ID);
+        boolean isSet = updaterService.updateToProcessing(CHAIN_TASK_ID);
 
         Assertions.assertTrue(isSet);
         ArgumentCaptor<TaskInitialize> taskInitializeCaptor =
@@ -92,7 +92,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
-        boolean isSet = updaterService.setProcessing(CHAIN_TASK_ID);
+        boolean isSet = updaterService.updateToProcessing(CHAIN_TASK_ID);
 
         Assertions.assertFalse(isSet);
         verify(repository, times(0)).save(any());
@@ -107,7 +107,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
-        updaterService.setFinal(CHAIN_TASK_ID, receipt);
+        updaterService.updateToFinal(CHAIN_TASK_ID, receipt);
 
         ArgumentCaptor<TaskInitialize> taskInitializeCaptor =
                 ArgumentCaptor.forClass(TaskInitialize.class);
@@ -128,7 +128,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
-        updaterService.setFinal(CHAIN_TASK_ID, receipt);
+        updaterService.updateToFinal(CHAIN_TASK_ID, receipt);
 
         ArgumentCaptor<TaskInitialize> taskInitializeCaptor =
                 ArgumentCaptor.forClass(TaskInitialize.class);
@@ -148,7 +148,7 @@ class TaskInitializeStorageTest {
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
-        updaterService.setFinal(CHAIN_TASK_ID, receipt);
+        updaterService.updateToFinal(CHAIN_TASK_ID, receipt);
 
         verify(repository, times(0)).save(any());
     }
