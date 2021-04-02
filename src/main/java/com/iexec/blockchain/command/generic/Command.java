@@ -28,6 +28,17 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Instant;
 
+/**
+ * Command refers to the "C" of the CQRS pattern where CQRS itself stands
+ * for Command Query Responsibility Segregation.
+ * Command is different from Query since it does alter internal
+ * states (CRUD without the "R")
+ * More info can be found at:
+ * - https://martinfowler.com/bliki/CQRS.html
+ * - https://microservices.io/patterns/microservices.html
+ *
+ * @param <A> args for the command
+ */
 @Document
 @Data
 @NoArgsConstructor
