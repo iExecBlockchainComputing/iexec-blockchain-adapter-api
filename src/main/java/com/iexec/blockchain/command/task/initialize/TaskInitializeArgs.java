@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.task.initialize;
 
-public enum Status {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.iexec.blockchain.command.generic.CommandArgs;
+import lombok.Builder;
+import lombok.Data;
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
+@Data
+@Builder
+public class TaskInitializeArgs implements CommandArgs {
 
+    @JsonIgnore
+    private String chainTaskId;
+    private String chainDealId;
+    private int taskIndex;
+
+    @Override
+    public String getChainObjectId() {
+        return chainTaskId;
+    }
 }

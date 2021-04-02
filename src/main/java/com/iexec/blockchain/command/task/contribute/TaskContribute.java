@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.task.contribute;
 
-public enum Status {
+import com.iexec.blockchain.command.generic.Command;
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
-
+public class TaskContribute extends Command<TaskContributeArgs> {
 }

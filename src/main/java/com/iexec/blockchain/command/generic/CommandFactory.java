@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.generic;
 
-public enum Status {
+public interface CommandFactory<C extends Command<? extends CommandArgs>> {
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
+    C newCommandInstance();
 
 }

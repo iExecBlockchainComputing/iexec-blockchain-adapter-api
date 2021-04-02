@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.generic;
 
-public enum Status {
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
+public interface CommandArgs {
 
+    @JsonIgnore
+    String getChainObjectId();
 }

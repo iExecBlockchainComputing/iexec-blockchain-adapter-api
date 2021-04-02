@@ -1,7 +1,7 @@
 package com.iexec.blockchain.dataset;
 
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.blockchain.tool.QueueExecutor;
+import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.ChainDataset;
 import org.junit.jupiter.api.Assertions;
@@ -33,7 +33,7 @@ class DatasetServiceTest {
     @Mock
     private IexecHubService iexecHubService;
     @Mock
-    private QueueExecutor queueExecutor;
+    private QueueService queueService;
 
     @BeforeEach
     void setUp() {
@@ -48,13 +48,13 @@ class DatasetServiceTest {
         String requestId =
                 datasetService.createDataset(NAME, MULTI_ADDRESS, CHECKSUM);
         Assertions.assertEquals(dataset.getRequestId(), requestId);
-        verify(queueExecutor, times(1))
+        verify(queueService, times(1))
                 .runAsync(any());
         ArgumentCaptor<Dataset> datasetCaptor =
                 ArgumentCaptor.forClass(Dataset.class);
         verify(datasetRepository, times(1))
                 .save(datasetCaptor.capture());
-        Assertions.assertEquals(Status.LOCALLY_CREATED,
+        Assertions.assertEquals(Status.RECEIVED,
                 datasetCaptor.getValue().getStatus());
         Assertions.assertEquals(NAME,
                 datasetCaptor.getValue().getName());
@@ -78,7 +78,7 @@ class DatasetServiceTest {
         Dataset dataset = Dataset.builder()
                 .id(ID)
                 .requestId(REQUEST_ID)
-                .status(Status.LOCALLY_CREATED)
+                .status(Status.RECEIVED)
                 .name(NAME)
                 .multiAddress(MULTI_ADDRESS)
                 .checksum(CHECKSUM)
@@ -101,7 +101,7 @@ class DatasetServiceTest {
         Dataset dataset = Dataset.builder()
                 .id(ID)
                 .requestId(REQUEST_ID)
-                .status(Status.LOCALLY_CREATED)
+                .status(Status.RECEIVED)
                 .name(NAME)
                 .multiAddress(MULTI_ADDRESS)
                 .checksum(CHECKSUM)

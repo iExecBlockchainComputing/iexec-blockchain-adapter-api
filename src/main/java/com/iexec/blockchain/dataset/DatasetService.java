@@ -18,7 +18,7 @@ package com.iexec.blockchain.dataset;
 
 
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.blockchain.tool.QueueExecutor;
+import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,14 +32,14 @@ public class DatasetService {
 
     private final DatasetRepository datasetRepository;
     private final IexecHubService iexecHubService;
-    private final QueueExecutor queueExecutor;
+    private final QueueService queueService;
 
     public DatasetService(DatasetRepository datasetRepository,
                           IexecHubService iexecHubService,
-                          QueueExecutor queueExecutor) {
+                          QueueService queueService) {
         this.datasetRepository = datasetRepository;
         this.iexecHubService = iexecHubService;
-        this.queueExecutor = queueExecutor;
+        this.queueService = queueService;
     }
 
     /**
@@ -53,14 +53,14 @@ public class DatasetService {
      */
     public String createDataset(String name, String multiAddress, String checksum) {
         Dataset dataset = datasetRepository.save(Dataset.builder()
-                .status(Status.LOCALLY_CREATED)
+                .status(Status.RECEIVED)
                 .name(name)
                 .multiAddress(multiAddress)
                 .checksum(checksum)
                 .build());
 
         Runnable runnable = () -> createDatasetOnChainAndStore(dataset.getRequestId());
-        queueExecutor.runAsync(runnable);
+        queueService.runAsync(runnable);
         return dataset.getRequestId();
     }
 

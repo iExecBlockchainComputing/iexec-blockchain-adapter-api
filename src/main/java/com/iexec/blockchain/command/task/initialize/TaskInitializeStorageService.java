@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.task.initialize;
 
-public enum Status {
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
+import com.iexec.blockchain.command.generic.CommandStorage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
+@Slf4j
+@Service
+public class TaskInitializeStorageService extends CommandStorage<TaskInitialize, TaskInitializeArgs> {
+
+    public TaskInitializeStorageService(TaskInitializeRepository taskInitializeRepository) {
+        super(taskInitializeRepository);
+    }
+
+    @Override
+    public TaskInitialize newCommandInstance() {
+        return new TaskInitialize();
+    }
 }

@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.command.task.contribute;
 
-public enum Status {
 
-    RECEIVED,
-    PROCESSING,
-    SUCCESS,
-    FAILURE,
+import com.iexec.blockchain.command.generic.CommandStorage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
+@Slf4j
+@Service
+public class TaskContributeStorageService extends CommandStorage<TaskContribute, TaskContributeArgs> {
+
+    public TaskContributeStorageService(TaskContributeRepository taskInitializeRepository) {
+        super(taskInitializeRepository);
+    }
+
+    @Override
+    public TaskContribute newCommandInstance() {
+        return new TaskContribute();
+    }
 }
