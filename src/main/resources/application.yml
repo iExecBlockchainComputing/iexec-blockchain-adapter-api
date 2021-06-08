@@ -1,5 +1,5 @@
 server:
-  port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PORT:18070}
+  port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PORT:13010}
 
 spring:
   security:
@@ -10,7 +10,7 @@ spring:
     mongodb:
       database: iexec-blockchain-adapter-api
       host: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_HOST:localhost}
-      port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:18071}
+      port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:13012}
 
 chain:
   id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:133}
