@@ -134,11 +134,7 @@ class TaskInitializeTest {
     }
 
     private TaskInitializeArgs getArgs() {
-        return TaskInitializeArgs.builder()
-                .chainDealId(CHAIN_DEAL_ID)
-                .taskIndex(TASK_INDEX)
-                .chainTaskId(ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX))
-                .build();
+        return new TaskInitializeArgs(CHAIN_TASK_ID, CHAIN_DEAL_ID, TASK_INDEX);
     }
 
 }

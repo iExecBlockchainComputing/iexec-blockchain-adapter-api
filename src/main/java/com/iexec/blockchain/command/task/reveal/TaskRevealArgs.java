@@ -16,18 +16,16 @@
 
 package com.iexec.blockchain.command.task.reveal;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class TaskRevealArgs implements CommandArgs {
 
-    @JsonIgnore
-    private String chainTaskId;
-    private String resultDigest;
+    private final String chainTaskId;
+    private final String resultDigest;
 
     @Override
     public String getChainObjectId() {

@@ -16,21 +16,19 @@
 
 package com.iexec.blockchain.command.task.contribute;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class TaskContributeArgs implements CommandArgs {
 
-    @JsonIgnore
-    private String chainTaskId;
-    private String resultDigest;
-    private String workerpoolSignature;
-    private String enclaveChallenge;
-    private String enclaveSignature;
+    private final String chainTaskId;
+    private final String resultDigest;
+    private final String workerpoolSignature;
+    private final String enclaveChallenge;
+    private final String enclaveSignature;
 
     @Override
     public String getChainObjectId() {

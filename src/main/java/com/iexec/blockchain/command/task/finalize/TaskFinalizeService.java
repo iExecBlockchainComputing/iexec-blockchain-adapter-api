@@ -35,15 +35,16 @@ public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinaliz
         super(blockchainService, storageService, queueService);
     }
 
-    public String start(String chainTaskId, TaskFinalizeArgs args) {
+    public String start(String chainTaskId,
+                        com.iexec.common.chain.adapter.args.TaskFinalizeArgs args) {
         if (!isByte32(chainTaskId)
-                || args == null){
+                || args == null) {
             log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
             return "";
         }
-        args.setChainTaskId(chainTaskId);
-
-        return startBlockchainCommand(args);
+        return startBlockchainCommand(new TaskFinalizeArgs(chainTaskId,
+                args.getResultLink(),
+                args.getCallbackData()));
     }
 
 }

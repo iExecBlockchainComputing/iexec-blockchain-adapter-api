@@ -126,13 +126,15 @@ public class IexecHubService extends IexecHubAbstractService {
     public CompletableFuture<TransactionReceipt> finalize(String chainTaskId,
                                                           String resultLink,
                                                           String callbackData) {
-        byte[] results = !StringUtils.hasText(callbackData) ?
+        byte[] results = StringUtils.hasText(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        byte[] resultsCallback = StringUtils.hasText(callbackData) ?
+                stringToBytes(callbackData) : new byte[0];
 
         return getHubContract(web3jService.getWritingContractGasProvider())
                 .finalize(stringToBytes(chainTaskId),
                         results,
-                        stringToBytes(callbackData)).sendAsync();
+                        resultsCallback).sendAsync();
     }
 
     public boolean hasEnoughGas() {
