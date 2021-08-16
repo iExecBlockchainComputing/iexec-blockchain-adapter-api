@@ -34,6 +34,9 @@ public class ChainConfig {
     @Value("${chain.node-address}")
     private String nodeAddress;
 
+    @Value("${chain.block-time}")
+    private Integer blockTime;
+
     @Value("${chain.hub-address}")
     private String hubAddress;
 
