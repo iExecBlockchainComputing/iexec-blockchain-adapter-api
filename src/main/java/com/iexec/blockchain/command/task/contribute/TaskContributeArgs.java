@@ -17,11 +17,9 @@
 package com.iexec.blockchain.command.task.contribute;
 
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class TaskContributeArgs implements CommandArgs {
 
     private final String chainTaskId;

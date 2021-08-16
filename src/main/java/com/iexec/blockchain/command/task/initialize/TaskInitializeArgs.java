@@ -17,11 +17,10 @@
 package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
+
 @Data
-@AllArgsConstructor
 public class TaskInitializeArgs implements CommandArgs {
 
     private final String chainTaskId;

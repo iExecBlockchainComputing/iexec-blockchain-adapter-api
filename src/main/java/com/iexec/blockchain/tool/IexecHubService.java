@@ -24,8 +24,8 @@ import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.HashUtils;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.web3j.crypto.Sign;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -132,9 +132,9 @@ public class IexecHubService extends IexecHubAbstractService {
     public CompletableFuture<TransactionReceipt> finalize(String chainTaskId,
                                                           String resultLink,
                                                           String callbackData) {
-        byte[] results = StringUtils.hasText(resultLink) ?
+        byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        byte[] resultsCallback = StringUtils.hasText(callbackData) ?
+        byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
                 stringToBytes(callbackData) : new byte[0];
 
         return getContract()
