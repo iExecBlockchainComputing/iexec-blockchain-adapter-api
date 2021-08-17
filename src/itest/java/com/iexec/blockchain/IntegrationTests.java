@@ -27,8 +27,8 @@ class IntegrationTests {
                 .fromUriString(BASE_URL + "/metrics");
         ResponseEntity<String> responseEntity =
                 this.restTemplate.exchange(uri.toUriString(), HttpMethod.GET, getRequest(), String.class);
-        System.out.println("Initialize response code: " + responseEntity.getStatusCode());
-        System.out.println("Initialize response body: " + responseEntity.getBody());
+        System.out.println("Metrics response code: " + responseEntity.getStatusCode());
+        System.out.println("Metrics response body: " + responseEntity.getBody());
         Assertions.assertTrue(responseEntity.getStatusCode().is2xxSuccessful());
         Assertions.assertNotNull(responseEntity.getBody());
         Assertions.assertFalse(responseEntity.getBody().isEmpty());
