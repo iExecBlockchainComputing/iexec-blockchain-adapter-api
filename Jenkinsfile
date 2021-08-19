@@ -5,11 +5,7 @@ node('docker') {
     }
 
     stage('Setup integration') {
-        steps {
-            script {
-                sh 'docker network create iexec-blockchain-net & docker-compose up -d'
-            }
-        }
+        sh 'docker network create iexec-blockchain-net & docker-compose up -d'
     }
 
     stage('Test') {
@@ -18,11 +14,7 @@ node('docker') {
     }
 
     stage('Shutdown integration') {
-        steps {
-            script {
-                sh 'docker-compose down'
-            }
-        }
+        sh 'docker-compose down'
     }
 
 }
