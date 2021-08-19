@@ -6,7 +6,7 @@ node('docker') {
 
     stage('Setup integration') {
         withCredentials([string(credentialsId: 'BROKER_PRIVATE_KEY', variable: 'brokerPrivateKey')]) {
-            sh "docker network create iexec-blockchain-net & BROKER_PRIVATE_KEY=${brokerPrivateKey} docker-compose up -d"
+            sh "docker-compose down' & docker network create iexec-blockchain-net & BROKER_PRIVATE_KEY=${brokerPrivateKey} docker-compose up -d"
         }
     }
 
