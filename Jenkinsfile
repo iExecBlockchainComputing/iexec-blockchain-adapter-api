@@ -5,8 +5,12 @@ node('docker') {
     }
 
     stage('Cleaning') {
-        sh "docker rm -f chain broker blockchain-adapter-mongo & " +
-                "docker network create iexec-blockchain-net"
+        try {
+            sh "docker rm -f chain broker blockchain-adapter-mongo & " +
+                    "docker network create iexec-blockchain-net"
+        } catch (err) {
+            echo err.getMessage()
+        }
     }
 
     stage('Setup') {
