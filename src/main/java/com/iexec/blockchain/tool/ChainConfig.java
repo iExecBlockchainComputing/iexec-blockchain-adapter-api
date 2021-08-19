@@ -49,4 +49,7 @@ public class ChainConfig {
     @Value("${chain.gas-price-cap}")
     private long gasPriceCap;
 
+    @Value("${chain.broker-url}")
+    private String brokerUrl;
+
 }

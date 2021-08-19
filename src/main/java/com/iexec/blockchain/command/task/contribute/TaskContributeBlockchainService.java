@@ -52,12 +52,13 @@ public class TaskContributeBlockchainService implements CommandBlockchain<TaskCo
         }
         ChainTask chainTask = optionalChainTask.get();
 
-        if (!iexecHubService.hasEnoughStakeToContribute(chainTask.getDealid(), workerWallet)) {
-            logError(chainTaskId, args, "stake too low");
-            return false;
-        }
         if (!iexecHubService.isChainTaskActive(chainTask.getStatus())) {
             logError(chainTaskId, args, "task is not active");
+            return false;
+        }
+        //Order matters, status should be at least active
+        if (!iexecHubService.hasEnoughStakeToContribute(chainTask.getDealid(), workerWallet)) {
+            logError(chainTaskId, args, "stake too low");
             return false;
         }
         if (!iexecHubService.isBeforeContributionDeadlineToContribute(chainTask)) {
