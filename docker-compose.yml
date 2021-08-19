@@ -18,10 +18,10 @@ services:
     image: iexec-broker
     container_name: broker
     environment:
-      - CHAIN: 'http://chain:8545'
-      - PROXY: '0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002'
-      - MNEMONIC: ${BROKER_PRIVATE_KEY} #must use an other wallet for the broker, like wallet-abc
-      - PORT: 3000
+      - CHAIN='http://chain:8545'
+      - PROXY='0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002'
+      - MNEMONIC=${BROKER_PRIVATE_KEY} #must use an other wallet for the broker, like wallet-abc
+      - PORT=3000
     ports:
       - 3000:3000
     depends_on:
