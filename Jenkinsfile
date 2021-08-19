@@ -4,11 +4,14 @@ node('docker') {
         checkout scm
     }
 
-    stage('Setup integration') {
+    stage('Cleaning') {
+        sh "docker rm -f chain broker blockchain-adapter-mongo & " +
+                "docker network create iexec-blockchain-net"
+    }
+
+    stage('Setup') {
         withCredentials([string(credentialsId: 'BROKER_PRIVATE_KEY', variable: 'brokerPrivateKey')]) {
-            sh "docker rm -f chain broker blockchain-adapter-mongo & " +
-                    "docker network create iexec-blockchain-net & " +
-                    "BROKER_PRIVATE_KEY=${brokerPrivateKey} docker-compose up -d"
+            sh "BROKER_PRIVATE_KEY=${brokerPrivateKey} docker-compose up -d"
         }
     }
 
@@ -17,7 +20,7 @@ node('docker') {
         junit 'build/test-results/**/*.xml'
     }
 
-    stage('Shutdown integration') {
+    stage('Teardown') {
         sh 'docker-compose down'
     }
 
