@@ -13,14 +13,14 @@ spring:
       port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:13012}
 
 chain:
-  id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:133}
-  node-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_NODE_ADDRESS:https://viviani.iex.ec/}
+  id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:65535}
+  node-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_NODE_ADDRESS:http://localhost:8545} #https://viviani.iex.ec/
   block-time: ${IEXEC_BLOCKCHAIN_ADAPTER_API_BLOCK_TIME:1} #in seconds, use 15 for mainnet
-  hub-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_HUB_ADDRESS:0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f}
-  is-sidechain: ${IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN:true}
+  hub-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_HUB_ADDRESS:0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002} #0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f
+  is-sidechain: ${IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN:false}
   gas-price-multiplier: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be send with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
   gas-price-cap: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
-
+  broker-url: ${IEXEC_BLOCKCHAIN_ADAPTER_API_BROKER_URL:http://localhost:3000}
 wallet:
   path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
   password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}
