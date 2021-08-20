@@ -105,7 +105,7 @@ public class BrokerService {
                 return Optional.of(dealResponse.getDealid());
             }
         } catch (Throwable e) {
-            log.error("Failed to requestFinalize [requester:{}, app:{}, " +
+            log.error("Failed to request match order [requester:{}, app:{}, " +
                             "workerpool:{}, dataset:{}]",
                     brokerOrder.getRequestOrder().getRequester(),
                     brokerOrder.getRequestOrder().getApp(),
