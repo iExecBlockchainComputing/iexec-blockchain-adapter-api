@@ -18,13 +18,14 @@ package com.iexec.blockchain.tool;
 
 
 import com.iexec.common.chain.*;
+import com.iexec.common.contract.generated.IexecHubContract;
 import com.iexec.common.security.Signature;
 import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.HashUtils;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.web3j.crypto.Sign;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -40,8 +41,11 @@ import static com.iexec.common.utils.BytesUtils.stringToBytes;
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 
+    public static final int ONE_SECOND = 1000;
     private final CredentialsService credentialsService;
     private final Web3jService web3jService;
+    private final Integer blockTime;
+    private final Integer chainId;
 
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
@@ -51,6 +55,8 @@ public class IexecHubService extends IexecHubAbstractService {
                 chainConfig.getHubAddress());
         this.credentialsService = credentialsService;
         this.web3jService = web3jService;
+        blockTime = chainConfig.getBlockTime();
+        chainId = chainConfig.getChainId();
     }
 
     public static boolean isByte32(String hexString) {
@@ -63,7 +69,7 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public CompletableFuture<TransactionReceipt> initializeTask(String chainDealId,
                                                                 int taskIndex) {
-        return getHubContract(web3jService.getWritingContractGasProvider())
+        return getContract()
                 .initialize(stringToBytes(chainDealId),
                         BigInteger.valueOf(taskIndex))
                 .sendAsync();
@@ -84,7 +90,7 @@ public class IexecHubService extends IexecHubAbstractService {
         workerpoolSignature = mockAuthorization(chainTaskId, enclaveChallenge)
                 .getSignature().getValue();
 
-        return getHubContract(web3jService.getWritingContractGasProvider())
+        return getContract()
                 .contribute(stringToBytes(chainTaskId),
                         stringToBytes(resultHash),
                         stringToBytes(resultSeal),
@@ -118,7 +124,7 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public CompletableFuture<TransactionReceipt> reveal(String chainTaskId,
                                                         String resultDigest) {
-        return getHubContract(web3jService.getWritingContractGasProvider())
+        return getContract()
                 .reveal(stringToBytes(chainTaskId),
                         stringToBytes(resultDigest)).sendAsync();
     }
@@ -126,14 +132,24 @@ public class IexecHubService extends IexecHubAbstractService {
     public CompletableFuture<TransactionReceipt> finalize(String chainTaskId,
                                                           String resultLink,
                                                           String callbackData) {
-        byte[] results = !StringUtils.hasText(callbackData) ?
+        byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
+                stringToBytes(callbackData) : new byte[0];
 
-        return getHubContract(web3jService.getWritingContractGasProvider())
+        return getContract()
                 .finalize(stringToBytes(chainTaskId),
                         results,
-                        stringToBytes(callbackData)).sendAsync();
+                        resultsCallback).sendAsync();
     }
+
+    private IexecHubContract getContract() {
+        return getHubContract(web3jService.getWritingContractGasProvider(),
+                chainId,
+                blockTime * ONE_SECOND,
+                50);
+    }
+
 
     public boolean hasEnoughGas() {
         return hasEnoughGas(credentialsService.getCredentials().getAddress());

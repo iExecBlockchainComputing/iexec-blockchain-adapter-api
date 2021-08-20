@@ -35,16 +35,16 @@ public class TaskRevealService extends CommandEngine<TaskReveal, TaskRevealArgs>
         super(blockchainService, storageService, queueService);
     }
 
-    public String start(String chainTaskId, TaskRevealArgs args) {
+    public String start(String chainTaskId,
+                        com.iexec.common.chain.adapter.args.TaskRevealArgs args) {
         if (!isByte32(chainTaskId)
                 || args == null
-                || !isByte32(args.getResultDigest())){
+                || !isByte32(args.getResultDigest())) {
             log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
             return "";
         }
-        args.setChainTaskId(chainTaskId);
-
-        return startBlockchainCommand(args);
+        return startBlockchainCommand(new TaskRevealArgs(chainTaskId,
+                args.getResultDigest()));
     }
 
 }

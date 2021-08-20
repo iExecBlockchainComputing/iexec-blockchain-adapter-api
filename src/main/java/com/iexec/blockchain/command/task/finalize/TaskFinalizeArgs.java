@@ -16,19 +16,15 @@
 
 package com.iexec.blockchain.command.task.finalize;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class TaskFinalizeArgs implements CommandArgs {
 
-    @JsonIgnore
-    private String chainTaskId;
-    private String resultLink;
-    private String callbackData;
+    private final String chainTaskId;
+    private final String resultLink;
+    private final String callbackData;
 
     @Override
     public String getChainObjectId() {

@@ -37,16 +37,13 @@ public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskIni
     }
 
     public String start(String chainDealId, int taskIndex) {
-        if (!isByte32(chainDealId) || taskIndex < 0){
+        if (!isByte32(chainDealId) || taskIndex < 0) {
             return "";
         }
-
-        TaskInitializeArgs args = TaskInitializeArgs.builder()
-                .chainDealId(chainDealId)
-                .taskIndex(taskIndex)
-                .chainTaskId(ChainUtils.generateChainTaskId(chainDealId, taskIndex))
-                .build();
-        return startBlockchainCommand(args);
+        String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
+        return startBlockchainCommand(new TaskInitializeArgs(chainTaskId,
+                chainDealId,
+                taskIndex));
     }
 
 }

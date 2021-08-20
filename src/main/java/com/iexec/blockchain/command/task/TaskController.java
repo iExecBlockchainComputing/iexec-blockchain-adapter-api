@@ -1,15 +1,15 @@
 package com.iexec.blockchain.command.task;
 
-import com.iexec.blockchain.command.task.contribute.TaskContributeArgs;
 import com.iexec.blockchain.command.task.contribute.TaskContributeService;
-import com.iexec.blockchain.command.task.finalize.TaskFinalizeArgs;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
-import com.iexec.blockchain.command.task.reveal.TaskRevealArgs;
 import com.iexec.blockchain.command.task.reveal.TaskRevealService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.ChainTask;
+import com.iexec.common.chain.adapter.args.TaskContributeArgs;
+import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
+import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +63,7 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/initialize")
-    public ResponseEntity<String> initializeTask(
+    public ResponseEntity<String> requestInitializeTask(
             @RequestParam String chainDealId,
             @RequestParam int taskIndex) {
         String chainTaskId =
@@ -164,7 +164,7 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/finalize/{chainTaskId}")
-    public ResponseEntity<String> finalizeTask(
+    public ResponseEntity<String> requestFinalizeTask(
             @PathVariable String chainTaskId,
             @RequestBody TaskFinalizeArgs args) {
         if (!taskFinalizeService.start(chainTaskId, args).isEmpty()) {

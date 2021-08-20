@@ -99,6 +99,12 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
                         return;
                     }
                     updaterService.updateToFinal(chainObjectId, receipt);
+                }).exceptionally(throwable -> {
+                    log.error("Something wrong happened while triggering " +
+                            "blockchain command [chainObjectId:{}, commandArgs:{}]",
+                            chainObjectId, args, throwable);
+                    //TODO Update to proper status: PROCESSING_FAILED or FAILURE
+                    return null;
                 });
     }
 

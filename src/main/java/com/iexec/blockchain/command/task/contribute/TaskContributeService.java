@@ -36,7 +36,8 @@ public class TaskContributeService extends CommandEngine<TaskContribute, TaskCon
         super(blockchainService, storageService, queueService);
     }
 
-    public String start(String chainTaskId, TaskContributeArgs args) {
+    public String start(String chainTaskId,
+                        com.iexec.common.chain.adapter.args.TaskContributeArgs args) {
         if (!isByte32(chainTaskId)
                 || args == null
                 || !isByte32(args.getResultDigest())
@@ -46,9 +47,11 @@ public class TaskContributeService extends CommandEngine<TaskContribute, TaskCon
             log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
             return "";
         }
-        args.setChainTaskId(chainTaskId);
-
-        return startBlockchainCommand(args);
+        return startBlockchainCommand(new TaskContributeArgs(chainTaskId,
+                args.getResultDigest(),
+                args.getWorkerpoolSignature(),
+                args.getEnclaveChallenge(),
+                args.getEnclaveSignature()));
     }
 
 }
