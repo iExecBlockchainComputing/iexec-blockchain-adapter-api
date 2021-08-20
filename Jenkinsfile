@@ -6,7 +6,7 @@ node('docker') {
 
     stage('Cleaning') {
         try {
-            sh "docker rm -f chain broker blockchain-adapter-mongo & " +
+            sh "docker rm -f chain broker blockchain-adapter-mongo > /dev/null 2>&1 && " +
                     "docker network create iexec-blockchain-net"
         } catch (err) {
             echo err.getMessage()
