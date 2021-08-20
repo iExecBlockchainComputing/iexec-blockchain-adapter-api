@@ -1,6 +1,7 @@
 package com.iexec.blockchain;
 
 import com.iexec.blockchain.broker.BrokerService;
+import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
@@ -61,6 +62,9 @@ class IntegrationTests {
     @Autowired
     private BrokerService brokerService;
 
+    @Autowired
+    private SignerService signerService;
+
     //@Test
     public void getMetrics() {
         UriComponentsBuilder uri = UriComponentsBuilder
@@ -95,16 +99,12 @@ class IntegrationTests {
                 30, 1);
         System.out.println("Created datasetAddress: " + datasetAddress);
 
-        OrderSigner signer = new OrderSigner(chainConfig.getChainId(),
-                chainConfig.getHubAddress(),
-                credentialsService.getCredentials().getEcKeyPair());
-
-        AppOrder signAppOrder = signer.signAppOrder(buildAppOrder(appAddress));
-        WorkerpoolOrder signWorkerpoolOrder = signer.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool));
-        DatasetOrder signDatasetOrder = signer.signDatasetOrder(buildDatasetOrder(datasetAddress));
-        RequestOrder signRequestOrder = signer.signRequestOrder(buildRequestOrder(signAppOrder,
-                signWorkerpoolOrder,
-                signDatasetOrder,
+        AppOrder signedAppOrder = signerService.signAppOrder(buildAppOrder(appAddress));
+        WorkerpoolOrder signedWorkerpoolOrder = signerService.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool));
+        DatasetOrder signedDatasetOrder = signerService.signDatasetOrder(buildDatasetOrder(datasetAddress));
+        RequestOrder signedRequestOrder = signerService.signRequestOrder(buildRequestOrder(signedAppOrder,
+                signedWorkerpoolOrder,
+                signedDatasetOrder,
                 credentialsService.getCredentials().getAddress(),
                 DealParams.builder()
                         .iexecArgs("abc")
@@ -112,10 +112,10 @@ class IntegrationTests {
                         .iexecResultStorageProxy("https://v6.result.goerli.iex.ec")
                         .build()));
         BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(signAppOrder)
-                .workerpoolOrder(signWorkerpoolOrder)
-                .requestOrder(signRequestOrder)
-                .datasetOrder(signDatasetOrder)
+                .appOrder(signedAppOrder)
+                .workerpoolOrder(signedWorkerpoolOrder)
+                .requestOrder(signedRequestOrder)
+                .datasetOrder(signedDatasetOrder)
                 .build();
 
         String dealId = brokerService.matchOrders(brokerOrder);
