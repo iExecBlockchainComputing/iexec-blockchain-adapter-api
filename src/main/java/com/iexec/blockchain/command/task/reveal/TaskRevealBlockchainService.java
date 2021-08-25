@@ -61,7 +61,7 @@ public class TaskRevealBlockchainService implements CommandBlockchain<TaskReveal
             logError(chainTaskId, args, "task is not revealing");
             return false;
         }
-        if (!(chainTask.getRevealDeadline() < new Date().getTime())) {
+        if (chainTask.getRevealDeadline() < new Date().getTime()) {
             logError(chainTaskId, args, "after reveal deadline");
             return false;
         }

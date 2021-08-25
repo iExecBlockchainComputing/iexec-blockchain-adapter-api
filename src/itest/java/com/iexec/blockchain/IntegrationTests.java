@@ -10,6 +10,8 @@ import com.iexec.common.chain.ChainTask;
 import com.iexec.common.chain.ChainTaskStatus;
 import com.iexec.common.chain.DealParams;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
+import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
+import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.common.sdk.order.OrderSigner;
 import com.iexec.common.sdk.order.payload.AppOrder;
@@ -145,6 +147,20 @@ class IntegrationTests {
         Assertions.assertTrue(StringUtils.isNotEmpty(contribute.getBody()));
         System.out.println("Requested task contribute: " + contribute.getBody());
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING);
+
+        TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
+        ResponseEntity<String> reveal = requestReveal(chainTaskId, taskRevealArgs);
+        Assertions.assertTrue(reveal.getStatusCode().is2xxSuccessful());
+        Assertions.assertTrue(StringUtils.isNotEmpty(reveal.getBody()));
+        System.out.println("Requested task reveal: " + reveal.getBody());
+
+        waitBeforeFinalizing(chainTaskId);
+        TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
+        ResponseEntity<String> finalize = requestFinalize(chainTaskId, taskFinalizeArgs);
+        Assertions.assertTrue(finalize.getStatusCode().is2xxSuccessful());
+        Assertions.assertTrue(StringUtils.isNotEmpty(finalize.getBody()));
+        System.out.println("Requested task finalize: " + finalize.getBody());
+        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED);
     }
 
     private String buildRandomName(String baseName) {
@@ -238,6 +254,30 @@ class IntegrationTests {
         System.out.println("Status reached: " + status);
     }
 
+    private void waitBeforeFinalizing(String chainTaskId) throws Exception {
+        Optional<ChainTask> oChainTask = iexecHubService.getChainTask(chainTaskId);
+        if (oChainTask.isEmpty()){
+            return;
+        }
+        ChainTask chainTask = oChainTask.get();
+        int winnerCounter = chainTask.getWinnerCounter();
+        int revealCounter = chainTask.getRevealCounter();
+        int maxAttempts = 20;
+        int attempts = 0;
+        while (revealCounter != winnerCounter) {
+            System.out.println("Waiting for reveals (" + revealCounter + "/" + winnerCounter + ")");
+            Thread.sleep(100);
+            revealCounter = iexecHubService.getChainTask(chainTaskId)
+                    .map(ChainTask::getRevealCounter)
+                    .orElse(0);
+            attempts++;
+            if (attempts == maxAttempts) {
+                throw new Exception("Too long to wait for reveal: " + chainTaskId);
+            }
+        }
+        System.out.println("All revealed (" + revealCounter + "/" + winnerCounter + ")");
+    }
+
     private ResponseEntity<String> requestInitialize(String dealId, int taskIndex) {
         UriComponentsBuilder uri = UriComponentsBuilder
                 .fromUriString(BASE_URL + "/tasks/initialize")
@@ -261,6 +301,34 @@ class IntegrationTests {
                         String.class);
         System.out.println("Contribute response code: " + responseEntity.getStatusCode());
         System.out.println("Contribute response body: " + responseEntity.getBody());
+        return responseEntity;
+    }
+
+    private ResponseEntity<String> requestReveal(String chainTaskId, TaskRevealArgs taskRevealArgs) {
+        UriComponentsBuilder uri = UriComponentsBuilder
+                .fromUriString(BASE_URL + "/tasks/reveal/{chainTaskId}");
+        Map<String, String> urlParams = new HashMap<>();
+        urlParams.put("chainTaskId", chainTaskId);
+        ResponseEntity<String> responseEntity =
+                this.restTemplate.postForEntity(uri.buildAndExpand(urlParams).toUriString(),
+                        new HttpEntity<>(taskRevealArgs, getLoggedHttpHeaders()),
+                        String.class);
+        System.out.println("Reveal response code: " + responseEntity.getStatusCode());
+        System.out.println("Reveal response body: " + responseEntity.getBody());
+        return responseEntity;
+    }
+
+    private ResponseEntity<String> requestFinalize(String chainTaskId, TaskFinalizeArgs taskFinalizeArgs) {
+        UriComponentsBuilder uri = UriComponentsBuilder
+                .fromUriString(BASE_URL + "/tasks/finalize/{chainTaskId}");
+        Map<String, String> urlParams = new HashMap<>();
+        urlParams.put("chainTaskId", chainTaskId);
+        ResponseEntity<String> responseEntity =
+                this.restTemplate.postForEntity(uri.buildAndExpand(urlParams).toUriString(),
+                        new HttpEntity<>(taskFinalizeArgs, getLoggedHttpHeaders()),
+                        String.class);
+        System.out.println("Finalize response code: " + responseEntity.getStatusCode());
+        System.out.println("Finalize response body: " + responseEntity.getBody());
         return responseEntity;
     }
 
