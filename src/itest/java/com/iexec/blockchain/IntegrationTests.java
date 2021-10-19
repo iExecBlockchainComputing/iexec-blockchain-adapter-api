@@ -5,10 +5,7 @@ import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.common.chain.ChainDeal;
-import com.iexec.common.chain.ChainTask;
-import com.iexec.common.chain.ChainTaskStatus;
-import com.iexec.common.chain.DealParams;
+import com.iexec.common.chain.*;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.common.sdk.order.OrderSigner;
@@ -16,8 +13,10 @@ import com.iexec.common.sdk.order.payload.AppOrder;
 import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
+import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeUtils;
 import com.iexec.common.utils.BytesUtils;
+import com.iexec.common.utils.HashUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -31,6 +30,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -135,11 +135,15 @@ class IntegrationTests {
         waitStatus(chainTaskId, ACTIVE);
 
         String someBytes32Payload = TeeUtils.TEE_TAG;
+        String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
+        String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
+        WorkerpoolAuthorization workerpoolAuthorization =
+                mockAuthorization(chainTaskId, enclaveChallenge);
         TaskContributeArgs contributeArgs = new TaskContributeArgs(
                 someBytes32Payload,
-                someBytes32Payload,
-                BytesUtils.EMPTY_ADDRESS,
-                someBytes32Payload);
+                workerpoolAuthorization.getSignature().getValue(),
+                enclaveChallenge,
+                enclaveSignature);
         ResponseEntity<String> contribute = requestContribute(chainTaskId, contributeArgs);
         Assertions.assertTrue(contribute.getStatusCode().is2xxSuccessful());
         Assertions.assertTrue(StringUtils.isNotEmpty(contribute.getBody()));
@@ -273,6 +277,26 @@ class IntegrationTests {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(USER, PASSWORD);
         return headers;
+    }
+
+    public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
+                                                     String enclaveChallenge) {
+        String workerWallet = credentialsService.getCredentials().getAddress();
+        String hash =
+                HashUtils.concatenateAndHash(workerWallet,
+                        chainTaskId,
+                        enclaveChallenge);
+
+        Sign.SignatureData sign =
+                Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
+                        credentialsService.getCredentials().getEcKeyPair());
+
+        return WorkerpoolAuthorization.builder()
+                .workerWallet(workerWallet)
+                .chainTaskId(chainTaskId)
+                .enclaveChallenge(enclaveChallenge)
+                .signature(new Signature(sign))
+                .build();
     }
 
 }
