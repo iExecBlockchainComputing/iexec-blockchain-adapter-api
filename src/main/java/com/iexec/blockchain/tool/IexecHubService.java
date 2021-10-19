@@ -163,10 +163,9 @@ public class IexecHubService extends IexecHubAbstractService {
      * @return true if the task is found with the status UNSET, false otherwise.
      */
     public boolean isTaskInUnsetStatusOnChain(String chainTaskId) {
-        return getChainTask(chainTaskId)
-                .map(chainTask ->
-                        chainTask.getStatus().equals(ChainTaskStatus.UNSET))
-                .orElse(true);
+        final Optional<ChainTask> chainTask = getChainTask(chainTaskId);
+        return chainTask.isEmpty()
+                || ChainTaskStatus.UNSET.equals(chainTask.get().getStatus());
     }
 
     /**
