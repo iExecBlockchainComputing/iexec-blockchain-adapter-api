@@ -166,7 +166,7 @@ public class IexecHubService extends IexecHubAbstractService {
         return getChainTask(chainTaskId)
                 .map(chainTask ->
                         chainTask.getStatus().equals(ChainTaskStatus.UNSET))
-                .orElse(false);
+                .orElse(true);
     }
 
     /**
