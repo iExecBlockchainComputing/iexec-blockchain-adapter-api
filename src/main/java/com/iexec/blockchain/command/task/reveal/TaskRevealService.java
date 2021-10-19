@@ -44,7 +44,8 @@ public class TaskRevealService extends CommandEngine<TaskReveal, TaskRevealArgs>
             return "";
         }
         return startBlockchainCommand(new TaskRevealArgs(chainTaskId,
-                args.getResultDigest()));
+                args.getResultDigest()),
+                false);
     }
 
 }
