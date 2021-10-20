@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -34,17 +35,42 @@ class QueueServiceTest {
 
     // region startAsyncActionsExecution
     @Test
-    void shouldStartASingleThread() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    void shouldStartASingleThread() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        // Make some `QueueService` members accessible, so we can easily test them.
         final Method startAsyncActionsExecutionMethod = QueueService.class.getDeclaredMethod("startAsyncActionsExecution");
         startAsyncActionsExecutionMethod.setAccessible(true);
+        final Field actionExecutorField = QueueService.class.getDeclaredField("actionExecutor");
+        actionExecutorField.setAccessible(true);
 
         // First execution should start a new thread.
         startAsyncActionsExecutionMethod.invoke(queueService);
+        waitForNewActionCompletion();
         Mockito.verify(queueService, Mockito.times(1)).executeActions();
 
         // Second execution should not start a new thread.
         startAsyncActionsExecutionMethod.invoke(queueService);
+        waitForNewActionCompletion();
         Mockito.verify(queueService, Mockito.times(1)).executeActions();
+
+        // Interrupt current thread and try to spawn a new one.
+        final CompletableFuture<?> actionExecutor = (CompletableFuture<?>) actionExecutorField.get(queueService);
+        actionExecutor.cancel(true);
+        assertThat(actionExecutor.isDone()).isTrue();
+
+        startAsyncActionsExecutionMethod.invoke(queueService);
+        waitForNewActionCompletion();
+        Mockito.verify(queueService, Mockito.times(2)).executeActions();
+    }
+
+    private void waitForNewActionCompletion() {
+        final AtomicBoolean actionExecuted = new AtomicBoolean(false);
+        final Runnable action = () -> actionExecuted.set(true);
+        queueService.addExecutionToQueue(action, true);
+
+        Awaitility
+                .await()
+                .atMost(200, TimeUnit.MILLISECONDS)
+                .until(actionExecuted::get);
     }
     // endregion
 
