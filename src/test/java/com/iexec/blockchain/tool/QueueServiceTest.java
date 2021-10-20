@@ -10,8 +10,8 @@ import org.mockito.Spy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -98,54 +98,28 @@ class QueueServiceTest {
 
     @Test
     void shouldExecuteInOrder() {
-        final int runnableNumber = 5;
+        final ConcurrentLinkedQueue<Integer> executionOrder = new ConcurrentLinkedQueue<>();
 
-        final List<Integer> lowPriorityExecutionOrder = new ArrayList<>();
-        final Function<Integer, Runnable> lowPriorityOrderedRunnableFunction = i -> () -> lowPriorityExecutionOrder.add(i);
+        queueService.addExecutionToQueue(() -> executionOrder.add(4), false);
+        queueService.addExecutionToQueue(() -> executionOrder.add(5), false);
+        queueService.addExecutionToQueue(() -> executionOrder.add(6), false);
 
-        // Add a bunch of tasks to the queue.
-        for (int i = 0; i < runnableNumber; i++) {
-            queueService.addExecutionToQueue(lowPriorityOrderedRunnableFunction.apply(i), false);
-        }
+        queueService.addExecutionToQueue(() -> executionOrder.add(1), true);
+        queueService.addExecutionToQueue(() -> executionOrder.add(2), true);
+        queueService.addExecutionToQueue(() -> executionOrder.add(3), true);
 
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> lowPriorityTasksExecutionFuture = CompletableFuture.runAsync(queueService::executeTasks);
+        final CompletableFuture<Void> executionFuture = CompletableFuture.runAsync(queueService::executeTasks);
         Awaitility
                 .await()
                 .atMost(1, TimeUnit.SECONDS)
-                .until(() -> lowPriorityExecutionOrder.size() == runnableNumber);
-        lowPriorityTasksExecutionFuture.cancel(true);
+                .until(() -> executionOrder.size() == 6);
+        executionFuture.cancel(true);
 
+        System.out.println(executionOrder);
         // Tasks should have been executed in the right order
-        // so that each element of `lowPriorityExecutionOrder` should be greater than its precedent.
-        for (int i = 1; i < runnableNumber; i++) {
-            assertThat(lowPriorityExecutionOrder.get(i)).isGreaterThan(lowPriorityExecutionOrder.get(i - 1));
-        }
-
-
-        // Do the same for high priority tasks
-        final List<Integer> highPriorityExecutionOrder = new ArrayList<>();
-        final Function<Integer, Runnable> highPriorityOrderedRunnableFunction = i -> () -> highPriorityExecutionOrder.add(i);
-
-        // Add a bunch of tasks to the queue.
-        for (int i = 0; i < runnableNumber; i++) {
-            queueService.addExecutionToQueue(highPriorityOrderedRunnableFunction.apply(i), true);
-        }
-
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> highPriorityTasksExecutionFuture = CompletableFuture.runAsync(queueService::executeTasks);
-        Awaitility
-                .await()
-                .atMost(1, TimeUnit.SECONDS)
-                .until(() -> highPriorityExecutionOrder.size() == runnableNumber);
-        highPriorityTasksExecutionFuture.cancel(true);
-
-        // Tasks should have been executed in the right order
-        // so that each element of `lowPriorityExecutionOrder` should be greater than its precedent.
-        for (int i = 1; i < runnableNumber; i++) {
-            assertThat(highPriorityExecutionOrder.get(i)).isGreaterThan(highPriorityExecutionOrder.get(i - 1));
+        // so that each element of `executionOrder` should be greater than its precedent.
+        for (int i = 1; i < 6; i++) {
+            assertThat(new ArrayList<>(executionOrder).get(i)).isGreaterThan(new ArrayList<>(executionOrder).get(i - 1));
         }
     }
     // endregion
