@@ -29,7 +29,7 @@ class QueueServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // region executeFirstTask
+    // region executeActions
     @Test
     void shouldRunHighPriorityRunnable() {
         final List<Long> highPriorityTimestamps = new ArrayList<>();
@@ -39,7 +39,7 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeTasks);
+        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -59,7 +59,7 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeTasks);
+        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -85,7 +85,7 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeTasks);
+        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -141,7 +141,7 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> executionFuture = CompletableFuture.runAsync(queueService::executeTasks);
+        final CompletableFuture<Void> executionFuture = CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)

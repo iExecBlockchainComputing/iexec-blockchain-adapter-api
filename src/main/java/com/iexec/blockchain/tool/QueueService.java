@@ -15,48 +15,48 @@ import java.util.concurrent.*;
 @Service
 public class QueueService {
     private final PriorityBlockingQueue<BlockchainAction> queue = new PriorityBlockingQueue<>();
-    private CompletableFuture<Void> taskExecutor;
+    private CompletableFuture<Void> actionExecutor;
 
     /**
      * Scheduled method execution.
-     * If the {@link QueueService#taskExecutor} isn't running, start a new thread.
+     * If the {@link QueueService#actionExecutor} isn't running, start a new thread.
      * Otherwise, do nothing.
      */
     @Scheduled(fixedRate = 30000)
-    private void startAsyncTasksExecution() {
-        if (taskExecutor != null && !taskExecutor.isDone()) {
+    private void startAsyncActionsExecution() {
+        if (actionExecutor != null && !actionExecutor.isDone()) {
             return;
         }
-        
-        taskExecutor = CompletableFuture.runAsync(this::executeTasks);
+
+        actionExecutor = CompletableFuture.runAsync(this::executeActions);
     }
 
     /**
      * Execute {@link Runnable}s as they come.
-     * At each occurrence, execute the first task in the queue or wait for a new one to appear.
-     * The first task is the task with the highest priority that is in the queue for the longer time.
+     * At each occurrence, execute the first action in the queue or wait for a new one to appear.
+     * The first action is the action with the highest priority that is in the queue for the longer time.
      */
-    void executeTasks() {
+    void executeActions() {
         while (Thread.currentThread().isAlive()) {
-            executeFirstTask();
+            executeFirstAction();
         }
     }
 
     /**
-     * Execute the first task in the queue or wait for a new one to appear.
-     * The first task is the task with the highest priority that is in the queue for the longer time.
+     * Execute the first action in the queue or wait for a new one to appear.
+     * The first action is the action with the highest priority that is in the queue for the longer time.
      */
-    private void executeFirstTask() {
+    private void executeFirstAction() {
         try {
-            // Wait until a new task is available.
+            // Wait until a new action is available.
             Runnable runnable = queue.take().getRunnable();
-            // Execute a task and wait for its completion.
+            // Execute an action and wait for its completion.
             runnable.run();
         } catch (InterruptedException e) {
-            log.error("Task thread got interrupted.", e);
+            log.error("Action thread got interrupted.", e);
             Thread.currentThread().interrupt();
         } catch (RuntimeException e) {
-            log.error("An error occurred while executing a task.", e);
+            log.error("An error occurred while executing an action.", e);
         }
     }
 
@@ -79,7 +79,7 @@ public class QueueService {
     }
 
     /**
-     * Represent a task that could wait in a {@link java.util.Queue}.
+     * Represent an action that could wait in a {@link java.util.Queue}.
      * It contains its timestamp creation, its priority and its {@link Runnable}.
      */
     private static class BlockchainAction implements Comparable<BlockchainAction> {
