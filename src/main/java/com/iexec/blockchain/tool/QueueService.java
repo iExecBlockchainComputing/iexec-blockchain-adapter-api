@@ -14,14 +14,8 @@ import java.util.concurrent.*;
 @Slf4j
 @Service
 public class QueueService {
-    private final ExecutorService executorService;
     private final PriorityBlockingQueue<BlockchainAction> queue = new PriorityBlockingQueue<>();
-
     private CompletableFuture<Void> taskExecutor;
-
-    public QueueService() {
-        executorService = Executors.newFixedThreadPool(1);
-    }
 
     /**
      * Scheduled method execution.
@@ -57,13 +51,11 @@ public class QueueService {
             // Wait until a new task is available.
             Runnable runnable = queue.take().getRunnable();
             // Execute a task and wait for its completion.
-            executorService.submit(runnable).get();
+            runnable.run();
         } catch (InterruptedException e) {
             log.error("Task thread got interrupted.", e);
             Thread.currentThread().interrupt();
         } catch (RuntimeException e) {
-            log.error("An error occurred while waiting for new tasks.", e);
-        } catch (ExecutionException e) {
             log.error("An error occurred while executing a task.", e);
         }
     }
