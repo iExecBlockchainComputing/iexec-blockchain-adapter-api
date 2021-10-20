@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Execute {@link Runnable}s as they arrive.
@@ -54,16 +51,19 @@ public class QueueService {
      * Execute the first task in the queue or wait for a new one to appear.
      * The first task is the task with the highest priority that is in the queue for the longer time.
      */
-    void executeFirstTask() {
+    private void executeFirstTask() {
         try {
             // Wait until a new task is available.
             Runnable runnable = queue.take().getRunnable();
-            CompletableFuture.runAsync(runnable, executorService);
+            // Execute a task and wait for its completion.
+            executorService.submit(runnable).get();
         } catch (InterruptedException e) {
             log.error("Task thread got interrupted.", e);
             Thread.currentThread().interrupt();
         } catch (RuntimeException e) {
             log.error("An error occurred while waiting for new tasks.", e);
+        } catch (ExecutionException e) {
+            log.error("An error occurred while executing a task.", e);
         }
     }
 

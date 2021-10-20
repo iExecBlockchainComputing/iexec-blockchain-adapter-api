@@ -7,11 +7,15 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -63,7 +67,7 @@ class QueueServiceTest {
         tasksExecutionFuture.cancel(true);
 
         // We simply ensure the execution has completed.
-        assertThat(lowPriorityTimestamps .size()).isOne();
+        assertThat(lowPriorityTimestamps.size()).isOne();
     }
 
     @Test
@@ -97,30 +101,68 @@ class QueueServiceTest {
     }
 
     @Test
-    void shouldExecuteInOrder() {
-        final ConcurrentLinkedQueue<Integer> executionOrder = new ConcurrentLinkedQueue<>();
+    void shouldExecuteInOrder() throws NoSuchFieldException {
+        final int taskNumberPerPriority = 3;
+        final int totalTasksNumber = taskNumberPerPriority * 2;
 
-        queueService.addExecutionToQueue(() -> executionOrder.add(4), false);
-        queueService.addExecutionToQueue(() -> executionOrder.add(5), false);
-        queueService.addExecutionToQueue(() -> executionOrder.add(6), false);
+        // We'll keep track of the execution order of the tasks.
+        final ArrayList<Integer> executionOrder = new ArrayList<>();
+        // We'll also keep track of the remaining tasks in queue after each task execution.
+        final ArrayList<Integer> remainingTasksInQueue = new ArrayList<>();
 
-        queueService.addExecutionToQueue(() -> executionOrder.add(1), true);
-        queueService.addExecutionToQueue(() -> executionOrder.add(2), true);
-        queueService.addExecutionToQueue(() -> executionOrder.add(3), true);
+        // Make `QueueService::queue` accessible so that we could check it is emptied in the right way,
+        // i.e. it should be emptied one by one, before each new task execution.
+        final Field queueField = QueueService.class.getDeclaredField("queue");
+        queueField.setAccessible(true);
 
+        // Create a bunch of tasks.
+        final Function<Integer, Runnable> runnableCreator = i -> () -> {
+            try {
+                // Wait a bit of time to emulate a real function.
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                // Get how many tasks are still in queue after this one.
+                remainingTasksInQueue.add(((Queue<?>) queueField.get(queueService)).size());
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            executionOrder.add(i);
+        };
+
+        for (int i = 0; i < taskNumberPerPriority; i++) {
+            queueService.addExecutionToQueue(runnableCreator.apply(taskNumberPerPriority + i), false);
+        }
+        for (int i = 0; i < taskNumberPerPriority; i++) {
+            queueService.addExecutionToQueue(runnableCreator.apply(i), true);
+        }
+
+        // Start execution thread.
+        // It won't stop itself, so we have to do it.
         final CompletableFuture<Void> executionFuture = CompletableFuture.runAsync(queueService::executeTasks);
         Awaitility
                 .await()
-                .atMost(1, TimeUnit.SECONDS)
-                .until(() -> executionOrder.size() == 6);
+                .atMost(5, TimeUnit.SECONDS)
+                .until(() -> executionOrder.size() == totalTasksNumber);
         executionFuture.cancel(true);
 
-        System.out.println(executionOrder);
-        // Tasks should have been executed in the right order
-        // so that each element of `executionOrder` should be greater than its precedent.
-        for (int i = 1; i < 6; i++) {
-            assertThat(new ArrayList<>(executionOrder).get(i)).isGreaterThan(new ArrayList<>(executionOrder).get(i - 1));
-        }
+        // Tasks should have been executed in the right order.
+        // This should look like [0, 1, 2, 3, 4, 5].
+        final List<Integer> expectedExecutionOrder = IntStream
+                .range(0, totalTasksNumber)
+                .boxed()
+                .collect(Collectors.toList());
+        assertThat(executionOrder).isEqualTo(expectedExecutionOrder);
+
+        // After each task execution, one less task should be in the queue.
+        // This should look like [5, 4, 3, 2, 1, 0].
+        final List<Integer> expectedRemainingTasksInQueue = IntStream
+                .range(0, totalTasksNumber)
+                .mapToObj(i -> totalTasksNumber - i - 1)
+                .collect(Collectors.toList());
+        assertThat(remainingTasksInQueue).isEqualTo(expectedRemainingTasksInQueue);
     }
     // endregion
 }
