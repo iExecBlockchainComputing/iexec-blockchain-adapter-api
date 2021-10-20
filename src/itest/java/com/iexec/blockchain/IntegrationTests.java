@@ -27,10 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.web3j.crypto.Hash;
 
@@ -42,12 +44,15 @@ import java.util.Optional;
 import static com.iexec.common.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.common.chain.ChainTaskStatus.UNSET;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class IntegrationTests {
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
-    public static final String BASE_URL = "http://localhost:13010";
+
+    @LocalServerPort
+    private int randomServerPort;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -70,7 +75,7 @@ class IntegrationTests {
     //@Test
     public void getMetrics() {
         UriComponentsBuilder uri = UriComponentsBuilder
-                .fromUriString(BASE_URL + "/metrics");
+                .fromUriString(getBaseUrl() + "/metrics");
         ResponseEntity<String> responseEntity =
                 this.restTemplate.exchange(uri.toUriString(), HttpMethod.GET, buildLoggedRequest(), String.class);
         System.out.println("Metrics response code: " + responseEntity.getStatusCode());
@@ -280,7 +285,7 @@ class IntegrationTests {
 
     private ResponseEntity<String> requestInitialize(String dealId, int taskIndex) {
         UriComponentsBuilder uri = UriComponentsBuilder
-                .fromUriString(BASE_URL + "/tasks/initialize")
+                .fromUriString(getBaseUrl() + "/tasks/initialize")
                 .queryParam("chainDealId", dealId)
                 .queryParam("taskIndex", taskIndex);
         ResponseEntity<String> responseEntity =
@@ -292,7 +297,7 @@ class IntegrationTests {
 
     private ResponseEntity<String> requestContribute(String chainTaskId, TaskContributeArgs taskContributeArgs) {
         UriComponentsBuilder uri = UriComponentsBuilder
-                .fromUriString(BASE_URL + "/tasks/contribute/{chainTaskId}");
+                .fromUriString(getBaseUrl() + "/tasks/contribute/{chainTaskId}");
         Map<String, String> urlParams = new HashMap<>();
         urlParams.put("chainTaskId", chainTaskId);
         ResponseEntity<String> responseEntity =
@@ -306,7 +311,7 @@ class IntegrationTests {
 
     private ResponseEntity<String> requestReveal(String chainTaskId, TaskRevealArgs taskRevealArgs) {
         UriComponentsBuilder uri = UriComponentsBuilder
-                .fromUriString(BASE_URL + "/tasks/reveal/{chainTaskId}");
+                .fromUriString(getBaseUrl() + "/tasks/reveal/{chainTaskId}");
         Map<String, String> urlParams = new HashMap<>();
         urlParams.put("chainTaskId", chainTaskId);
         ResponseEntity<String> responseEntity =
@@ -320,7 +325,7 @@ class IntegrationTests {
 
     private ResponseEntity<String> requestFinalize(String chainTaskId, TaskFinalizeArgs taskFinalizeArgs) {
         UriComponentsBuilder uri = UriComponentsBuilder
-                .fromUriString(BASE_URL + "/tasks/finalize/{chainTaskId}");
+                .fromUriString(getBaseUrl() + "/tasks/finalize/{chainTaskId}");
         Map<String, String> urlParams = new HashMap<>();
         urlParams.put("chainTaskId", chainTaskId);
         ResponseEntity<String> responseEntity =
@@ -341,6 +346,10 @@ class IntegrationTests {
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(USER, PASSWORD);
         return headers;
+    }
+
+    private String getBaseUrl() {
+        return "http://localhost:" + randomServerPort;
     }
 
 }
