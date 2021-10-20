@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.concurrent.*;
 
 /**
@@ -14,7 +15,7 @@ import java.util.concurrent.*;
 @Service
 public class QueueService {
     private final ExecutorService executorService;
-    private final PriorityBlockingQueue<WaitingTask> queue = new PriorityBlockingQueue<>();
+    private final PriorityBlockingQueue<BlockchainAction> queue = new PriorityBlockingQueue<>();
 
     private CompletableFuture<Void> taskExecutor;
 
@@ -82,19 +83,19 @@ public class QueueService {
      * @param priority Whether this {@link Runnable} is priority.
      */
     public void addExecutionToQueue(Runnable runnable, boolean priority) {
-        queue.add(new WaitingTask(runnable, priority));
+        queue.add(new BlockchainAction(runnable, priority));
     }
 
     /**
      * Represent a task that could wait in a {@link java.util.Queue}.
      * It contains its timestamp creation, its priority and its {@link Runnable}.
      */
-    private static class WaitingTask implements Comparable<WaitingTask> {
+    private static class BlockchainAction implements Comparable<BlockchainAction> {
         private final Runnable runnable;
         private final boolean priority;
         private final long time;
 
-        public WaitingTask(Runnable runnable, boolean priority) {
+        public BlockchainAction(Runnable runnable, boolean priority) {
             this.runnable = runnable;
             this.priority = priority;
             this.time = System.nanoTime();
@@ -105,7 +106,7 @@ public class QueueService {
         }
 
         @Override
-        public int compareTo(WaitingTask other) {
+        public int compareTo(BlockchainAction other) {
             if (other == null) {
                 return -1;
             }
@@ -116,6 +117,19 @@ public class QueueService {
                 return 1;
             }
             return Long.compare(this.time, other.time);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BlockchainAction that = (BlockchainAction) o;
+            return priority == that.priority && time == that.time && Objects.equals(runnable, that.runnable);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(runnable, priority, time);
         }
     }
 }
