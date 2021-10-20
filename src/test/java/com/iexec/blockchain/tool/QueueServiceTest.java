@@ -8,7 +8,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +29,7 @@ class QueueServiceTest {
     @Test
     void shouldRunHighPriorityRunnable() {
         final List<Long> highPriorityTimestamps = new ArrayList<>();
-        final Runnable highPriorityRunnable = () -> highPriorityTimestamps.add(new Date().getTime());
+        final Runnable highPriorityRunnable = () -> highPriorityTimestamps.add(System.nanoTime());
 
         queueService.addExecutionToQueue(highPriorityRunnable, true);
 
@@ -50,7 +49,7 @@ class QueueServiceTest {
     @Test
     void shouldRunLowPriorityRunnable() {
         final List<Long> lowPriorityTimestamps = new ArrayList<>();
-        final Runnable lowPriorityRunnable = () -> lowPriorityTimestamps.add(new Date().getTime());
+        final Runnable lowPriorityRunnable = () -> lowPriorityTimestamps.add(System.nanoTime());
 
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
 
@@ -72,8 +71,8 @@ class QueueServiceTest {
         final List<Long> highPriorityTimestamps = new ArrayList<>();
         final List<Long> lowPriorityTimestamps = new ArrayList<>();
 
-        final Runnable highPriorityRunnable = () -> highPriorityTimestamps.add(new Date().getTime());
-        final Runnable lowPriorityRunnable = () -> lowPriorityTimestamps.add(new Date().getTime());
+        final Runnable highPriorityRunnable = () -> highPriorityTimestamps.add(System.nanoTime());
+        final Runnable lowPriorityRunnable = () -> lowPriorityTimestamps.add(System.nanoTime());
 
         // Add a low priority and a high priority tasks to queue.
         // The queueService should select the high priority task before the low priority.
