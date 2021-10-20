@@ -48,7 +48,7 @@ class TaskInitializeTest {
         String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
         Assertions.assertEquals(CHAIN_TASK_ID, chainTaskId);
-        verify(queueService, times(1)).addExecutionToQueue(any(), false);
+        verify(queueService, times(1)).addExecutionToQueue(any(), eq(false));
     }
 
     @Test

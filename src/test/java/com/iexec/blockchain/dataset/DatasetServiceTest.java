@@ -49,7 +49,7 @@ class DatasetServiceTest {
                 datasetService.createDataset(NAME, MULTI_ADDRESS, CHECKSUM);
         Assertions.assertEquals(dataset.getRequestId(), requestId);
         verify(queueService, times(1))
-                .addExecutionToQueue(any(), false);;
+                .addExecutionToQueue(any(), eq(false));
         ArgumentCaptor<Dataset> datasetCaptor =
                 ArgumentCaptor.forClass(Dataset.class);
         verify(datasetRepository, times(1))
