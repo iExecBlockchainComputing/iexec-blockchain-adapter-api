@@ -4,10 +4,13 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -28,6 +31,22 @@ class QueueServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
+    // region startAsyncActionsExecution
+    @Test
+    void shouldStartASingleThread() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        final Method startAsyncActionsExecutionMethod = QueueService.class.getDeclaredMethod("startAsyncActionsExecution");
+        startAsyncActionsExecutionMethod.setAccessible(true);
+
+        // First execution should start a new thread.
+        startAsyncActionsExecutionMethod.invoke(queueService);
+        Mockito.verify(queueService, Mockito.times(1)).executeActions();
+
+        // Second execution should not start a new thread.
+        startAsyncActionsExecutionMethod.invoke(queueService);
+        Mockito.verify(queueService, Mockito.times(1)).executeActions();
+    }
+    // endregion
 
     // region executeActions
     @Test
