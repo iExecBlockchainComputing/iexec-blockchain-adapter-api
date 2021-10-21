@@ -6,7 +6,7 @@ import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import feign.Param;
 import feign.RequestLine;
 
-interface ThisAppClient {
+interface BlockchainAdapterApiClient {
 
     @RequestLine("POST /tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
     String requestInitializeTask(@Param("chainDealId") String chainDealId,

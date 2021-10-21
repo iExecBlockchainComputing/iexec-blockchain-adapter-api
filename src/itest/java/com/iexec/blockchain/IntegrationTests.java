@@ -110,8 +110,8 @@ class IntegrationTests {
         Optional<ChainDeal> chainDeal = iexecHubService.getChainDeal(dealId);
         Assertions.assertTrue(chainDeal.isPresent());
 
-        ThisAppClient appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
-                .target(ThisAppClient.class, getBaseUrl());
+        BlockchainAdapterApiClient appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
+                .target(BlockchainAdapterApiClient.class, getBaseUrl());
 
         String chainTaskId = appClient.requestInitializeTask(dealId, 0);
         Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
