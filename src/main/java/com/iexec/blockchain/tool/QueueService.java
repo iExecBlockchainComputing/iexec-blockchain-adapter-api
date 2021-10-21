@@ -5,7 +5,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Execute {@link Runnable}s as they arrive.
@@ -15,7 +18,12 @@ import java.util.concurrent.*;
 @Service
 public class QueueService {
     private final PriorityBlockingQueue<BlockchainAction> queue = new PriorityBlockingQueue<>();
+    private final ExecutorService executorService;
     private CompletableFuture<Void> actionExecutor;
+
+    public QueueService() {
+        executorService = Executors.newFixedThreadPool(1);
+    }
 
     /**
      * Scheduled method execution.
@@ -28,7 +36,7 @@ public class QueueService {
             return;
         }
 
-        actionExecutor = CompletableFuture.runAsync(this::executeActions);
+        actionExecutor = CompletableFuture.runAsync(this::executeActions, executorService);
     }
 
     /**

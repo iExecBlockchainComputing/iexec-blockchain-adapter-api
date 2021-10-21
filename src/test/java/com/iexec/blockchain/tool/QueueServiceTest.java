@@ -51,15 +51,6 @@ class QueueServiceTest {
         startAsyncActionsExecutionMethod.invoke(queueService);
         waitForNewActionCompletion();
         Mockito.verify(queueService, Mockito.times(1)).executeActions();
-
-        // Interrupt current thread and try to spawn a new one.
-        final CompletableFuture<?> actionExecutor = (CompletableFuture<?>) actionExecutorField.get(queueService);
-        actionExecutor.cancel(true);
-        assertThat(actionExecutor.isDone()).isTrue();
-
-        startAsyncActionsExecutionMethod.invoke(queueService);
-        waitForNewActionCompletion();
-        Mockito.verify(queueService, Mockito.times(2)).executeActions();
     }
 
     private void waitForNewActionCompletion() {
