@@ -5,10 +5,7 @@ import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.common.chain.ChainDeal;
-import com.iexec.common.chain.ChainTask;
-import com.iexec.common.chain.ChainTaskStatus;
-import com.iexec.common.chain.DealParams;
+import com.iexec.common.chain.*;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
@@ -17,8 +14,10 @@ import com.iexec.common.sdk.order.payload.AppOrder;
 import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
+import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeUtils;
 import com.iexec.common.utils.BytesUtils;
+import com.iexec.common.utils.HashUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -29,6 +28,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.web3j.crypto.Hash;
+import org.web3j.crypto.Sign;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -63,8 +63,7 @@ class IntegrationTests {
 
     @Autowired
     private SignerService signerService;
-
-
+    
     @Test
     public void shouldBeFinalized() throws Exception {
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
@@ -120,11 +119,15 @@ class IntegrationTests {
         waitStatus(chainTaskId, ACTIVE);
 
         String someBytes32Payload = TeeUtils.TEE_TAG;
+        String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
+        String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
+        WorkerpoolAuthorization workerpoolAuthorization =
+                mockAuthorization(chainTaskId, enclaveChallenge);
         TaskContributeArgs contributeArgs = new TaskContributeArgs(
                 someBytes32Payload,
-                someBytes32Payload,
-                BytesUtils.EMPTY_ADDRESS,
-                someBytes32Payload);
+                workerpoolAuthorization.getSignature().getValue(),
+                enclaveChallenge,
+                enclaveSignature);
         String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
         Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
         System.out.println("Requested task contribute: " + contributeResponseBody);
@@ -260,6 +263,26 @@ class IntegrationTests {
 
     private String getBaseUrl() {
         return "http://localhost:" + randomServerPort;
+    }
+
+    public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
+                                                     String enclaveChallenge) {
+        String workerWallet = credentialsService.getCredentials().getAddress();
+        String hash =
+                HashUtils.concatenateAndHash(workerWallet,
+                        chainTaskId,
+                        enclaveChallenge);
+
+        Sign.SignatureData sign =
+                Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
+                        credentialsService.getCredentials().getEcKeyPair());
+
+        return WorkerpoolAuthorization.builder()
+                .workerWallet(workerWallet)
+                .chainTaskId(chainTaskId)
+                .enclaveChallenge(enclaveChallenge)
+                .signature(new Signature(sign))
+                .build();
     }
 
 }

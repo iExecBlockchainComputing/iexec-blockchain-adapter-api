@@ -22,8 +22,7 @@ import com.iexec.blockchain.tool.QueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.iexec.blockchain.tool.IexecHubService.isAddress;
-import static com.iexec.blockchain.tool.IexecHubService.isByte32;
+import static com.iexec.blockchain.tool.IexecHubService.*;
 
 @Slf4j
 @Service
@@ -41,9 +40,9 @@ public class TaskContributeService extends CommandEngine<TaskContribute, TaskCon
         if (!isByte32(chainTaskId)
                 || args == null
                 || !isByte32(args.getResultDigest())
-                || !isByte32(args.getWorkerpoolSignature())
+                || !isSignature(args.getWorkerpoolSignature())
                 || !isAddress(args.getEnclaveChallenge())
-                || !isByte32(args.getEnclaveSignature())) {
+                || !isSignature(args.getEnclaveSignature())) {
             log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
             return "";
         }

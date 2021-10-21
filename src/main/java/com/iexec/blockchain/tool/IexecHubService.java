@@ -19,14 +19,12 @@ package com.iexec.blockchain.tool;
 
 import com.iexec.common.chain.*;
 import com.iexec.common.contract.generated.IexecHubContract;
-import com.iexec.common.security.Signature;
 import com.iexec.common.utils.BytesUtils;
-import com.iexec.common.utils.HashUtils;
+import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.Sign;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
@@ -59,12 +57,18 @@ public class IexecHubService extends IexecHubAbstractService {
         chainId = chainConfig.getChainId();
     }
 
+    public static boolean isSignature(String hexString) {
+        return !StringUtils.isEmpty(hexString) &&
+                BytesUtils.stringToBytes(hexString).length == 65; // 32 + 32 + 1
+    }
+
     public static boolean isByte32(String hexString) {
-        return BytesUtils.stringToBytes(hexString).length == new byte[32].length;
+        return !StringUtils.isEmpty(hexString) &&
+                BytesUtils.stringToBytes(hexString).length == 32;
     }
 
     public static boolean isAddress(String hexString) {
-        return BytesUtils.stringToBytes(hexString).length == new byte[20].length;
+        return EthAddress.validate(hexString);
     }
 
     public CompletableFuture<TransactionReceipt> initializeTask(String chainDealId,
@@ -86,10 +90,6 @@ public class IexecHubService extends IexecHubAbstractService {
                         chainTaskId,
                         resultDigest);
 
-        //TODO: Remove this ASAP
-        workerpoolSignature = mockAuthorization(chainTaskId, enclaveChallenge)
-                .getSignature().getValue();
-
         return getContract()
                 .contribute(stringToBytes(chainTaskId),
                         stringToBytes(resultHash),
@@ -99,28 +99,6 @@ public class IexecHubService extends IexecHubAbstractService {
                         stringToBytes(workerpoolSignature)).sendAsync();
     }
 
-    /**
-     * TODO: Remove this ASAP
-     */
-    public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
-                                                     String enclaveChallenge) {
-        String workerWallet = credentialsService.getCredentials().getAddress();
-        String hash =
-                HashUtils.concatenateAndHash(workerWallet,
-                        chainTaskId,
-                        enclaveChallenge);
-
-        Sign.SignatureData sign =
-                Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
-                        credentialsService.getCredentials().getEcKeyPair());
-
-        return WorkerpoolAuthorization.builder()
-                .workerWallet(workerWallet)
-                .chainTaskId(chainTaskId)
-                .enclaveChallenge(enclaveChallenge)
-                .signature(new Signature(sign))
-                .build();
-    }
 
     public CompletableFuture<TransactionReceipt> reveal(String chainTaskId,
                                                         String resultDigest) {
