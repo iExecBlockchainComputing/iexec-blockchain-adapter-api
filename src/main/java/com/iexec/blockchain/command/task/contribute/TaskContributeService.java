@@ -50,7 +50,8 @@ public class TaskContributeService extends CommandEngine<TaskContribute, TaskCon
                 args.getResultDigest(),
                 args.getWorkerpoolSignature(),
                 args.getEnclaveChallenge(),
-                args.getEnclaveSignature()));
+                args.getEnclaveSignature()),
+                false);
     }
 
 }

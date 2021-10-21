@@ -44,7 +44,8 @@ public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinaliz
         }
         return startBlockchainCommand(new TaskFinalizeArgs(chainTaskId,
                 args.getResultLink(),
-                args.getCallbackData()));
+                args.getCallbackData()),
+                true);
     }
 
 }

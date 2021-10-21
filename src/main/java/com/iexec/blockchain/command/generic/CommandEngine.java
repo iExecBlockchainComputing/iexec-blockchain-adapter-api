@@ -47,7 +47,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      * @param args input arguments for the blockchain command
      * @return blockchain object ID if successful
      */
-    public String startBlockchainCommand(A args) {
+    public String startBlockchainCommand(A args, boolean isPriority) {
         String chainObjectId = args.getChainObjectId();
         if (!blockchainService.canSendBlockchainCommand(args)) {
             log.error("Starting blockchain command failed (failing on-chain" +
@@ -66,7 +66,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
                 chainObjectId, args);
 
         Runnable runnable = () -> triggerBlockchainCommand(args);
-        queueService.runAsync(runnable);
+        queueService.addExecutionToQueue(runnable, isPriority);
 
 
         return chainObjectId;
