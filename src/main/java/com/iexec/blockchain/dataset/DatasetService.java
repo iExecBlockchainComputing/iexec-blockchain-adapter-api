@@ -60,7 +60,7 @@ public class DatasetService {
                 .build());
 
         Runnable runnable = () -> createDatasetOnChainAndStore(dataset.getRequestId());
-        queueService.runAsync(runnable);
+        queueService.addExecutionToQueue(runnable, false);
         return dataset.getRequestId();
     }
 
