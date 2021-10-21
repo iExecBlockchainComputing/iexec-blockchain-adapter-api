@@ -20,6 +20,7 @@ package com.iexec.blockchain.tool;
 import com.iexec.common.chain.*;
 import com.iexec.common.contract.generated.IexecHubContract;
 import com.iexec.common.utils.BytesUtils;
+import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -67,8 +68,7 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public static boolean isAddress(String hexString) {
-        return !StringUtils.isEmpty(hexString) &&
-                BytesUtils.stringToBytes(hexString).length == 20;
+        return EthAddress.validate(hexString);
     }
 
     public CompletableFuture<TransactionReceipt> initializeTask(String chainDealId,
