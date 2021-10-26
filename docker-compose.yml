@@ -1,0 +1,40 @@
+version: "3.4"
+
+networks:
+  iexec-blockchain-net:
+    external: true
+
+services:
+
+  ibaa-chain:
+    image: nexus.iex.ec/poco-chain:token-v5.1.0
+    container_name: ibaa-chain
+    ports:
+      - 28545:8545
+    networks:
+      - iexec-blockchain-net
+
+  ibaa-broker:
+    image: nexus.iex.ec/iexec-autonomous-brokering-engine:dev #warn, using nexus repo + dev tag, can it be public?
+    container_name: ibaa-broker
+    environment:
+      - CHAIN=http://ibaa-chain:8545
+      - PROXY=0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002
+      - MNEMONIC=${BROKER_PRIVATE_KEY} #must use an other wallet for the broker, like wallet-abc
+      - PORT=3000
+    ports:
+      - 23000:3000
+    depends_on:
+      - ibaa-chain
+    networks:
+      - iexec-blockchain-net
+
+  ibaa-blockchain-adapter-mongo:
+    image: library/mongo:4.4
+    container_name: ibaa-blockchain-adapter-mongo
+    entrypoint: "/bin/bash"
+    command: -c "mongod --bind_ip_all --port 13012"
+    ports:
+      - 23012:13012
+    networks:
+      - iexec-blockchain-net
