@@ -7,5 +7,6 @@ buildJavaProject(
         preReleaseVisibility: 'docker.io',
         releaseVisibility: 'docker.io',
         runIntegration: true,
+        itEnvVars: ["BROKER_PRIVATE_KEY"],
         publishJars: false
 )
