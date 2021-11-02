@@ -4,6 +4,7 @@ plugins {
 	id 'java'
 	id 'com.palantir.docker' version '0.26.0'
 	id "org.sonarqube" version "2.7"
+	id 'maven-publish'
 }
 
 ext {
@@ -86,6 +87,34 @@ task itest(type: Test) {
 	setTestClassesDirs(sourceSets.integrationTest.output)
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	useJUnitPlatform()
+}
+
+//Create "libraryJar"
+task libraryJar(type: Jar, dependsOn: classes) {
+	archiveClassifier = 'library'
+	from sourceSets.main.allSource
+}
+//Create "bootJar" already done (so "jar" task can be disabled to avoid publish conflicts)
+jar {
+	enabled = false
+}
+publishing {
+	publications {
+		maven(MavenPublication) {
+			artifact libraryJar
+			artifact bootJar
+			from components.java
+		}
+	}
+	repositories {
+		maven {
+			credentials {
+				username project.nexusUser
+				password project.nexusPassword
+			}
+			url = project.nexusUrl
+		}
+	}
 }
 
 test {
