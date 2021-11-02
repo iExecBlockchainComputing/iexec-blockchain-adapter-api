@@ -1,5 +1,4 @@
 @Library('jenkins-library@feature/build-java-project') _
-//buildSimpleDocker(imageprivacy: 'public')
 buildJavaProject(
         dockerfileDir: './docker',
         buildContext: '.',
