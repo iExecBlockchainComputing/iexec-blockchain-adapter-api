@@ -1,11 +1,12 @@
 @Library('jenkins-library@feature/build-java-project') _
 buildJavaProject(
+        shouldRunIntegrationTests: true,
+        integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
+        shouldPublishJars: true,
+        shouldPublishDockerImages: true,
         dockerfileDir: './docker',
+        //dockerfileFilename: "Dockerfile-local",
         buildContext: '.',
         //dockerImageRepositoryName: '',
-        preReleaseVisibility: 'docker.io',
-        releaseVisibility: 'docker.io',
-        runIntegration: true,
-        itEnvVars: ["BROKER_PRIVATE_KEY"],
-        publishJars: true
-)
+        preProductionVisibility: 'docker.io',
+        productionVisibility: 'docker.io')
