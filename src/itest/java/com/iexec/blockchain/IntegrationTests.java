@@ -21,6 +21,7 @@ import com.iexec.common.utils.HashUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +32,11 @@ import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 
 import static com.iexec.common.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.common.chain.ChainTaskStatus.UNSET;
@@ -42,6 +47,7 @@ class IntegrationTests {
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
+    public static final int BLOCK_TIME_MS = 1000;
 
     @LocalServerPort
     private int randomServerPort;
@@ -63,9 +69,83 @@ class IntegrationTests {
 
     @Autowired
     private SignerService signerService;
-    
+    private BlockchainAdapterApiClient appClient;
+
+    @BeforeEach
+    void setUp() {
+        appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
+                .target(BlockchainAdapterApiClient.class, getBaseUrl());
+    }
+
     @Test
     public void shouldBeFinalized() throws Exception {
+        String dealId = triggerDeal(1);
+
+        String chainTaskId = appClient.requestInitializeTask(dealId, 0);
+        Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
+        System.out.println("Requested task initialize: " + chainTaskId);
+        //should wait since returned taskID is computed, initialize is not mined yet
+        waitStatus(chainTaskId, ACTIVE, 1000, 10);
+
+        String someBytes32Payload = TeeUtils.TEE_TAG;
+        String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
+        String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
+        WorkerpoolAuthorization workerpoolAuthorization =
+                mockAuthorization(chainTaskId, enclaveChallenge);
+        TaskContributeArgs contributeArgs = new TaskContributeArgs(
+                someBytes32Payload,
+                workerpoolAuthorization.getSignature().getValue(),
+                enclaveChallenge,
+                enclaveSignature);
+        String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
+        Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
+        System.out.println("Requested task contribute: " + contributeResponseBody);
+        waitStatus(chainTaskId, ChainTaskStatus.REVEALING, 1000, 10);
+
+        TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
+        String revealResponseBody = appClient.requestRevealTask(chainTaskId, taskRevealArgs);
+        Assertions.assertTrue(StringUtils.isNotEmpty(revealResponseBody));
+        System.out.println("Requested task reveal: " + revealResponseBody);
+
+        waitBeforeFinalizing(chainTaskId);
+        TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
+        String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
+        Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
+        System.out.println("Requested task finalize: " + finalizeResponseBody);
+        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED, 1000, 10);
+    }
+
+    @Test
+    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock(){
+        int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
+        String dealId = triggerDeal(taskVolume);
+        List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
+
+        IntStream.range(0, taskVolume)
+                .forEach(taskIndex -> {
+                    //burst transactions (fast sequence) (send "initialize" tx examples for simplicity)
+                    String chainTaskId = appClient.requestInitializeTask(dealId, taskIndex);
+                    Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
+                    System.out.printf("Requested task initialize " +
+                            "[index:%s, chainTaskId:%s]\n", taskIndex, chainTaskId);
+                    //wait tx completion outside
+                    txCompletionWatchers.add(CompletableFuture.runAsync(() -> {
+                        try {
+                            //maximum waiting time equals nb of submitted txs
+                            //1 tx/block means N txs / N blocks
+                            waitStatus(chainTaskId, ACTIVE, BLOCK_TIME_MS, taskVolume);
+                            //no need to wait for propagation update in db
+                            Assertions.assertTrue(true);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Assertions.fail();
+                        }
+                    }));
+                });
+        txCompletionWatchers.forEach(CompletableFuture::join);
+    }
+
+    private String triggerDeal(int taskVolume) {
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
                 "DOCKER",
@@ -82,9 +162,9 @@ class IntegrationTests {
                 30, 1);
         System.out.println("Created datasetAddress: " + datasetAddress);
 
-        AppOrder signedAppOrder = signerService.signAppOrder(buildAppOrder(appAddress));
-        WorkerpoolOrder signedWorkerpoolOrder = signerService.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool));
-        DatasetOrder signedDatasetOrder = signerService.signDatasetOrder(buildDatasetOrder(datasetAddress));
+        AppOrder signedAppOrder = signerService.signAppOrder(buildAppOrder(appAddress, taskVolume));
+        WorkerpoolOrder signedWorkerpoolOrder = signerService.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
+        DatasetOrder signedDatasetOrder = signerService.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
         RequestOrder signedRequestOrder = signerService.signRequestOrder(buildRequestOrder(signedAppOrder,
                 signedWorkerpoolOrder,
                 signedDatasetOrder,
@@ -108,53 +188,19 @@ class IntegrationTests {
         //existence for double checking
         Optional<ChainDeal> chainDeal = iexecHubService.getChainDeal(dealId);
         Assertions.assertTrue(chainDeal.isPresent());
-
-        BlockchainAdapterApiClient appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
-                .target(BlockchainAdapterApiClient.class, getBaseUrl());
-
-        String chainTaskId = appClient.requestInitializeTask(dealId, 0);
-        Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
-        System.out.println("Requested task initialize: " + chainTaskId);
-        //should wait since returned taskID is computed, initialize is not mined yet
-        waitStatus(chainTaskId, ACTIVE);
-
-        String someBytes32Payload = TeeUtils.TEE_TAG;
-        String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
-        String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
-        WorkerpoolAuthorization workerpoolAuthorization =
-                mockAuthorization(chainTaskId, enclaveChallenge);
-        TaskContributeArgs contributeArgs = new TaskContributeArgs(
-                someBytes32Payload,
-                workerpoolAuthorization.getSignature().getValue(),
-                enclaveChallenge,
-                enclaveSignature);
-        String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
-        System.out.println("Requested task contribute: " + contributeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.REVEALING);
-
-        TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
-        String revealResponseBody = appClient.requestRevealTask(chainTaskId, taskRevealArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(revealResponseBody));
-        System.out.println("Requested task reveal: " + revealResponseBody);
-
-        waitBeforeFinalizing(chainTaskId);
-        TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
-        String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
-        System.out.println("Requested task finalize: " + finalizeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED);
+        return dealId;
     }
+
 
     private String buildRandomName(String baseName) {
         return baseName + "-" + RandomStringUtils.randomAlphabetic(10);
     }
 
-    private AppOrder buildAppOrder(String appAddress) {
+    private AppOrder buildAppOrder(String appAddress, int volume) {
         return AppOrder.builder()
                 .app(appAddress)
                 .price(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
+                .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEXASTRING_64)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -163,11 +209,11 @@ class IntegrationTests {
                 .build();
     }
 
-    private WorkerpoolOrder buildWorkerpoolOrder(String workerpoolAddress) {
+    private WorkerpoolOrder buildWorkerpoolOrder(String workerpoolAddress, int volume) {
         return WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
                 .price(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
+                .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEXASTRING_64)
                 .trust(BigInteger.ZERO)
                 .category(BigInteger.ZERO)
@@ -178,11 +224,11 @@ class IntegrationTests {
                 .build();
     }
 
-    private DatasetOrder buildDatasetOrder(String datasetAddress) {
+    private DatasetOrder buildDatasetOrder(String datasetAddress, int volume) {
         return DatasetOrder.builder()
                 .dataset(datasetAddress)
                 .price(BigInteger.ZERO)
-                .volume(BigInteger.ONE)
+                .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEXASTRING_64)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -197,6 +243,13 @@ class IntegrationTests {
             DatasetOrder datasetOrder,
             String requesterAddress,
             DealParams dealParams) {
+        boolean isCompatibleVolume =
+                appOrder.getVolume().equals(workerpoolOrder.getVolume())
+                        && appOrder.getVolume().equals(datasetOrder.getVolume());
+        if (!isCompatibleVolume){
+            System.out.println("Volumes are not compatible");
+            return null;
+        }
         return RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(appOrder.getAppprice())
@@ -204,7 +257,7 @@ class IntegrationTests {
                 .workerpoolmaxprice(workerpoolOrder.getWorkerpoolprice())
                 .dataset(datasetOrder.getDataset())
                 .datasetmaxprice(datasetOrder.getDatasetprice())
-                .volume(BigInteger.ONE)
+                .volume(appOrder.getVolume())
                 .category(BigInteger.ZERO)
                 .trust(BigInteger.ZERO)
                 .tag(BytesUtils.EMPTY_HEXASTRING_64)
@@ -217,15 +270,18 @@ class IntegrationTests {
                 .build();
     }
 
-    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait) throws Exception {
+    /**
+     *
+     * @param pollingTimeMs recommended value is block time
+     */
+    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) throws Exception {
         ChainTaskStatus status = iexecHubService.getChainTask(chainTaskId)
                 .map(ChainTask::getStatus)
                 .orElse(UNSET);
-        int maxAttempts = 20;
         int attempts = 0;
         while (!status.equals(statusToWait)) {
-            System.out.println("Status is: " + status);
-            Thread.sleep(100);
+            System.out.printf("Status [status:%s, chainTaskId:%s]\n", status, chainTaskId);
+            Thread.sleep(pollingTimeMs);
             status = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getStatus)
                     .orElse(UNSET);
@@ -234,7 +290,7 @@ class IntegrationTests {
                 throw new Exception("Too long to wait for task: " + chainTaskId);
             }
         }
-        System.out.println("Status reached: " + status);
+        System.out.printf("Status reached [status:%s, chainTaskId:%s]\n", status, chainTaskId);
     }
 
     private void waitBeforeFinalizing(String chainTaskId) throws Exception {

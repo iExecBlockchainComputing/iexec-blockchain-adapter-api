@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
 @Slf4j
 @Service
@@ -78,7 +77,7 @@ public class TaskContributeBlockchainService implements CommandBlockchain<TaskCo
     }
 
     @Override
-    public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskContributeArgs args) {
+    public TransactionReceipt sendBlockchainCommand(TaskContributeArgs args) throws Exception {
         return iexecHubService.contribute(args.getChainTaskId(),
                 args.getResultDigest(),
                 args.getWorkerpoolSignature(),

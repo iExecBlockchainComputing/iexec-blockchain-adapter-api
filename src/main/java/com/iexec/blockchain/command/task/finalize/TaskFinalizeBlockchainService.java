@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
 import static com.iexec.common.utils.DateTimeUtils.now;
 
@@ -75,7 +74,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
     }
 
     @Override
-    public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskFinalizeArgs args) {
+    public TransactionReceipt sendBlockchainCommand(TaskFinalizeArgs args) throws Exception {
         return iexecHubService.finalize(args.getChainTaskId(),
                 args.getResultLink(),
                 args.getCallbackData());
