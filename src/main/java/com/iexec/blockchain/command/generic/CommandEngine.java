@@ -20,6 +20,7 @@ package com.iexec.blockchain.command.generic;
 import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;
 import lombok.extern.slf4j.Slf4j;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
 
@@ -89,23 +90,24 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
         }
         log.info("Processing command [chainObjectId:{}, commandArgs:{}]",
                 chainObjectId, args);
-        blockchainService.sendBlockchainCommand(args)
-                .thenAccept(receipt -> {
-                    if (receipt == null) {
-                        log.error("Triggering blockchain command failed " +
-                                        "(received null receipt after blockchain send) " +
-                                        "[chainObjectId:{}, commandArgs:{}]",
-                                chainObjectId, args);
-                        return;
-                    }
-                    updaterService.updateToFinal(chainObjectId, receipt);
-                }).exceptionally(throwable -> {
-                    log.error("Something wrong happened while triggering " +
-                            "blockchain command [chainObjectId:{}, commandArgs:{}]",
-                            chainObjectId, args, throwable);
-                    //TODO Update to proper status: PROCESSING_FAILED or FAILURE
-                    return null;
-                });
+        TransactionReceipt receipt;
+        try {
+            receipt = blockchainService.sendBlockchainCommand(args);
+        } catch (Exception e) {
+            log.error("Something wrong happened while triggering blockchain " +
+                            "command [chainObjectId:{}, commandArgs:{}]",
+                    chainObjectId, args, e);
+            //TODO Update to proper status: PROCESSING_FAILED or FAILURE
+            return;
+        }
+        if (receipt == null) {
+            log.error("Triggering blockchain command failed " +
+                            "(received null receipt after blockchain send) " +
+                            "[chainObjectId:{}, commandArgs:{}]",
+                    chainObjectId, args);
+            return;
+        }
+        updaterService.updateToFinal(chainObjectId, receipt);
     }
 
     /**

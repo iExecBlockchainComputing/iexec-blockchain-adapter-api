@@ -76,12 +76,12 @@ class TaskInitializeTest {
     }
 
     @Test
-    void triggerInitializeTask() {
+    void triggerInitializeTask() throws Exception {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         TaskInitializeArgs args = getArgs();
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(CompletableFuture.completedFuture(receipt));
+                .thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
         verify(updaterService, times(1))
@@ -89,12 +89,12 @@ class TaskInitializeTest {
     }
 
     @Test
-    void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
+    void shouldNotTriggerInitializeTaskSinceCannotUpdate() throws Exception {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         TaskInitializeArgs args = getArgs();
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
         when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(CompletableFuture.completedFuture(receipt));
+                .thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
         verify(updaterService, times(0))
@@ -102,11 +102,11 @@ class TaskInitializeTest {
     }
 
     @Test
-    void shouldNotTriggerInitializeTaskSinceReceiptIsNull() {
+    void shouldNotTriggerInitializeTaskSinceReceiptIsNull() throws Exception {
         TaskInitializeArgs args = getArgs();
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(null);
 
         taskInitializeService.triggerBlockchainCommand(args);
         verify(updaterService, times(0))
