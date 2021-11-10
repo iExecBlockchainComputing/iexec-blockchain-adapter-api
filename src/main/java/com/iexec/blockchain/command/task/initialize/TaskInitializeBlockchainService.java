@@ -23,8 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.concurrent.CompletionStage;
-
 @Slf4j
 @Service
 public class TaskInitializeBlockchainService implements CommandBlockchain<TaskInitializeArgs> {
@@ -59,7 +57,7 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
     }
 
     @Override
-    public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskInitializeArgs args) {
+    public TransactionReceipt sendBlockchainCommand(TaskInitializeArgs args) throws Exception {
         return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex());
     }
 
