@@ -17,13 +17,18 @@
 package com.iexec.blockchain.config;
 
 import com.iexec.blockchain.tool.ChainConfig;
+import com.iexec.common.config.PublicChainConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/config")
+@Slf4j
 public class ConfigExposureController {
     private final ChainConfig chainConfig;
 
@@ -34,8 +39,14 @@ public class ConfigExposureController {
     /**
      * Unauthenticated endpoint.
      */
-    @GetMapping("/blocktime")
-    public ResponseEntity<Integer> getBlockTime() {
-        return ResponseEntity.ok(chainConfig.getBlockTime());
+    @GetMapping("/chain")
+    public ResponseEntity<PublicChainConfig> getPublicChainConfig() {
+        final Integer blockTime = chainConfig.getBlockTime();
+        final PublicChainConfig publicChainConfig = PublicChainConfig
+                .builder()
+                .blockTime(Duration.ofSeconds(blockTime))
+                .build();
+        log.info("Sending public chain config [{}]", publicChainConfig);
+        return ResponseEntity.ok(publicChainConfig);
     }
 }
