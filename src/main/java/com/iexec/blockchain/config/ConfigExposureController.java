@@ -18,7 +18,6 @@ package com.iexec.blockchain.config;
 
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.common.config.PublicChainConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +27,6 @@ import java.time.Duration;
 
 @RestController
 @RequestMapping("/config")
-@Slf4j
 public class ConfigExposureController {
     private final ChainConfig chainConfig;
 
