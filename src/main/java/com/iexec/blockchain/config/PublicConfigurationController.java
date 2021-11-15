@@ -27,10 +27,10 @@ import java.time.Duration;
 
 @RestController
 @RequestMapping("/config")
-public class ConfigExposureController {
+public class PublicConfigurationController {
     private final ChainConfig chainConfig;
 
-    public ConfigExposureController(ChainConfig chainConfig) {
+    public PublicConfigurationController(ChainConfig chainConfig) {
         this.chainConfig = chainConfig;
     }
 
