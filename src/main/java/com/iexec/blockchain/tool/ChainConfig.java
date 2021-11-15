@@ -16,16 +16,19 @@
 
 package com.iexec.blockchain.tool;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+
+import javax.annotation.PostConstruct;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+import javax.validation.constraints.Positive;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
 public class ChainConfig {
 
     @Value("${chain.id}")
@@ -35,6 +38,7 @@ public class ChainConfig {
     private String nodeAddress;
 
     @Value("${chain.block-time}")
+    @Positive(message = "Block time should be positive")
     private Integer blockTime;
 
     @Value("${chain.hub-address}")
@@ -52,4 +56,17 @@ public class ChainConfig {
     @Value("${chain.broker-url}")
     private String brokerUrl;
 
+    @Getter(AccessLevel.NONE) // no getter
+    private Validator validator;
+
+    public ChainConfig(Validator validator) {
+        this.validator = validator;
+    }
+
+    @PostConstruct
+    private void validate() {
+        if (!validator.validate(this).isEmpty()) {
+            throw new ConstraintViolationException(validator.validate(this));
+        }
+    }
 }
