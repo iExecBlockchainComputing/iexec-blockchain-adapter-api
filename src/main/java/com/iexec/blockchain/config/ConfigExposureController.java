@@ -46,7 +46,6 @@ public class ConfigExposureController {
                 .builder()
                 .blockTime(Duration.ofSeconds(blockTime))
                 .build();
-        log.info("Sending public chain config [{}]", publicChainConfig);
         return ResponseEntity.ok(publicChainConfig);
     }
 }
