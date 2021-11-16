@@ -31,7 +31,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.iexec.common.utils.BytesUtils.stringToBytes;
 
@@ -71,19 +70,19 @@ public class IexecHubService extends IexecHubAbstractService {
         return EthAddress.validate(hexString);
     }
 
-    public CompletableFuture<TransactionReceipt> initializeTask(String chainDealId,
-                                                                int taskIndex) {
+    public TransactionReceipt initializeTask(String chainDealId,
+                                                                int taskIndex) throws Exception {
         return getContract()
                 .initialize(stringToBytes(chainDealId),
                         BigInteger.valueOf(taskIndex))
-                .sendAsync();
+                .send();
     }
 
-    public CompletableFuture<TransactionReceipt> contribute(String chainTaskId,
-                                                            String resultDigest,
-                                                            String workerpoolSignature,
-                                                            String enclaveChallenge,
-                                                            String enclaveSignature) {
+    public TransactionReceipt contribute(String chainTaskId,
+                                         String resultDigest,
+                                         String workerpoolSignature,
+                                         String enclaveChallenge,
+                                         String enclaveSignature) throws Exception {
         String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
         String resultSeal =
                 ResultUtils.computeResultSeal(credentialsService.getCredentials().getAddress(),
@@ -96,20 +95,20 @@ public class IexecHubService extends IexecHubAbstractService {
                         stringToBytes(resultSeal),
                         enclaveChallenge,
                         stringToBytes(enclaveSignature),
-                        stringToBytes(workerpoolSignature)).sendAsync();
+                        stringToBytes(workerpoolSignature)).send();
     }
 
 
-    public CompletableFuture<TransactionReceipt> reveal(String chainTaskId,
-                                                        String resultDigest) {
+    public TransactionReceipt reveal(String chainTaskId,
+                                     String resultDigest) throws Exception {
         return getContract()
                 .reveal(stringToBytes(chainTaskId),
-                        stringToBytes(resultDigest)).sendAsync();
+                        stringToBytes(resultDigest)).send();
     }
 
-    public CompletableFuture<TransactionReceipt> finalize(String chainTaskId,
-                                                          String resultLink,
-                                                          String callbackData) {
+    public TransactionReceipt finalize(String chainTaskId,
+                                       String resultLink,
+                                       String callbackData) throws Exception {
         byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
         byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
@@ -118,7 +117,7 @@ public class IexecHubService extends IexecHubAbstractService {
         return getContract()
                 .finalize(stringToBytes(chainTaskId),
                         results,
-                        resultsCallback).sendAsync();
+                        resultsCallback).send();
     }
 
     private IexecHubContract getContract() {

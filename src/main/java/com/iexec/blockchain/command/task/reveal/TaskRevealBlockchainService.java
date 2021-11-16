@@ -30,7 +30,6 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.CompletionStage;
 
 @Slf4j
 @Service
@@ -99,7 +98,7 @@ public class TaskRevealBlockchainService implements CommandBlockchain<TaskReveal
     }
 
     @Override
-    public CompletionStage<TransactionReceipt> sendBlockchainCommand(TaskRevealArgs args) {
+    public TransactionReceipt sendBlockchainCommand(TaskRevealArgs args) throws Exception {
         return iexecHubService.reveal(args.getChainTaskId(), args.getResultDigest());
     }
 

@@ -19,8 +19,6 @@ package com.iexec.blockchain.command.generic;
 
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.concurrent.CompletionStage;
-
 public interface CommandBlockchain<A extends CommandArgs> {
 
 
@@ -38,10 +36,10 @@ public interface CommandBlockchain<A extends CommandArgs> {
     boolean canSendBlockchainCommand(A args);
 
     /**
-     * Asynchronously perform a blockchain command.
+     * Synchronously perform a blockchain command.
      *
      * @param args input arguments for the blockchain command
-     * @return a future transaction receipt
+     * @return transaction receipt
      */
-    CompletionStage<TransactionReceipt> sendBlockchainCommand(A args);
+    TransactionReceipt sendBlockchainCommand(A args) throws Exception;
 }
