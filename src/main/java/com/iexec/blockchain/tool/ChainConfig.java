@@ -47,9 +47,6 @@ public class ChainConfig {
     @Value("${chain.is-sidechain}")
     private boolean isSidechain;
 
-    @Value("${chain.start-block-number}")
-    private long startBlockNumber;
-
     @Value("${chain.gas-price-multiplier}")
     private float gasPriceMultiplier;
 
