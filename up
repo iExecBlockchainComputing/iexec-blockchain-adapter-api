@@ -1,6 +1,0 @@
-#!/bin/sh
-
-# Remove old containers (and running too, to update)
-docker rm -f ibaa-chain ibaa-broker ibaa-blockchain-adapter-mongo > /dev/null 2>&1
-docker network create iexec-blockchain-net
-docker-compose up -d
