@@ -10,6 +10,11 @@ node('docker') {
         } catch (err) {
             echo err.getMessage()
         }
+        try {
+            sh "docker network rm iexec-blockchain-net"
+        } catch (err) {
+            echo err.getMessage()
+        }
         sh "docker network create iexec-blockchain-net"
     }
 
