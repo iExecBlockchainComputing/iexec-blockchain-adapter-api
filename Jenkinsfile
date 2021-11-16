@@ -6,8 +6,12 @@ node('docker') {
 
     stage('Cleaning') {
         try {
-            sh "docker rm -f ibaa-chain ibaa-broker ibaa-blockchain-adapter-mongo > /dev/null 2>&1 && " +
-                    "docker network create iexec-blockchain-net"
+            sh "docker rm -f ibaa-chain ibaa-broker ibaa-blockchain-adapter-mongo"
+        } catch (err) {
+            echo err.getMessage()
+        }
+        try {
+            sh "docker network create iexec-blockchain-net"
         } catch (err) {
             echo err.getMessage()
         }
