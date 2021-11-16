@@ -47,8 +47,6 @@ public class PublicConfigurationController {
                 .nodeAddress(chainConfig.getNodeAddress())
                 .hubAddress(chainConfig.getHubAddress())
                 .blockTime(Duration.ofSeconds(blockTime))
-                .gasPriceMultiplier(chainConfig.getGasPriceMultiplier())
-                .gasPriceCap(chainConfig.getGasPriceCap())
                 .build();
         return ResponseEntity.ok(publicChainConfig);
     }
