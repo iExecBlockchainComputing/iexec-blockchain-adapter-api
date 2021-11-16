@@ -1,7 +1,7 @@
 version: "3.4"
 
 networks:
-  iexec-blockchain-net:
+  iexec-blockchain-adapter-api-net:
     external: true
 
 services:
@@ -12,7 +12,7 @@ services:
     ports:
       - 28545:8545
     networks:
-      - iexec-blockchain-net
+      - iexec-blockchain-adapter-api-net
 
   ibaa-broker:
     image: nexus.iex.ec/iexec-autonomous-brokering-engine:dev #warn, using nexus repo + dev tag, can it be public?
@@ -27,7 +27,7 @@ services:
     depends_on:
       - ibaa-chain
     networks:
-      - iexec-blockchain-net
+      - iexec-blockchain-adapter-api-net
 
   ibaa-blockchain-adapter-mongo:
     image: library/mongo:4.4
@@ -37,4 +37,4 @@ services:
     ports:
       - 23012:13012
     networks:
-      - iexec-blockchain-net
+      - iexec-blockchain-adapter-api-net
