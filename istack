@@ -1,0 +1,18 @@
+#!/bin/sh
+## Usage
+# ./istack up
+# ./istack down
+
+OPTION=$1
+if [ "$OPTION" = "down" ] || [ "$OPTION" = "d" ]
+then
+    echo "Down"
+    docker-compose down
+    docker network rm iexec-blockchain-adapter-api-net
+else
+    echo "Up"
+    # Remove old containers (and running too, to update)
+    docker rm -f ibaa-chain ibaa-broker ibaa-blockchain-adapter-mongo > /dev/null 2>&1
+    docker network create iexec-blockchain-adapter-api-net
+    docker-compose up -d
+fi
