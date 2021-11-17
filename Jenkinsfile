@@ -2,7 +2,7 @@
 buildJavaProject(
         shouldRunIntegrationTests: true,
         integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
-        shouldPublishJars: true,
+        shouldPublishJars: false,
         shouldPublishDockerImages: true,
         dockerfileDir: './docker',
         //dockerfileFilename: "Dockerfile-local",
