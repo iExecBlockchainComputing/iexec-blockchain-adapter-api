@@ -1,4 +1,4 @@
-@Library('jenkins-library@feature/build-java-project') _
+@Library('jenkins-library@1.1.0') _
 buildJavaProject(
         shouldRunIntegrationTests: true,
         integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
