@@ -16,32 +16,49 @@
 
 package com.iexec.blockchain.tool;
 
+import com.iexec.blockchain.tool.validation.ValidEthereumAddress;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
+@ToString
 public class ChainConfig {
 
     @Value("${chain.id}")
+    @Positive(message = "Chain id should be positive")
+    @NotNull
     private Integer chainId;
 
     @Value("${chain.node-address}")
+    @Pattern(message = "Node address should be a valid URL",
+            regexp = "(http(s)?://)"           // Matches a protocol (http or https)
+            + "[-a-zA-Z0-9@:%._+~#=]{2,256}"   // Matches all (sub-)domains
+            + "(\\.([a-z]{2,6}|[0-9]{1,3}))?"  // Matches TLD (may be useless, e.g. for localhost)
+            + "\\b([-a-zA-Z0-9@:%_+.~#?&/=]*)" // Matches URL parameters
+    )
+    @NotEmpty
     private String nodeAddress;
 
     @Value("${chain.block-time}")
     @Positive(message = "Block time should be positive")
+    @NotNull
     private Integer blockTime;
 
     @Value("${chain.hub-address}")
+    @ValidEthereumAddress
     private String hubAddress;
 
     @Value("${chain.is-sidechain}")
@@ -57,7 +74,7 @@ public class ChainConfig {
     private String brokerUrl;
 
     @Getter(AccessLevel.NONE) // no getter
-    private Validator validator;
+    private final Validator validator;
 
     public ChainConfig(Validator validator) {
         this.validator = validator;
