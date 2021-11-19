@@ -21,6 +21,7 @@ chain:
   gas-price-multiplier: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be send with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
   gas-price-cap: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
   broker-url: ${IEXEC_BLOCKCHAIN_ADAPTER_API_BROKER_URL:http://localhost:3000}
+  final-deadline-ratio: ${IEXEC_BLOCKCHAIN_ADAPTER_API_FINAl_DEADLINE_RATIO:10}
 wallet:
   path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
   password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}

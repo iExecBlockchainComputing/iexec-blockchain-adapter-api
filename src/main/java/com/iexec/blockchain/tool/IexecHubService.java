@@ -24,6 +24,7 @@ import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -46,10 +47,12 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
-                           ChainConfig chainConfig) {
+                           ChainConfig chainConfig,
+                           @Value("${chain.final-deadline-ratio}") Integer expectedFinalDeadlineRatio) {
         super(credentialsService.getCredentials(),
                 web3jService,
-                chainConfig.getHubAddress());
+                chainConfig.getHubAddress(),
+                expectedFinalDeadlineRatio);
         this.credentialsService = credentialsService;
         this.web3jService = web3jService;
         blockTime = chainConfig.getBlockTime();
