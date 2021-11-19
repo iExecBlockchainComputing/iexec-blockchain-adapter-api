@@ -44,8 +44,8 @@ public class PublicConfigurationController {
                 .builder()
                 .chainId(chainConfig.getChainId())
                 .isSidechain(chainConfig.isSidechain())
-                .nodeAddress(chainConfig.getNodeAddress())
-                .hubAddress(chainConfig.getHubAddress())
+                .chainNodeUrl(chainConfig.getNodeAddress())
+                .iExecHubContractAddress(chainConfig.getHubAddress())
                 .blockTime(Duration.ofSeconds(blockTime))
                 .build();
         return ResponseEntity.ok(publicChainConfig);
