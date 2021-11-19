@@ -92,19 +92,15 @@ task itest(type: Test) {
 	useJUnitPlatform()
 }
 
-//Create "libraryJar"
-task libraryJar(type: Jar, dependsOn: classes) {
-	archiveClassifier = 'library'
+jar {
+	enabled = true
+	archiveClassifier.set('library')
 	from sourceSets.main.allSource
 }
-//Create "bootJar" already done (so "jar" task can be disabled to avoid publish conflicts)
-jar {
-	enabled = false
-}
+
 publishing {
 	publications {
 		maven(MavenPublication) {
-			artifact libraryJar
 			artifact bootJar
 			from components.java
 		}
