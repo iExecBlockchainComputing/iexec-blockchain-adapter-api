@@ -54,14 +54,6 @@ dependencies {
 
 	// iexec
 	implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-	//implementation files("../iexec-common/build/libs/iexec-common-${iexecCommonVersion}.jar")
-
-	// region Dependencies required by `iexec-common` when using local jar
-//	implementation "org.web3j:core:4.7.0"
-//	implementation "org.apache.commons:commons-lang3:3.9"
-//	implementation 'net.jodah:failsafe:2.4.4'
-//	implementation "com.google.guava:guava:28.2-jre"
-	// endregion
 
 	// web3j bug required
 	// NoSuchMethodError: 'okhttp3.RequestBody okhttp3.RequestBody.create(java.lang.String, okhttp3.MediaType)'
