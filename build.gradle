@@ -96,6 +96,7 @@ jar {
 	enabled = true
 	archiveClassifier.set('library')
 	from sourceSets.main.allSource
+	duplicatesStrategy = 'exclude'
 }
 
 publishing {
