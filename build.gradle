@@ -13,6 +13,7 @@ ext {
 
 group = 'com.iexec.blockchain'
 sourceCompatibility = '11'
+targetCompatibility = '11'
 
 configurations {
 	compileOnly {
