@@ -21,6 +21,7 @@ configurations {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	// iExec
 	maven {
