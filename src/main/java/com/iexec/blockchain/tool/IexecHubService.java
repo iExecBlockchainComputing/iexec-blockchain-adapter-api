@@ -18,14 +18,12 @@ package com.iexec.blockchain.tool;
 
 
 import com.iexec.common.chain.*;
-import com.iexec.common.contract.IexecHubSmartContractValidator;
 import com.iexec.common.contract.generated.IexecHubContract;
 import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -48,12 +46,10 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
-                           ChainConfig chainConfig,
-                           @Value("${chain.final-deadline-ratio}") Integer expectedFinalDeadlineRatio) {
+                           ChainConfig chainConfig) {
         super(credentialsService.getCredentials(),
                 web3jService,
-                chainConfig.getHubAddress(),
-                new IexecHubSmartContractValidator(expectedFinalDeadlineRatio));
+                chainConfig.getHubAddress());
         this.credentialsService = credentialsService;
         this.web3jService = web3jService;
         blockTime = chainConfig.getBlockTime();
