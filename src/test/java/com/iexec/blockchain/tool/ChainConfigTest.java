@@ -4,13 +4,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
+import javax.validation.Validation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -20,25 +16,14 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest(classes = ChainConfigTest.CustomApplicationRunner.class)
 class ChainConfigTest {
-
-    // We aim to load only useful beans
-    @SpringBootApplication(scanBasePackages = {"org.springframework.validation.beanvalidation"})
-    static class CustomApplicationRunner {
-        public static void main(String[] args) {
-            SpringApplication.run(CustomApplicationRunner.class, args);
-        }
-    }
-
-    @Autowired
-    private Validator validator;
-
     private ChainConfig chainConfig;
 
     @BeforeEach
     void setUp() {
-        this.chainConfig = new ChainConfig(validator);
+        this.chainConfig = new ChainConfig(
+                Validation.buildDefaultValidatorFactory().getValidator()
+        );
     }
 
     static Stream<Arguments> validData() {
