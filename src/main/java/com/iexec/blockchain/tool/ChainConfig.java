@@ -16,8 +16,9 @@
 
 package com.iexec.blockchain.tool;
 
-import com.iexec.blockchain.tool.validation.ValidEthereumAddress;
+import com.iexec.blockchain.tool.validation.ValidNonZeroEthereumAddress;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import javax.annotation.PostConstruct;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @ToString
+@AllArgsConstructor
 public class ChainConfig {
 
     @Value("${chain.id}")
@@ -53,7 +55,7 @@ public class ChainConfig {
     private Integer blockTime;
 
     @Value("${chain.hub-address}")
-    @ValidEthereumAddress
+    @ValidNonZeroEthereumAddress
     private String hubAddress;
 
     @Value("${chain.is-sidechain}")

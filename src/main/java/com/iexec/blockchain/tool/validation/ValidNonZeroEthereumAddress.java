@@ -23,11 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = EthereumAddressValidator.class)
+@Constraint(validatedBy = EthereumNonZeroAddressValidator.class)
 @Target({ ElementType.METHOD, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidEthereumAddress {
-    String message() default "Invalid Ethereum address";
+public @interface ValidNonZeroEthereumAddress {
+    String message() default "Invalid non-zero Ethereum address";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
