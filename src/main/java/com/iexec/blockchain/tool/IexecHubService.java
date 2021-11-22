@@ -18,7 +18,7 @@ package com.iexec.blockchain.tool;
 
 
 import com.iexec.common.chain.*;
-import com.iexec.common.contract.IexecSmartContractConnectionPolicy;
+import com.iexec.common.contract.IexecSmartContractValidator;
 import com.iexec.common.contract.generated.IexecHubContract;
 import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.EthAddress;
@@ -53,7 +53,7 @@ public class IexecHubService extends IexecHubAbstractService {
         super(credentialsService.getCredentials(),
                 web3jService,
                 chainConfig.getHubAddress(),
-                new IexecSmartContractConnectionPolicy(expectedFinalDeadlineRatio));
+                new IexecSmartContractValidator(expectedFinalDeadlineRatio));
         this.credentialsService = credentialsService;
         this.web3jService = web3jService;
         blockTime = chainConfig.getBlockTime();
