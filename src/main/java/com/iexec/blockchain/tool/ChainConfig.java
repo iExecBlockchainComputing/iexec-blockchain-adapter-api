@@ -25,10 +25,10 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
 import lombok.ToString;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -43,12 +43,7 @@ public class ChainConfig {
     private Integer chainId;
 
     @Value("${chain.node-address}")
-    @Pattern(message = "Node address should be a valid URL",
-            regexp = "(http(s)?://)"           // Matches a protocol (http or https)
-            + "[-a-zA-Z0-9@:%._+~#=]{2,256}"   // Matches all (sub-)domains
-            + "(\\.([a-z]{2,6}|[0-9]{1,3}))?"  // Matches TLD (may be useless, e.g. for localhost)
-            + "\\b([-a-zA-Z0-9@:%_+.~#?&/=]*)" // Matches URL parameters
-    )
+    @URL
     @NotEmpty
     private String nodeAddress;
 
