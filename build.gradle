@@ -13,6 +13,7 @@ ext {
 
 group = 'com.iexec.blockchain'
 sourceCompatibility = '11'
+targetCompatibility = '11'
 
 configurations {
 	compileOnly {
@@ -21,6 +22,7 @@ configurations {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	// iExec
 	maven {
@@ -52,14 +54,6 @@ dependencies {
 
 	// iexec
 	implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-	//implementation files("../iexec-common/build/libs/iexec-common-${iexecCommonVersion}.jar")
-
-	// region Dependencies required by `iexec-common` when using local jar
-//	implementation "org.web3j:core:4.7.0"
-//	implementation "org.apache.commons:commons-lang3:3.9"
-//	implementation 'net.jodah:failsafe:2.4.4'
-//	implementation "com.google.guava:guava:28.2-jre"
-	// endregion
 
 	// web3j bug required
 	// NoSuchMethodError: 'okhttp3.RequestBody okhttp3.RequestBody.create(java.lang.String, okhttp3.MediaType)'
@@ -90,19 +84,16 @@ task itest(type: Test) {
 	useJUnitPlatform()
 }
 
-//Create "libraryJar"
-task libraryJar(type: Jar, dependsOn: classes) {
-	archiveClassifier = 'library'
-	from sourceSets.main.allSource
-}
-//Create "bootJar" already done (so "jar" task can be disabled to avoid publish conflicts)
 jar {
-	enabled = false
+	enabled = true
+	archiveClassifier.set('library')
+	from sourceSets.main.allSource
+	duplicatesStrategy = 'exclude'
 }
+
 publishing {
 	publications {
 		maven(MavenPublication) {
-			artifact libraryJar
 			artifact bootJar
 			from components.java
 		}
