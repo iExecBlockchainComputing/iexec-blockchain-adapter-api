@@ -41,17 +41,13 @@ class ChainConfigTest {
         Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
         validateConfig.setAccessible(true);
 
-        final ChainConfig chainConfig = new ChainConfig(
-                chainId,
-                nodeAddress,
-                blockTime,
-                hubAddress,
-                false,
-                0f,
-                0L,
-                "",
-                validator
-        );
+        final ChainConfig chainConfig = ChainConfig.builder()
+                .chainId(chainId)
+                .nodeAddress(nodeAddress)
+                .blockTime(blockTime)
+                .hubAddress(hubAddress)
+                .validator(validator)
+                .build();
 
         System.out.println(chainConfig);
         assertThatCode(() -> validateConfig.invoke(chainConfig))
@@ -74,17 +70,13 @@ class ChainConfigTest {
         Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
         validateConfig.setAccessible(true);
 
-        final ChainConfig chainConfig = new ChainConfig(
-                chainId,
-                DEFAULT_NODE_ADDRESS,
-                DEFAULT_BLOCK_TIME,
-                DEFAULT_HUB_ADDRESS,
-                false,
-                0f,
-                0L,
-                "",
-                validator
-        );
+        final ChainConfig chainConfig = ChainConfig.builder()
+                .chainId(chainId)
+                .nodeAddress(DEFAULT_NODE_ADDRESS)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .hubAddress(DEFAULT_HUB_ADDRESS)
+                .validator(validator)
+                .build();
 
         System.out.println(chainConfig);
         assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
@@ -111,17 +103,13 @@ class ChainConfigTest {
         Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
         validateConfig.setAccessible(true);
 
-        final ChainConfig chainConfig = new ChainConfig(
-                DEFAULT_CHAIN_ID,
-                nodeAddress,
-                DEFAULT_BLOCK_TIME,
-                DEFAULT_HUB_ADDRESS,
-                false,
-                0f,
-                0L,
-                "",
-                validator
-        );
+        final ChainConfig chainConfig = ChainConfig.builder()
+                .chainId(DEFAULT_CHAIN_ID)
+                .nodeAddress(nodeAddress)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .hubAddress(DEFAULT_HUB_ADDRESS)
+                .validator(validator)
+                .build();
 
         System.out.println(chainConfig);
         assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
@@ -147,17 +135,13 @@ class ChainConfigTest {
         Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
         validateConfig.setAccessible(true);
 
-        final ChainConfig chainConfig = new ChainConfig(
-                DEFAULT_CHAIN_ID,
-                DEFAULT_NODE_ADDRESS,
-                blockTime,
-                DEFAULT_HUB_ADDRESS,
-                false,
-                0f,
-                0L,
-                "",
-                validator
-        );
+        final ChainConfig chainConfig = ChainConfig.builder()
+                .chainId(DEFAULT_CHAIN_ID)
+                .nodeAddress(DEFAULT_NODE_ADDRESS)
+                .blockTime(blockTime)
+                .hubAddress(DEFAULT_HUB_ADDRESS)
+                .validator(validator)
+                .build();
 
         System.out.println(chainConfig);
         assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
@@ -185,17 +169,13 @@ class ChainConfigTest {
         Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
         validateConfig.setAccessible(true);
 
-        final ChainConfig chainConfig = new ChainConfig(
-                DEFAULT_CHAIN_ID,
-                DEFAULT_NODE_ADDRESS,
-                DEFAULT_BLOCK_TIME,
-                hubAddress,
-                false,
-                0f,
-                0L,
-                "",
-                validator
-        );
+        final ChainConfig chainConfig = ChainConfig.builder()
+                .chainId(DEFAULT_CHAIN_ID)
+                .nodeAddress(DEFAULT_NODE_ADDRESS)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .hubAddress(hubAddress)
+                .validator(validator)
+                .build();
 
         System.out.println(chainConfig);
         assertThatThrownBy(() -> validateConfig.invoke(chainConfig))

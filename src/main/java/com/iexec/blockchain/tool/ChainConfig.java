@@ -17,9 +17,10 @@
 package com.iexec.blockchain.tool;
 
 import com.iexec.blockchain.tool.validation.ValidNonZeroEthereumAddress;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
+import org.hibernate.validator.constraints.URL;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolationException;
@@ -28,14 +29,10 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import lombok.ToString;
-import org.hibernate.validator.constraints.URL;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 @Component
 @Getter
 @ToString
+@Builder
 @AllArgsConstructor
 public class ChainConfig {
 
