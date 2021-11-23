@@ -16,32 +16,43 @@
 
 package com.iexec.blockchain.tool;
 
-import lombok.AccessLevel;
-import lombok.Getter;
+import com.iexec.blockchain.tool.validation.ValidNonZeroEthereumAddress;
+import lombok.*;
+import org.hibernate.validator.constraints.URL;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Component
 @Getter
+@ToString
+@Builder
+@AllArgsConstructor
 public class ChainConfig {
 
     @Value("${chain.id}")
+    @Positive(message = "Chain id should be positive")
+    @NotNull
     private Integer chainId;
 
     @Value("${chain.node-address}")
+    @URL
+    @NotEmpty
     private String nodeAddress;
 
     @Value("${chain.block-time}")
     @Positive(message = "Block time should be positive")
+    @NotNull
     private Integer blockTime;
 
     @Value("${chain.hub-address}")
+    @ValidNonZeroEthereumAddress
     private String hubAddress;
 
     @Value("${chain.is-sidechain}")
@@ -57,7 +68,7 @@ public class ChainConfig {
     private String brokerUrl;
 
     @Getter(AccessLevel.NONE) // no getter
-    private Validator validator;
+    private final Validator validator;
 
     public ChainConfig(Validator validator) {
         this.validator = validator;

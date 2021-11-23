@@ -42,6 +42,10 @@ public class PublicConfigurationController {
         final Integer blockTime = chainConfig.getBlockTime();
         final PublicChainConfig publicChainConfig = PublicChainConfig
                 .builder()
+                .chainId(chainConfig.getChainId())
+                .isSidechain(chainConfig.isSidechain())
+                .chainNodeUrl(chainConfig.getNodeAddress())
+                .iexecHubContractAddress(chainConfig.getHubAddress())
                 .blockTime(Duration.ofSeconds(blockTime))
                 .build();
         return ResponseEntity.ok(publicChainConfig);
