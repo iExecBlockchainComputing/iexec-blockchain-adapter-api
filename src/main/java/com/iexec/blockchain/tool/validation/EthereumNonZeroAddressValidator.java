@@ -16,21 +16,17 @@
 
 package com.iexec.blockchain.tool.validation;
 
+import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.EthAddress;
-import org.web3j.utils.Numeric;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.Arrays;
 
 public class EthereumNonZeroAddressValidator
         implements ConstraintValidator<ValidNonZeroEthereumAddress, String> {
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        return EthAddress.validate(value) && !Arrays.equals(
-                Numeric.hexStringToByteArray(value),
-                // An Ethereum address is a 40-hex characters string = 20 bytes
-                new byte[20]
-        );
+        return EthAddress.validate(value)
+                && !BytesUtils.EMPTY_ADDRESS.equals(value);
     }
 }
