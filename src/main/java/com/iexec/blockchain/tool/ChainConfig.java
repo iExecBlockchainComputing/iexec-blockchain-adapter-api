@@ -19,6 +19,7 @@ package com.iexec.blockchain.tool;
 import com.iexec.blockchain.tool.validation.ValidNonZeroEthereumAddress;
 import lombok.*;
 import org.hibernate.validator.constraints.URL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +71,7 @@ public class ChainConfig {
     @Getter(AccessLevel.NONE) // no getter
     private final Validator validator;
 
+    @Autowired
     public ChainConfig(Validator validator) {
         this.validator = validator;
     }
