@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static com.iexec.common.chain.ChainTaskStatus.ACTIVE;
@@ -133,7 +134,7 @@ class IntegrationTests {
                         try {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
-                            waitStatus(chainTaskId, ACTIVE, BLOCK_TIME_MS, taskVolume);
+                            waitStatus(chainTaskId, ACTIVE, BLOCK_TIME_MS, taskVolume + 2);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
                         } catch (Exception e) {
@@ -275,20 +276,21 @@ class IntegrationTests {
      * @param pollingTimeMs recommended value is block time
      */
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) throws Exception {
-        ChainTaskStatus status = iexecHubService.getChainTask(chainTaskId)
-                .map(ChainTask::getStatus)
-                .orElse(UNSET);
+        ChainTaskStatus status = null;
         int attempts = 0;
-        while (!status.equals(statusToWait)) {
+        while(true) {
             System.out.printf("Status [status:%s, chainTaskId:%s]\n", status, chainTaskId);
-            Thread.sleep(pollingTimeMs);
             status = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getStatus)
                     .orElse(UNSET);
             attempts++;
-            if (attempts == maxAttempts) {
-                throw new Exception("Too long to wait for task: " + chainTaskId);
+            if (status.equals(statusToWait) || attempts > maxAttempts) {
+                break;
             }
+            TimeUnit.MILLISECONDS.sleep(pollingTimeMs);
+        }
+        if (!status.equals(statusToWait)) {
+            throw new Exception("Too long to wait for task: " + chainTaskId);
         }
         System.out.printf("Status reached [status:%s, chainTaskId:%s]\n", status, chainTaskId);
     }
