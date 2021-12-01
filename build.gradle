@@ -5,7 +5,6 @@ plugins {
 	id 'jacoco'
 	id 'org.sonarqube' version '3.3'
 	id 'maven-publish'
-	id 'com.palantir.docker' version '0.26.0'
 }
 
 ext {
@@ -126,12 +125,29 @@ jacocoTestReport {
 tasks.test.finalizedBy    tasks.jacocoTestReport
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
-def jar = rootProject.name + '-' + version + ".jar"
+String gitBranch = "git rev-parse --abbrev-ref HEAD".execute().text.trim()
+String gitShortCommit = "git rev-parse --short=8 HEAD".execute().text.trim()
+String imageName   = 'nexus.iex.ec/iexec-blockchain-adapter-api'
 
-docker {
-	name 'docker.io/iexechub/' + rootProject.name + ':dev'
-	dockerfile file('docker/Dockerfile-local')
-	files('build/libs/' + jar)
-	buildArgs([JAR_PATH: jar ])
+ext.bootJarPath = relativePath(tasks.bootJar.outputs.files.singleFile)
+ext.ociImageNameFull = ""
+
+if (gitBranch.equals('master') || gitBranch.startsWith('release/') || gitBranch.startsWith('hotfix/')) {
+    ext.ociImageNameFull = imageName + ':' + version
 }
-tasks.docker.dependsOn tasks.build
+if (gitBranch.equals('develop')) {
+    ext.ociImageNameFull = imageName + ':dev-' + gitShortCommit
+}
+if (gitBranch.startsWith('feature/') || gitBranch.startsWith('bugfix/')) {
+    ext.ociImageNameFull = imageName + ':feature-' + gitShortCommit
+}
+
+ext.ociImageNameDev         = imageName + ':dev'
+ext.ociImageNameShortCommit = imageName + ':' + gitShortCommit
+
+task buildImage(type: Exec) {
+    dependsOn tasks.bootJar
+    description 'Build OCI image'
+    commandLine("sh", "-c", "docker build -f docker/Dockerfile-local --build-arg spring_boot_jar=$bootJarPath -t $ociImageNameFull ."
+            + " && docker tag $ociImageNameFull $ociImageNameDev")
+}
