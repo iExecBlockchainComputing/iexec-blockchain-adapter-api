@@ -136,6 +136,8 @@ jacocoTestReport {
 tasks.test.finalizedBy    tasks.jacocoTestReport
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
+ext.bootJarPath = relativePath(tasks.bootJar.outputs.files.singleFile)
+
 def jar = rootProject.name + '-' + version + ".jar"
 
 docker {
