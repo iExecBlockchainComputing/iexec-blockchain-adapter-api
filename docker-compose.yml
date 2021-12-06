@@ -1,7 +1,8 @@
 version: "3.4"
 
 networks:
-  iexec-blockchain-adapter-api-net: {}
+  iexec-blockchain-adapter-api-net:
+    name: iexec-blockchain-adapter-api-net
 
 services:
 
