@@ -79,17 +79,17 @@ sourceSets {
 	}
 }
 
-task composeDeploy(type: Exec) {
+task itestSetup(type: Exec) {
 	commandLine 'docker-compose', 'up', '-d'
 }
 
-task composeDown(type: Exec) {
+task itestTeardown(type: Exec) {
 	commandLine 'docker-compose', 'down'
 }
 
 task itest(type: Test) {
-	dependsOn   composeDeploy
-	finalizedBy composeDown
+	dependsOn   itestSetup
+	finalizedBy itestTeardown
 	setTestClassesDirs(sourceSets.integrationTest.output)
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	useJUnitPlatform()
