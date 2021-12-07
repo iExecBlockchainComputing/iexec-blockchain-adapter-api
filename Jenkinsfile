@@ -1,6 +1,5 @@
-@Library('jenkins-library@1.1.0') _
+@Library('jenkins-library@1.3.0') _
 buildJavaProject(
-        shouldRunIntegrationTests: true,
         integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
         shouldPublishJars: false,
         shouldPublishDockerImages: true,
