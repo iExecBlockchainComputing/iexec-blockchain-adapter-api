@@ -87,6 +87,8 @@ task itestTeardown(type: Exec) {
 }
 
 task itest(type: Test) {
+	group 'Verification'
+	description 'Runs the integration tests.'
 	dependsOn   itestSetup
 	finalizedBy itestTeardown
 	setTestClassesDirs(sourceSets.integrationTest.output)
