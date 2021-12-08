@@ -5,7 +5,6 @@ plugins {
 	id 'jacoco'
 	id 'org.sonarqube' version '3.3'
 	id 'maven-publish'
-	id 'com.palantir.docker' version '0.26.0'
 }
 
 ext {
@@ -136,14 +135,13 @@ jacocoTestReport {
 tasks.test.finalizedBy    tasks.jacocoTestReport
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
-ext.bootJarPath = relativePath(tasks.bootJar.outputs.files.singleFile)
+ext.bootJarPath    = relativePath(tasks.bootJar.outputs.files.singleFile)
+ext.gitShortCommit = 'git rev-parse --short=8 HEAD'.execute().text.trim()
+ext.ociImageName   = "local/${rootProject.name}"
 
-def jar = rootProject.name + '-' + version + ".jar"
-
-docker {
-	name 'docker.io/iexechub/' + rootProject.name + ':dev'
-	dockerfile file('docker/Dockerfile-local')
-	files('build/libs/' + jar)
-	buildArgs([JAR_PATH: jar ])
+task buildImage(type: Exec) {
+    group 'Build'
+    description 'Build an OCI image from a Dockerfile.'
+    commandLine("sh", "-c", "docker build -f docker/Dockerfile-local --build-arg spring_boot_jar=$bootJarPath -t $ociImageName:$gitShortCommit ."
+            + " && docker tag $ociImageName:$gitShortCommit $ociImageName:dev")
 }
-tasks.docker.dependsOn tasks.build
