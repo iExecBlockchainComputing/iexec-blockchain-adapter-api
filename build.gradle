@@ -7,13 +7,18 @@ plugins {
 	id 'maven-publish'
 }
 
-ext {
-	openFeignVersion = '11.6'
-}
-
 group = 'com.iexec.blockchain'
 sourceCompatibility = '11'
 targetCompatibility = '11'
+
+ext {
+	openFeignVersion = '11.6'
+	gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+}
+
+if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
+	version += '-NEXT-SNAPSHOT'
+}
 
 configurations {
 	compileOnly {
