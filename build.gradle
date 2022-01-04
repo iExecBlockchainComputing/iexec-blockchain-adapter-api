@@ -17,8 +17,7 @@ ext {
 }
 
 if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
-	version            += '-NEXT-SNAPSHOT'
-	iexecCommonVersion += '-NEXT-SNAPSHOT'
+	version += '-NEXT-SNAPSHOT'
 }
 
 configurations {
