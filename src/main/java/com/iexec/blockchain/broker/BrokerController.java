@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.iexec.blockchain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
+import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
 @RestController
 @RequestMapping("/broker")
