@@ -1,6 +1,8 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.4.3'
+	id 'org.springframework.boot' version '2.6.2'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'jacoco'
 	id 'org.sonarqube' version '3.3'
@@ -51,8 +53,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.awaitility:awaitility:4.0.1'
 
-	implementation "io.springfox:springfox-boot-starter:3.0.0"
-	implementation "io.springfox:springfox-swagger-ui:3.0.0"
+	// Spring Doc
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.3'
+
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -70,6 +73,10 @@ dependencies {
 	implementation "io.github.openfeign:feign-core:$openFeignVersion"
 	implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
 	implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
+}
+
+springBoot {
+	buildInfo()
 }
 
 sourceSets {
