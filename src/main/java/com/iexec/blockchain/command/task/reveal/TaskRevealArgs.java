@@ -17,7 +17,6 @@
 package com.iexec.blockchain.command.task.reveal;
 
 import com.iexec.blockchain.command.generic.CommandArgs;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

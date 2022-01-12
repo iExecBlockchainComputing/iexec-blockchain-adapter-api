@@ -12,9 +12,7 @@ import org.mockito.MockitoAnnotations;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class TaskInitializeTest {
