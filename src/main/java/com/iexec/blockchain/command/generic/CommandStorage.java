@@ -109,12 +109,12 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
                             "[chainObjectId:{}, command:{}, receipt:{}]",
                     chainObjectId,
                     command.getClass().getSimpleName(),
-                    receipt.toString());
+                    receipt);
         } else {
             status = Status.FAILURE;
             log.info("Failure after transaction sent [chainObjectId:{}, " +
                             "command:{}, receipt:{}]", chainObjectId,
-                    command.getClass().getSimpleName(), receipt.toString());
+                    command.getClass().getSimpleName(), receipt);
         }
         command.setStatus(status);
         command.setTransactionReceipt(receipt);
