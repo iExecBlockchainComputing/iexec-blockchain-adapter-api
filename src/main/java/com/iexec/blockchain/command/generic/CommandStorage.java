@@ -20,7 +20,7 @@ package com.iexec.blockchain.command.generic;
 import com.iexec.blockchain.tool.Status;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Instant;
@@ -102,19 +102,19 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
         C command = localCommand.get();
 
         Status status;
-        if (StringUtils.hasText(receipt.getStatus())
+        if (StringUtils.isNotEmpty(receipt.getStatus())
                 && receipt.getStatus().equals("0x1")) {
             status = Status.SUCCESS;
             log.info("Success command with transaction receipt " +
                             "[chainObjectId:{}, command:{}, receipt:{}]",
                     chainObjectId,
                     command.getClass().getSimpleName(),
-                    receipt.toString());
+                    receipt);
         } else {
             status = Status.FAILURE;
             log.info("Failure after transaction sent [chainObjectId:{}, " +
                             "command:{}, receipt:{}]", chainObjectId,
-                    command.getClass().getSimpleName(), receipt.toString());
+                    command.getClass().getSimpleName(), receipt);
         }
         command.setStatus(status);
         command.setTransactionReceipt(receipt);

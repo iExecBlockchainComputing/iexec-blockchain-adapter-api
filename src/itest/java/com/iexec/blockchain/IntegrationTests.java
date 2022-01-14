@@ -150,7 +150,7 @@ class IntegrationTests {
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
                 "DOCKER",
-                BytesUtils.EMPTY_HEXASTRING_64,
+                BytesUtils.EMPTY_HEX_STRING_32,
                 "",
                 30, 1);
         System.out.println("Created app: " + appAddress);
@@ -159,7 +159,7 @@ class IntegrationTests {
         System.out.println("Created workerpool: " + workerpool);
         String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
                 "https://abc.com/def.jpeg",
-                BytesUtils.EMPTY_HEXASTRING_64,
+                BytesUtils.EMPTY_HEX_STRING_32,
                 30, 1);
         System.out.println("Created datasetAddress: " + datasetAddress);
 
@@ -202,7 +202,7 @@ class IntegrationTests {
                 .app(appAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -215,7 +215,7 @@ class IntegrationTests {
                 .workerpool(workerpoolAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .trust(BigInteger.ZERO)
                 .category(BigInteger.ZERO)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -230,7 +230,7 @@ class IntegrationTests {
                 .dataset(datasetAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -261,7 +261,7 @@ class IntegrationTests {
                 .volume(appOrder.getVolume())
                 .category(BigInteger.ZERO)
                 .trust(BigInteger.ZERO)
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .beneficiary(BytesUtils.EMPTY_ADDRESS)
                 .requester(requesterAddress)
                 .callback(BytesUtils.EMPTY_ADDRESS)

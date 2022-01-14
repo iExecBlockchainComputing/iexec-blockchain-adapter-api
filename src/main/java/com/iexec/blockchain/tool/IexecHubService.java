@@ -233,7 +233,7 @@ public class IexecHubService extends IexecHubAbstractService {
     public boolean hasEnoughStakeToContribute(String chainDealId, String workerWallet) {
         Optional<ChainAccount> optionalChainAccount = getChainAccount(workerWallet);
         Optional<ChainDeal> optionalChainDeal = getChainDeal(chainDealId);
-        if (!optionalChainAccount.isPresent() || !optionalChainDeal.isPresent()) {
+        if (optionalChainAccount.isEmpty() || optionalChainDeal.isEmpty()) {
             return false;
         }
         return optionalChainAccount.get().getDeposit() >= optionalChainDeal.get().getWorkerStake().longValue();
@@ -242,7 +242,7 @@ public class IexecHubService extends IexecHubAbstractService {
     public boolean isContributionUnsetToContribute(String chainTaskId, String workerWallet) {
         Optional<ChainContribution> optionalContribution =
                 getChainContribution(chainTaskId, workerWallet);
-        if (!optionalContribution.isPresent()) return false;
+        if (optionalContribution.isEmpty()) return false;
 
         ChainContribution chainContribution = optionalContribution.get();
         return chainContribution.getStatus().equals(ChainContributionStatus.UNSET);
