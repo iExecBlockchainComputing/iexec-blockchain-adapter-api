@@ -9,34 +9,28 @@ plugins {
 	id 'maven-publish'
 }
 
-group = 'com.iexec.blockchain'
-sourceCompatibility = 11
-targetCompatibility = 11
-
 ext {
 	openFeignVersion = '11.6'
 	gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
-if (gitBranch != 'main' && gitBranch != 'master' && ! (gitBranch ==~ '(release|hotfix|support)/.*')) {
-	version += '-NEXT-SNAPSHOT'
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
+allprojects {
+	group = 'com.iexec.blockchain'
+	sourceCompatibility = 11
+	targetCompatibility = 11
+	if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
+		version += '-NEXT-SNAPSHOT'
 	}
-}
-
-repositories {
-	mavenLocal()
-	mavenCentral()
-	// iExec
-	maven {
-		url "https://nexus.iex.ec/repository/maven-public/"
-	}
-	maven {
-		url "https://jitpack.io"
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		// iExec
+		maven {
+			url "https://nexus.iex.ec/repository/maven-public/"
+		}
+		maven {
+			url "https://jitpack.io"
+		}
 	}
 }
 
