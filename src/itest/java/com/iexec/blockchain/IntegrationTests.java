@@ -17,7 +17,10 @@ import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeUtils;
 import com.iexec.common.utils.BytesUtils;
+import com.iexec.common.utils.FeignBuilder;
 import com.iexec.common.utils.HashUtils;
+import feign.Logger;
+import feign.auth.BasicAuthRequestInterceptor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -74,8 +77,9 @@ class IntegrationTests {
 
     @BeforeEach
     void setUp() {
-        appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
-                .target(BlockchainAdapterApiClient.class, getBaseUrl());
+        appClient = FeignBuilder.createBuilder(Logger.Level.FULL)
+                .requestInterceptor(new BasicAuthRequestInterceptor(USER, PASSWORD))
+                .target(BlockchainAdapterApiClient.class, "http://localhost:" + randomServerPort);
     }
 
     @Test
@@ -266,7 +270,7 @@ class IntegrationTests {
                 .requester(requesterAddress)
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 //.params("{\"iexec_result_storage_provider\":\"ipfs\",\"iexec_result_storage_proxy\":\"https://v6.result.goerli.iex.ec\",\"iexec_args\":\"abc\"}")
-                .params(RequestOrder.toStringParams(dealParams))
+                .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
     }
@@ -317,10 +321,6 @@ class IntegrationTests {
             }
         }
         System.out.println("All revealed (" + revealCounter + "/" + winnerCounter + ")");
-    }
-
-    private String getBaseUrl() {
-        return "http://localhost:" + randomServerPort;
     }
 
     public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
