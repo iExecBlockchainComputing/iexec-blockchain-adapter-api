@@ -48,7 +48,7 @@ public class DatasetController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}")
-    public ResponseEntity<String> getAddressForCreateDatasetRequest(@RequestParam String requestId) {
+    public ResponseEntity<String> getAddressForCreateDatasetRequest(@PathVariable String requestId) {
         return datasetService.getDatasetAddressForCreateDatasetRequest(requestId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -62,7 +62,7 @@ public class DatasetController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}/status")
-    public ResponseEntity<Status> getStatusForCreateDatasetRequest(@RequestParam String requestId) {
+    public ResponseEntity<Status> getStatusForCreateDatasetRequest(@PathVariable String requestId) {
         return datasetService.getStatusForCreateDatasetRequest(requestId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
