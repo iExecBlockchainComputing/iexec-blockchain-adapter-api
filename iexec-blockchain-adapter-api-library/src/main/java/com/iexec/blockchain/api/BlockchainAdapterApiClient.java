@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain;
+package com.iexec.blockchain.api;
 
 import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.ChainDataset;

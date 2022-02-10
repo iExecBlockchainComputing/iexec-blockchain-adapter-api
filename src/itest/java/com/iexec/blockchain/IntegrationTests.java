@@ -1,5 +1,7 @@
 package com.iexec.blockchain;
 
+import com.iexec.blockchain.api.BlockchainAdapterApiClient;
+import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.ChainConfig;
@@ -17,10 +19,8 @@ import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeUtils;
 import com.iexec.common.utils.BytesUtils;
-import com.iexec.common.utils.FeignBuilder;
 import com.iexec.common.utils.HashUtils;
 import feign.Logger;
-import feign.auth.BasicAuthRequestInterceptor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -77,9 +77,8 @@ class IntegrationTests {
 
     @BeforeEach
     void setUp() {
-        appClient = FeignBuilder.createBuilder(Logger.Level.FULL)
-                .requestInterceptor(new BasicAuthRequestInterceptor(USER, PASSWORD))
-                .target(BlockchainAdapterApiClient.class, "http://localhost:" + randomServerPort);
+        appClient = BlockchainAdapterApiClientBuilder
+                .getInstance(Logger.Level.FULL, "http://localhost:" + randomServerPort, USER, PASSWORD);
     }
 
     @Test
