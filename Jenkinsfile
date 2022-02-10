@@ -4,7 +4,6 @@ buildJavaProject(
         shouldPublishJars: false,
         shouldPublishDockerImages: true,
         dockerfileDir: './docker',
-        //dockerfileFilename: "Dockerfile-local",
         buildContext: '.',
         //dockerImageRepositoryName: '',
         preProductionVisibility: 'docker.io',
