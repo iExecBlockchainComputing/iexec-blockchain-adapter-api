@@ -8,7 +8,8 @@ public class BlockchainAdapterApiClientBuilder {
 
     private BlockchainAdapterApiClientBuilder() {}
 
-    public static BlockchainAdapterApiClient getInstance(Logger.Level logLevel, String url, String username, String password) {
+    public static BlockchainAdapterApiClient getInstance(Logger.Level logLevel,
+                                                         String url, String username, String password) {
         BasicAuthRequestInterceptor requestInterceptor =
                 new BasicAuthRequestInterceptor(
                         username,
