@@ -16,7 +16,6 @@
 
 package com.iexec.blockchain.dataset;
 
-
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;

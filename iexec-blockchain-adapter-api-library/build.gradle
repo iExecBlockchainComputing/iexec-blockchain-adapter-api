@@ -1,0 +1,47 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'maven-publish'
+}
+
+dependencies {
+    implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+tasks.test.finalizedBy    tasks.jacocoTestReport
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username project.hasProperty("nexusUser")? project.nexusUser: ''
+                password project.hasProperty("nexusPassword")? project.nexusPassword: ''
+            }
+            url = project.hasProperty("nexusUrl")? project.nexusUrl: ''
+        }
+    }
+}
