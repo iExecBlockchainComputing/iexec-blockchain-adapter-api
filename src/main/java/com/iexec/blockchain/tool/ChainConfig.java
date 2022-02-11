@@ -16,7 +16,7 @@
 
 package com.iexec.blockchain.tool;
 
-import com.iexec.blockchain.tool.validation.ValidNonZeroEthereumAddress;
+import com.iexec.common.chain.validation.ValidNonZeroEthereumAddress;
 import lombok.*;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
