@@ -11,7 +11,7 @@ public class BlockchainAdapterApiClientTest {
         Assertions.assertNotNull(BlockchainAdapterApiClientBuilder
                 .getInstance(Logger.Level.FULL, "localhost"));
         Assertions.assertNotNull(BlockchainAdapterApiClientBuilder
-                .getInstance(Logger.Level.FULL, "localhost", "username", "password"));
+                .getInstanceWithBasicAuth(Logger.Level.FULL, "localhost", "username", "password"));
     }
 
 }

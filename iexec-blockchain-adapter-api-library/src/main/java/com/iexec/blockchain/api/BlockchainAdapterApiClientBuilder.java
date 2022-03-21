@@ -29,9 +29,9 @@ public class BlockchainAdapterApiClientBuilder {
      * @param password Basic authentication password.
      * @return Feign client with basic authentication for {@link BlockchainAdapterApiClient} apis.
      */
-    public static BlockchainAdapterApiClient getInstance(Logger.Level logLevel, String url,
-                                                         String username, String password) {
-        return FeignBuilder.createBuilder(logLevel, username, password)
+    public static BlockchainAdapterApiClient getInstanceWithBasicAuth(Logger.Level logLevel, String url,
+                                                                      String username, String password) {
+        return FeignBuilder.createBuilderWithBasicAuth(logLevel, username, password)
                 .target(BlockchainAdapterApiClient.class, url);
     }
 
