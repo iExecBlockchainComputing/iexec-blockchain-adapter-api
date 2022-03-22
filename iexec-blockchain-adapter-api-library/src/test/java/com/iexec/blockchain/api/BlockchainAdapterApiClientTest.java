@@ -9,7 +9,9 @@ public class BlockchainAdapterApiClientTest {
     @Test
     void instantiationTest() {
         Assertions.assertNotNull(BlockchainAdapterApiClientBuilder
-                .getInstance(Logger.Level.FULL, "localhost", "username", "password"));
+                .getInstance(Logger.Level.FULL, "localhost"));
+        Assertions.assertNotNull(BlockchainAdapterApiClientBuilder
+                .getInstanceWithBasicAuth(Logger.Level.FULL, "localhost", "username", "password"));
     }
 
 }
