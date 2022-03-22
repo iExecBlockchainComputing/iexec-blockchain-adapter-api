@@ -38,12 +38,11 @@ import feign.RequestLine;
  */
 public interface BlockchainAdapterApiClient {
 
+    // region authenticated APIs
+
     //TODO update endpoint
     @RequestLine("POST /broker/broker/orders/match")
     String matchOrders(BrokerOrder brokerOrder);
-
-    @RequestLine("GET /config/chain")
-    PublicChainConfig getPublicChainConfig();
 
     @RequestLine("POST /datasets/requests?name={name}&multiAddress={multiAddress}&checksum={checksum}")
     String createDataset(@Param("name") String name,
@@ -75,13 +74,28 @@ public interface BlockchainAdapterApiClient {
     @RequestLine("POST /tasks/contribute/{chainTaskId}")
     String requestContributeTask(@Param("chainTaskId") String chainTaskId, TaskContributeArgs taskContributeArgs);
 
+    @RequestLine("GET /tasks/contribute/{chainTaskId}/status")
+    CommandStatus getStatusForContributeTaskRequest(@Param("chainTaskId") String chainTaskId);
+
     @RequestLine("POST /tasks/reveal/{chainTaskId}")
     String requestRevealTask(@Param("chainTaskId") String chainTaskId, TaskRevealArgs taskRevealArgs);
+
+    @RequestLine("GET /tasks/reveal/{chainTaskId}/status")
+    CommandStatus getStatusForRevealTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     @RequestLine("POST /tasks/finalize/{chainTaskId}")
     String requestFinalizeTask(@Param("chainTaskId") String chainTaskId, TaskFinalizeArgs taskFinalizeArgs);
 
     @RequestLine("GET /tasks/finalize/{chainTaskId}/status")
     CommandStatus getStatusForFinalizeTaskRequest(@Param("chainTaskId") String chainTaskId);
+
+    // endregion
+
+    // region unauthenticated APIs
+
+    @RequestLine("GET /config/chain")
+    PublicChainConfig getPublicChainConfig();
+
+    //endregion
 
 }
