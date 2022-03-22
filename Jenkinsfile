@@ -1,10 +1,12 @@
-@Library('global-jenkins-library@1.3.0') _
+@Library('global-jenkins-library@feature/external-iexec-oci') _
 buildJavaProject(
-        integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
+        buildInfo: getBuildInfo(),
+        integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
         shouldPublishJars: false,
         shouldPublishDockerImages: true,
-        dockerfileDir: './docker',
+        dockerfileDir: 'docker',
         buildContext: '.',
-        //dockerImageRepositoryName: '',
+        preDevelopVisibility: 'iex.ec',
+        developVisibility: 'iex.ec',
         preProductionVisibility: 'docker.io',
         productionVisibility: 'docker.io')
