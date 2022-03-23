@@ -78,7 +78,7 @@ class IntegrationTests {
     @BeforeEach
     void setUp() {
         appClient = BlockchainAdapterApiClientBuilder
-                .getInstance(Logger.Level.FULL, "http://localhost:" + randomServerPort, USER, PASSWORD);
+                .getInstanceWithBasicAuth(Logger.Level.FULL, "http://localhost:" + randomServerPort, USER, PASSWORD);
     }
 
     @Test
