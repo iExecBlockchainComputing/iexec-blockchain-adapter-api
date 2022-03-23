@@ -2,7 +2,7 @@
 buildJavaProject(
         buildInfo: getBuildInfo(),
         integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
-        shouldPublishJars: false,
+        shouldPublishJars: true,
         shouldPublishDockerImages: true,
         dockerfileDir: 'docker',
         buildContext: '.',
