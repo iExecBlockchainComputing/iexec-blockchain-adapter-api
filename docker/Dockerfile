@@ -1,5 +1,5 @@
 # Build app container
-FROM openjdk:11.0.3-jre-slim
+FROM openjdk:11.0.15-jre-slim
 
 ARG jar
 
