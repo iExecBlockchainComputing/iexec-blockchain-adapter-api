@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.0.0') _
+@Library('global-jenkins-library@feature/sonar-pro-migration') _
 buildJavaProject(
         buildInfo: getBuildInfo(),
         integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
