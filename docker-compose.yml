@@ -7,7 +7,7 @@ networks:
 services:
 
   ibaa-chain:
-    image: nexus.iex.ec/poco-chain:token-v5.1.0
+    image: docker-regis.iex.ec/poco-chain:token-v5.1.0
     container_name: ibaa-chain
     ports:
       - 28545:8545
@@ -15,7 +15,7 @@ services:
       - iexec-blockchain-adapter-api-net
 
   ibaa-broker:
-    image: nexus.iex.ec/iexec-autonomous-brokering-engine:dev #warn, using nexus repo + dev tag, can it be public?
+    image: docker-regis.iex.ec/iexec-autonomous-brokering-engine:dev #warn, using nexus repo + dev tag, can it be public?
     container_name: ibaa-broker
     environment:
       - CHAIN=http://ibaa-chain:8545
