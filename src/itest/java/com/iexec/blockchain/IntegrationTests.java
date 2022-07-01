@@ -1,5 +1,7 @@
 package com.iexec.blockchain;
 
+import com.iexec.blockchain.api.BlockchainAdapterApiClient;
+import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.ChainConfig;
@@ -18,6 +20,7 @@ import com.iexec.common.security.Signature;
 import com.iexec.common.tee.TeeUtils;
 import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.HashUtils;
+import feign.Logger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -36,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static com.iexec.common.chain.ChainTaskStatus.ACTIVE;
@@ -73,8 +77,8 @@ class IntegrationTests {
 
     @BeforeEach
     void setUp() {
-        appClient = FeignUtils.getFeignBuilder(USER, PASSWORD)
-                .target(BlockchainAdapterApiClient.class, getBaseUrl());
+        appClient = BlockchainAdapterApiClientBuilder
+                .getInstanceWithBasicAuth(Logger.Level.FULL, "http://localhost:" + randomServerPort, USER, PASSWORD);
     }
 
     @Test
@@ -133,7 +137,7 @@ class IntegrationTests {
                         try {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
-                            waitStatus(chainTaskId, ACTIVE, BLOCK_TIME_MS, taskVolume);
+                            waitStatus(chainTaskId, ACTIVE, BLOCK_TIME_MS, taskVolume + 2);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
                         } catch (Exception e) {
@@ -149,7 +153,7 @@ class IntegrationTests {
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
                 "DOCKER",
-                BytesUtils.EMPTY_HEXASTRING_64,
+                BytesUtils.EMPTY_HEX_STRING_32,
                 "",
                 30, 1);
         System.out.println("Created app: " + appAddress);
@@ -158,7 +162,7 @@ class IntegrationTests {
         System.out.println("Created workerpool: " + workerpool);
         String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
                 "https://abc.com/def.jpeg",
-                BytesUtils.EMPTY_HEXASTRING_64,
+                BytesUtils.EMPTY_HEX_STRING_32,
                 30, 1);
         System.out.println("Created datasetAddress: " + datasetAddress);
 
@@ -201,7 +205,7 @@ class IntegrationTests {
                 .app(appAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -214,7 +218,7 @@ class IntegrationTests {
                 .workerpool(workerpoolAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .trust(BigInteger.ZERO)
                 .category(BigInteger.ZERO)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -229,7 +233,7 @@ class IntegrationTests {
                 .dataset(datasetAddress)
                 .price(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -260,12 +264,12 @@ class IntegrationTests {
                 .volume(appOrder.getVolume())
                 .category(BigInteger.ZERO)
                 .trust(BigInteger.ZERO)
-                .tag(BytesUtils.EMPTY_HEXASTRING_64)
+                .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .beneficiary(BytesUtils.EMPTY_ADDRESS)
                 .requester(requesterAddress)
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 //.params("{\"iexec_result_storage_provider\":\"ipfs\",\"iexec_result_storage_proxy\":\"https://v6.result.goerli.iex.ec\",\"iexec_args\":\"abc\"}")
-                .params(RequestOrder.toStringParams(dealParams))
+                .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
     }
@@ -275,20 +279,21 @@ class IntegrationTests {
      * @param pollingTimeMs recommended value is block time
      */
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) throws Exception {
-        ChainTaskStatus status = iexecHubService.getChainTask(chainTaskId)
-                .map(ChainTask::getStatus)
-                .orElse(UNSET);
+        ChainTaskStatus status = null;
         int attempts = 0;
-        while (!status.equals(statusToWait)) {
+        while(true) {
             System.out.printf("Status [status:%s, chainTaskId:%s]\n", status, chainTaskId);
-            Thread.sleep(pollingTimeMs);
             status = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getStatus)
                     .orElse(UNSET);
             attempts++;
-            if (attempts == maxAttempts) {
-                throw new Exception("Too long to wait for task: " + chainTaskId);
+            if (status.equals(statusToWait) || attempts > maxAttempts) {
+                break;
             }
+            TimeUnit.MILLISECONDS.sleep(pollingTimeMs);
+        }
+        if (!status.equals(statusToWait)) {
+            throw new Exception("Too long to wait for task: " + chainTaskId);
         }
         System.out.printf("Status reached [status:%s, chainTaskId:%s]\n", status, chainTaskId);
     }
@@ -315,10 +320,6 @@ class IntegrationTests {
             }
         }
         System.out.println("All revealed (" + revealCounter + "/" + winnerCounter + ")");
-    }
-
-    private String getBaseUrl() {
-        return "http://localhost:" + randomServerPort;
     }
 
     public WorkerpoolAuthorization mockAuthorization(String chainTaskId,

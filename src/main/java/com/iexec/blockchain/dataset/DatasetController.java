@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.iexec.blockchain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
+import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
 @RestController
 @RequestMapping("/datasets")
@@ -48,7 +48,7 @@ public class DatasetController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}")
-    public ResponseEntity<String> getAddressForCreateDatasetRequest(@RequestParam String requestId) {
+    public ResponseEntity<String> getAddressForCreateDatasetRequest(@PathVariable String requestId) {
         return datasetService.getDatasetAddressForCreateDatasetRequest(requestId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -62,7 +62,7 @@ public class DatasetController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/requests/{requestId}/status")
-    public ResponseEntity<Status> getStatusForCreateDatasetRequest(@RequestParam String requestId) {
+    public ResponseEntity<Status> getStatusForCreateDatasetRequest(@PathVariable String requestId) {
         return datasetService.getStatusForCreateDatasetRequest(requestId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

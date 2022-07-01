@@ -1,35 +1,34 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.3'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id 'com.palantir.docker' version '0.26.0'
-	id "org.sonarqube" version "2.7"
+	id 'org.springframework.boot' version '2.6.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'jacoco'
+	id 'org.sonarqube' version '3.3'
 	id 'maven-publish'
 }
 
 ext {
 	openFeignVersion = '11.6'
+	gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
-group = 'com.iexec.blockchain'
-sourceCompatibility = '11'
-targetCompatibility = '11'
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
+allprojects {
+	group = 'com.iexec.blockchain'
+	sourceCompatibility = 11
+	targetCompatibility = 11
+	if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
+		version += '-NEXT-SNAPSHOT'
 	}
-}
-
-repositories {
-	mavenLocal()
-	mavenCentral()
-	// iExec
-	maven {
-		url "https://nexus.iex.ec/repository/maven-public/"
-	}
-	maven {
-		url "https://jitpack.io"
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		// iExec
+		maven {
+			url "https://nexus.intra.iex.ec/repository/maven-public/"
+		}
+		maven {
+			url "https://jitpack.io"
+		}
 	}
 }
 
@@ -46,8 +45,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.awaitility:awaitility:4.0.1'
 
-	implementation "io.springfox:springfox-boot-starter:3.0.0"
-	implementation "io.springfox:springfox-swagger-ui:3.0.0"
+	// Spring Doc
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.3'
+
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -65,6 +65,13 @@ dependencies {
 	implementation "io.github.openfeign:feign-core:$openFeignVersion"
 	implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
 	implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
+
+	// integration tests
+	implementation project(':iexec-blockchain-adapter-api-library')
+}
+
+springBoot {
+	buildInfo()
 }
 
 sourceSets {
@@ -78,7 +85,19 @@ sourceSets {
 	}
 }
 
+task itestSetup(type: Exec) {
+	commandLine 'docker-compose', 'up', '-d'
+}
+
+task itestTeardown(type: Exec) {
+	commandLine 'docker-compose', 'down'
+}
+
 task itest(type: Test) {
+	group 'Verification'
+	description 'Runs the integration tests.'
+	dependsOn   itestSetup
+	finalizedBy itestTeardown
 	setTestClassesDirs(sourceSets.integrationTest.output)
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	useJUnitPlatform()
@@ -113,12 +132,25 @@ test {
 	useJUnitPlatform()
 }
 
-def jar = rootProject.name + '-' + version + ".jar"
-
-docker {
-	name 'docker.io/iexechub/' + rootProject.name + ':dev'
-	dockerfile file('docker/Dockerfile-local')
-	files('build/libs/' + jar)
-	buildArgs([JAR_PATH: jar ])
+jacoco {
+    toolVersion = "0.8.7"
 }
-tasks.docker.dependsOn tasks.build
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+tasks.test.finalizedBy    tasks.jacocoTestReport
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
+
+ext.jarPathForOCI  = relativePath(tasks.bootJar.outputs.files.singleFile)
+ext.gitShortCommit = 'git rev-parse --short=8 HEAD'.execute().text.trim()
+ext.ociImageName   = 'local/' + ['bash', '-c', 'basename $(git config --get remote.origin.url) .git'].execute().text.trim()
+
+task buildImage(type: Exec) {
+    group 'Build'
+    description 'Builds an OCI image from a Dockerfile.'
+    commandLine("sh", "-c", "docker build -f docker/Dockerfile --build-arg jar=$jarPathForOCI -t $ociImageName:$gitShortCommit ."
+            + " && docker tag $ociImageName:$gitShortCommit $ociImageName:dev")
+}

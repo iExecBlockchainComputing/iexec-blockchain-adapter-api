@@ -24,3 +24,7 @@ chain:
 wallet:
   path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
   password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}
+
+springdoc:
+  packagesToScan: com.iexec.blockchain
+  pathsToMatch: /**

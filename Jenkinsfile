@@ -1,12 +1,12 @@
-@Library('jenkins-library@1.1.0') _
+@Library('global-jenkins-library@2.0.1') _
 buildJavaProject(
-        shouldRunIntegrationTests: true,
-        integrationTestsEnvVars: ["BROKER_PRIVATE_KEY"],
-        shouldPublishJars: false,
+        buildInfo: getBuildInfo(),
+        integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
+        shouldPublishJars: true,
         shouldPublishDockerImages: true,
-        dockerfileDir: './docker',
-        //dockerfileFilename: "Dockerfile-local",
+        dockerfileDir: 'docker',
         buildContext: '.',
-        //dockerImageRepositoryName: '',
+        preDevelopVisibility: 'iex.ec',
+        developVisibility: 'iex.ec',
         preProductionVisibility: 'docker.io',
         productionVisibility: 'docker.io')

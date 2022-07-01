@@ -16,13 +16,12 @@
 
 package com.iexec.blockchain.dataset;
 
-
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -81,7 +80,7 @@ public class DatasetService {
         String datasetAddress = iexecHubService.createDataset(dataset.getName(),
                 dataset.getMultiAddress(),
                 dataset.getChecksum());
-        if (StringUtils.hasText(datasetAddress)) {
+        if (StringUtils.isNotEmpty(datasetAddress)) {
             log.info("Created dataset [name:{}, url:{}, checksum:{}]",
                     dataset.getName(),
                     dataset.getMultiAddress(),

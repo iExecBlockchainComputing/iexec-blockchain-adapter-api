@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 
-import static com.iexec.blockchain.swagger.SpringFoxConfig.SWAGGER_BASIC_AUTH;
+import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
 @RestController
 @RequestMapping("/metrics")
