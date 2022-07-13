@@ -38,8 +38,8 @@ publishing {
     repositories {
         maven {
             credentials {
-                username project.hasProperty("nexusUser")? project.nexusUser: ''
-                password project.hasProperty("nexusPassword")? project.nexusPassword: ''
+                username nexusUser
+                password nexusPassword
             }
             url = project.hasProperty("nexusUrl")? project.nexusUrl: ''
         }
