@@ -91,7 +91,7 @@ class IntegrationTests {
         //should wait since returned taskID is computed, initialize is not mined yet
         waitStatus(chainTaskId, ACTIVE, 1000, 10);
 
-        String someBytes32Payload = TeeUtils.TEE_TAG;
+        String someBytes32Payload = TeeUtils.TEE_SCONE_ONLY_TAG; //any would be fine
         String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
         String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
         WorkerpoolAuthorization workerpoolAuthorization =
