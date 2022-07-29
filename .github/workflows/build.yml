@@ -33,9 +33,10 @@ jobs:
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_nexusUser: ${{ secrets.NEXUS_USERNAME }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
           ./gradlew
           -Dsonar.organization=iexecblockchaincomputing -Dsonar.projectKey=iexec-blockchain-adapter-api -Dsonar.host.url=https://sonarcloud.io
-          -PnexusUser=${{ secrets.NEXUS_USERNAME }} -PnexusPassword=${{ secrets.NEXUS_PASSWORD }}
           build sonarqube --info
