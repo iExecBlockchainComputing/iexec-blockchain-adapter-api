@@ -37,4 +37,5 @@ jobs:
         run: >
           ./gradlew
           -Dsonar.organization=iexecblockchaincomputing -Dsonar.projectKey=iexec-blockchain-adapter-api -Dsonar.host.url=https://sonarcloud.io
+          -PnexusUser=${{ secrets.NEXUS_USERNAME }} -PnexusPassword=${{ secrets.NEXUS_PASSWORD }}
           build sonarqube --info

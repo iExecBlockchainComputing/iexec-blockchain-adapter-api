@@ -161,3 +161,6 @@ task buildImage(type: Exec) {
     commandLine("sh", "-c", "docker build -f docker/Dockerfile --build-arg jar=$jarPathForOCI -t $ociImageName:$gitShortCommit ."
             + " && docker tag $ociImageName:$gitShortCommit $ociImageName:dev")
 }
+
+println "nexusUser $nexusUser"
+println "nexusPassword $nexusPassword"
