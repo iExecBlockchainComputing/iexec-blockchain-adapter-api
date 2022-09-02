@@ -26,12 +26,9 @@ import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -41,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(OutputCaptureExtension.class)
 class BrokerServiceTests {
 
     @Mock
@@ -188,7 +184,7 @@ class BrokerServiceTests {
 
     //region hasRequesterAcceptedPrices
     @Test
-    void shouldFailForEmptyRequestOrder(CapturedOutput output) {
+    void shouldFailForEmptyRequestOrder() {
         RequestOrder requestOrder = RequestOrder.builder().build();
         assertThat(brokerService.hasRequesterAcceptedPrices(requestOrder, null, null, null, false))
                 .isFalse();
