@@ -26,9 +26,6 @@ import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -36,20 +33,20 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class BrokerServiceTests {
 
-    @Mock
-    private ChainConfig chainConfig;
-    @Mock
     private IexecHubService iexecHubService;
-    @InjectMocks
     private BrokerService brokerService;
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.openMocks(this);
+        ChainConfig chainConfig = mock(ChainConfig.class);
+        iexecHubService = mock(IexecHubService.class);
+        when(chainConfig.getBrokerUrl()).thenReturn("localhost");
+        brokerService = new BrokerService(chainConfig, iexecHubService);
     }
 
     //region matchOrders
@@ -171,7 +168,6 @@ class BrokerServiceTests {
     //region fireMatchOrders
     @Test
     void shouldFailToMatchOrders() {
-        when(chainConfig.getBrokerUrl()).thenReturn("localhost");
         BrokerOrder brokerOrder = BrokerOrder.builder()
                 .appOrder(AppOrder.builder().build())
                 .requestOrder(RequestOrder.builder().build())

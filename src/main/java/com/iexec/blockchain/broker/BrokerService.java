@@ -40,6 +40,7 @@ import java.util.Optional;
 @Service
 public class BrokerService {
 
+    private final BrokerClient brokerClient;
     private final IexecHubService iexecHubService;
     private final ChainConfig chainConfig;
 
@@ -48,6 +49,8 @@ public class BrokerService {
         //TODO Assert broker is up
         this.chainConfig = chainConfig;
         this.iexecHubService = iexecHubService;
+        this.brokerClient = FeignBuilder.createBuilder(Logger.Level.BASIC)
+                .target(BrokerClient.class, chainConfig.getBrokerUrl());
     }
 
     public String matchOrders(BrokerOrder brokerOrder) {
@@ -96,9 +99,7 @@ public class BrokerService {
 
     Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
         try {
-            BrokerClient client = FeignBuilder.createBuilder(Logger.Level.BASIC)
-                    .target(BrokerClient.class, chainConfig.getBrokerUrl());
-            FillOrdersCliOutput dealResponse = client.matchOrders(brokerOrder);
+            FillOrdersCliOutput dealResponse = brokerClient.matchOrders(brokerOrder);
             log.info("Matched orders [chainDealId:{}, tx:{}]", dealResponse.getDealid(), dealResponse.getTxHash());
             return Optional.of(dealResponse.getDealid());
         } catch (Exception e) {
