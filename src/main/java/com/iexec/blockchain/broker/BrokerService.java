@@ -142,14 +142,12 @@ public class BrokerService {
     }
 
     boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit, boolean withDataset) {
-        long price;
         try {
+            BigInteger price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice());
             if (withDataset) {
-                price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice()).add(requestOrder.getDatasetmaxprice()).longValue();
-            } else {
-                price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice()).longValue();
+                price = price.add(requestOrder.getDatasetmaxprice());
             }
-            if (price > deposit) {
+            if (price.longValue() > deposit) {
                 log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
                 return false;
             }
