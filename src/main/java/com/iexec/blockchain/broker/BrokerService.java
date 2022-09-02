@@ -26,11 +26,11 @@ import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.utils.BytesUtils;
+import com.iexec.common.utils.FeignBuilder;
+import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
@@ -94,20 +94,15 @@ public class BrokerService {
                 .orElse("");
     }
 
-    private Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
+    Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
         try {
-            ResponseEntity<FillOrdersCliOutput> responseEntity =
-                    new RestTemplate().postForEntity(chainConfig.getBrokerUrl()
-                            + "/orders/match", brokerOrder, FillOrdersCliOutput.class);
-            if (responseEntity.getStatusCode().is2xxSuccessful()
-                    && responseEntity.getBody() != null) {
-                FillOrdersCliOutput dealResponse = responseEntity.getBody();
-                log.info("Matched orders [chainDealId:{}, tx:{}]", dealResponse.getDealid(), dealResponse.getTxHash());
-                return Optional.of(dealResponse.getDealid());
-            }
-        } catch (Throwable e) {
-            log.error("Failed to request match order [requester:{}, app:{}, " +
-                            "workerpool:{}, dataset:{}]",
+            BrokerClient client = FeignBuilder.createBuilder(Logger.Level.BASIC)
+                    .target(BrokerClient.class, chainConfig.getBrokerUrl());
+            FillOrdersCliOutput dealResponse = client.matchOrders(brokerOrder);
+            log.info("Matched orders [chainDealId:{}, tx:{}]", dealResponse.getDealid(), dealResponse.getTxHash());
+            return Optional.of(dealResponse.getDealid());
+        } catch (Exception e) {
+            log.error("Failed to request match order [requester:{}, app:{}, workerpool:{}, dataset:{}]",
                     brokerOrder.getRequestOrder().getRequester(),
                     brokerOrder.getRequestOrder().getApp(),
                     brokerOrder.getRequestOrder().getWorkerpool(),
