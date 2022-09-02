@@ -66,8 +66,7 @@ public class BrokerService {
         if (requestOrder == null) {
             throw new IllegalArgumentException("Request order cannot be null");
         }
-        boolean withDataset = !(requestOrder.getDataset().equals(BytesUtils.EMPTY_ADDRESS)
-                || StringUtils.isNotEmpty(requestOrder.getDataset()));
+        final boolean withDataset = withDataset(requestOrder.getDataset());
         if (datasetOrder == null && withDataset) {
             throw new IllegalArgumentException("Dataset order cannot be null");
         }
@@ -152,4 +151,16 @@ public class BrokerService {
         }
         return true;
     }
+
+    /**
+     * Checks if a dataset is part of the order.
+     * A valid request requires a dataset address which is not empty and not the empty address.
+     *
+     * @param datasetAddress Dataset address to check
+     * @return true if a dataset is part of the request, false otherwise.
+     */
+     boolean withDataset(String datasetAddress) {
+        return StringUtils.isNotEmpty(datasetAddress) && !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS);
+    }
+
 }
