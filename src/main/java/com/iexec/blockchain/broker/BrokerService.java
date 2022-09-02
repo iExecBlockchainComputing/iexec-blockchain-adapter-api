@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigInteger;
+import java.text.MessageFormat;
 import java.util.Optional;
 
 @Slf4j
@@ -74,20 +75,21 @@ public class BrokerService {
         if (!hasRequesterAcceptedPrices(brokerOrder.getRequestOrder(),
                 appOrder.getAppprice(),
                 workerpoolOrder.getWorkerpoolprice(),
-                datasetPrice)) {
+                datasetPrice,
+                withDataset)) {
             throw new IllegalStateException("Incompatible prices");
         }
         //TODO check workerpool stake
-        Long deposit = iexecHubService.getChainAccount(requestOrder.getRequester())
+        long deposit = iexecHubService.getChainAccount(requestOrder.getRequester())
                 .map(ChainAccount::getDeposit)
                 .orElse(-1L);
-        if (!hasRequesterDepositedEnough(brokerOrder.getRequestOrder(), deposit)) {
+        if (!hasRequesterDepositedEnough(brokerOrder.getRequestOrder(), deposit, withDataset)) {
             throw new IllegalStateException("Deposit too low");
         }
         String beneficiary = brokerOrder.getRequestOrder().getBeneficiary();
         log.info("Matching valid orders onchain [requester:{}, beneficiary:{}, " +
                         "pool:{}, app:{}, dataset:{}]", requestOrder.getRequester(), beneficiary,
-                workerpoolOrder.getWorkerpool(), appOrder.getApp(), withDataset ? datasetOrder.getDatasetprice() : BigInteger.ZERO);
+                workerpoolOrder.getWorkerpool(), appOrder.getApp(), datasetPrice);
         return fireMatchOrders(brokerOrder)
                 .orElse("");
     }
@@ -114,42 +116,53 @@ public class BrokerService {
         return Optional.empty();
     }
 
-
-    private boolean hasRequesterAcceptedPrices(
+    boolean hasRequesterAcceptedPrices(
             RequestOrder requestOrder,
             BigInteger appPrice,
             BigInteger workerpoolPrice,
-            BigInteger datasetPrice
+            BigInteger datasetPrice,
+            boolean withDataset
     ) {
-        if (requestOrder == null || requestOrder.getWorkerpoolmaxprice() == null
-                || requestOrder.getAppmaxprice() == null
-                || appPrice == null || workerpoolPrice == null) {
+        try {
+            boolean isAppPriceAccepted = requestOrder.getAppmaxprice().longValue() >= appPrice.longValue();
+            boolean isPoolPriceAccepted = requestOrder.getWorkerpoolmaxprice().longValue() >= workerpoolPrice.longValue();
+            boolean isAccepted = isAppPriceAccepted && isPoolPriceAccepted;
+            String messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}]",
+                    isAppPriceAccepted, isPoolPriceAccepted);
+            if (withDataset) {
+                boolean isDatasetPriceAccepted = requestOrder.getDatasetmaxprice().longValue() >= datasetPrice.longValue();
+                isAccepted = isAccepted && isDatasetPriceAccepted;
+                messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}, isDatasetPriceAccepted:{2}]",
+                        isAppPriceAccepted, isPoolPriceAccepted, isDatasetPriceAccepted
+                );
+            }
+            if (!isAccepted) {
+                log.error("Prices not accepted (too expensive) {}", messageDetails);
+            }
+            return isAccepted;
+        } catch (NullPointerException e) {
             log.error("Failed to check hasRequesterAcceptedPrices (null requestOrder)");
             return false;
         }
-        boolean isAppPriceAccepted = requestOrder.getAppmaxprice().longValue() >= appPrice.longValue();
-        boolean isPoolPriceAccepted = requestOrder.getWorkerpoolmaxprice().longValue() >= workerpoolPrice.longValue();
-        boolean isDatasetPriceAccepted = requestOrder.getDatasetmaxprice().longValue() >= datasetPrice.longValue();
-        boolean isAccepted = isAppPriceAccepted && isPoolPriceAccepted && isDatasetPriceAccepted;
-        if (!isAccepted) {
-            log.error("Prices not accepted (too expensive) [isAppPriceAccepted:{}, " +
-                    "isPoolPriceAccepted:{}]", isAppPriceAccepted, isPoolPriceAccepted);
-        }
-        return isAccepted;
     }
 
-    private boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit) {
-        if (requestOrder == null || requestOrder.getWorkerpoolmaxprice() == null
-                || requestOrder.getAppmaxprice() == null) {
+    boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit, boolean withDataset) {
+        long price;
+        try {
+            if (withDataset) {
+                price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice()).add(requestOrder.getDatasetmaxprice()).longValue();
+            } else {
+                price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice()).longValue();
+            }
+            if (price > deposit) {
+                log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
+                return false;
+            }
+            return true;
+        } catch (NullPointerException e) {
             log.error("Failed to check hasRequesterDepositedEnough (null requestOrder)");
             return false;
         }
-        long price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice()).add(requestOrder.getDatasetmaxprice()).longValue();
-        if (price > deposit) {
-            log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
-            return false;
-        }
-        return true;
     }
 
     /**
