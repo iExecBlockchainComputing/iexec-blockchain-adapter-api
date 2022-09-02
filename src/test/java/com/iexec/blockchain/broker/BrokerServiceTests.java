@@ -265,6 +265,7 @@ class BrokerServiceTests {
     //region withDataset
     @Test
     void testWithDataset() {
+        assertThat(brokerService.withDataset(null)).isFalse();
         assertThat(brokerService.withDataset("")).isFalse();
         assertThat(brokerService.withDataset("0x1")).isTrue();
         assertThat(brokerService.withDataset(BytesUtils.EMPTY_ADDRESS)).isFalse();
