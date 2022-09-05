@@ -43,12 +43,10 @@ public class BrokerService {
 
     private final BrokerClient brokerClient;
     private final IexecHubService iexecHubService;
-    private final ChainConfig chainConfig;
 
 
     public BrokerService(ChainConfig chainConfig, IexecHubService iexecHubService) {
         //TODO Assert broker is up
-        this.chainConfig = chainConfig;
         this.iexecHubService = iexecHubService;
         this.brokerClient = FeignBuilder.createBuilder(Logger.Level.BASIC)
                 .target(BrokerClient.class, chainConfig.getBrokerUrl());
