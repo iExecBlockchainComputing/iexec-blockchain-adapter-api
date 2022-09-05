@@ -52,6 +52,7 @@ public class BrokerService {
                 .target(BrokerClient.class, chainConfig.getBrokerUrl());
     }
 
+    // TODO return status to controller and API requester, errors are only written in logs
     public String matchOrders(BrokerOrder brokerOrder) {
         if (brokerOrder == null) {
             throw new IllegalArgumentException("Broker order cannot be null");
