@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -112,6 +113,16 @@ public class BrokerService {
         return Optional.empty();
     }
 
+    void checkRequestOrder(RequestOrder requestOrder, boolean withDataset) {
+        Objects.requireNonNull(requestOrder, "Request order must not be null");
+        Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price must not be null");
+        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester worker pool max price must not be null");
+        if (withDataset) {
+            Objects.requireNonNull(requestOrder.getDatasetmaxprice(),
+                    "Requester dataset max price must not be null");
+        }
+    }
+
     boolean hasRequesterAcceptedPrices(
             RequestOrder requestOrder,
             BigInteger appPrice,
@@ -120,6 +131,13 @@ public class BrokerService {
             boolean withDataset
     ) {
         try {
+            checkRequestOrder(requestOrder, withDataset);
+            Objects.requireNonNull(appPrice, "Application price must not be null");
+            Objects.requireNonNull(workerpoolPrice, "Worker pool price must not be null");
+            if (withDataset) {
+                Objects.requireNonNull(datasetPrice, "Dataset price must not be null");
+            }
+
             boolean isAppPriceAccepted = requestOrder.getAppmaxprice().longValue() >= appPrice.longValue();
             boolean isPoolPriceAccepted = requestOrder.getWorkerpoolmaxprice().longValue() >= workerpoolPrice.longValue();
             boolean isAccepted = isAppPriceAccepted && isPoolPriceAccepted;
@@ -137,13 +155,15 @@ public class BrokerService {
             }
             return isAccepted;
         } catch (NullPointerException e) {
-            log.error("Failed to check hasRequesterAcceptedPrices (null requestOrder)");
+            log.error("Failed to check hasRequesterAcceptedPrices", e);
             return false;
         }
     }
 
     boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit, boolean withDataset) {
         try {
+            checkRequestOrder(requestOrder, withDataset);
+
             BigInteger price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice());
             if (withDataset) {
                 price = price.add(requestOrder.getDatasetmaxprice());
@@ -154,7 +174,7 @@ public class BrokerService {
             }
             return true;
         } catch (NullPointerException e) {
-            log.error("Failed to check hasRequesterDepositedEnough (null requestOrder)");
+            log.error("Failed to check hasRequesterDepositedEnough", e);
             return false;
         }
     }
