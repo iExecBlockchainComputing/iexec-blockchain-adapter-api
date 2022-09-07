@@ -52,28 +52,50 @@ public class BrokerService {
                 .target(BrokerClient.class, chainConfig.getBrokerUrl());
     }
 
+    void checkAssetOrder(String requestOrderAddress, String assetAddress, BigInteger assetPrice, String assetType) {
+        Objects.requireNonNull(requestOrderAddress,  assetType + " address cannot be null in request order");
+        Objects.requireNonNull(assetAddress, assetType + " address cannot be null");
+        Objects.requireNonNull(assetPrice, assetType + " price cannot be null");
+        if (!requestOrderAddress.equalsIgnoreCase(assetAddress)) {
+            throw new IllegalStateException(assetType + " address is not the same in order and request order");
+        }
+    }
+
+    void checkRequestOrder(RequestOrder requestOrder) {
+        Objects.requireNonNull(requestOrder, "Request order cannot be null");
+        Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price cannot be null");
+        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester worker pool max price cannot be null");
+        if (withDataset(requestOrder.getDataset())) {
+            Objects.requireNonNull(requestOrder.getDatasetmaxprice(), "Requester dataset max price cannot be null");
+        }
+    }
+
+    void checkBrokerOrder(BrokerOrder brokerOrder) {
+        Objects.requireNonNull(brokerOrder, "Broker order cannot be null");
+        AppOrder appOrder = brokerOrder.getAppOrder();
+        DatasetOrder datasetOrder = brokerOrder.getDatasetOrder();
+        RequestOrder requestOrder = brokerOrder.getRequestOrder();
+        WorkerpoolOrder workerpoolOrder = brokerOrder.getWorkerpoolOrder();
+        Objects.requireNonNull(appOrder, "App order cannot be null");
+        Objects.requireNonNull(workerpoolOrder, "Worker pool order cannot be null");
+
+        checkRequestOrder(requestOrder);
+        checkAssetOrder(requestOrder.getApp(), appOrder.getApp(), appOrder.getAppprice(), "App");
+        checkAssetOrder(requestOrder.getWorkerpool(), workerpoolOrder.getWorkerpool(), workerpoolOrder.getWorkerpoolprice(),"Worker pool");
+        if (withDataset(requestOrder.getDataset())) {
+            Objects.requireNonNull(datasetOrder, "Dataset order cannot be null");
+            checkAssetOrder(requestOrder.getDataset(), datasetOrder.getDataset(), datasetOrder.getDatasetprice(), "Dataset");
+        }
+    }
+
     // TODO return status to controller and API requester, errors are only written in logs
     public String matchOrders(BrokerOrder brokerOrder) {
-        if (brokerOrder == null) {
-            throw new IllegalArgumentException("Broker order cannot be null");
-        }
+        checkBrokerOrder(brokerOrder);
         AppOrder appOrder = brokerOrder.getAppOrder();
         WorkerpoolOrder workerpoolOrder = brokerOrder.getWorkerpoolOrder();
         DatasetOrder datasetOrder = brokerOrder.getDatasetOrder();
         RequestOrder requestOrder = brokerOrder.getRequestOrder();
-        if (appOrder == null) {
-            throw new IllegalArgumentException("App order cannot be null");
-        }
-        if (workerpoolOrder == null) {
-            throw new IllegalArgumentException("Workerpool order cannot be null");
-        }
-        if (requestOrder == null) {
-            throw new IllegalArgumentException("Request order cannot be null");
-        }
         final boolean withDataset = withDataset(requestOrder.getDataset());
-        if (datasetOrder == null && withDataset) {
-            throw new IllegalArgumentException("Dataset order cannot be null");
-        }
         BigInteger datasetPrice = withDataset ? datasetOrder.getDatasetprice() : BigInteger.ZERO;
         if (!hasRequesterAcceptedPrices(brokerOrder.getRequestOrder(),
                 appOrder.getAppprice(),
@@ -90,11 +112,13 @@ public class BrokerService {
             throw new IllegalStateException("Deposit too low");
         }
         String beneficiary = brokerOrder.getRequestOrder().getBeneficiary();
-        log.info("Matching valid orders onchain [requester:{}, beneficiary:{}, " +
-                        "pool:{}, app:{}, dataset:{}]", requestOrder.getRequester(), beneficiary,
-                workerpoolOrder.getWorkerpool(), appOrder.getApp(), datasetPrice);
-        return fireMatchOrders(brokerOrder)
-                .orElse("");
+        String messageDetails = MessageFormat.format("requester:{0}, beneficiary:{1}, pool:{2}, app:{3}",
+                requestOrder.getRequester(), beneficiary, workerpoolOrder.getWorkerpool(), appOrder.getApp());
+        if (withDataset) {
+            messageDetails += ", dataset:" + datasetOrder.getDataset();
+        }
+        log.info("Matching valid orders on-chain [{}]", messageDetails);
+        return fireMatchOrders(brokerOrder).orElse("");
     }
 
     Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
@@ -112,16 +136,6 @@ public class BrokerService {
         return Optional.empty();
     }
 
-    void checkRequestOrder(RequestOrder requestOrder, boolean withDataset) {
-        Objects.requireNonNull(requestOrder, "Request order must not be null");
-        Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price must not be null");
-        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester worker pool max price must not be null");
-        if (withDataset) {
-            Objects.requireNonNull(requestOrder.getDatasetmaxprice(),
-                    "Requester dataset max price must not be null");
-        }
-    }
-
     boolean hasRequesterAcceptedPrices(
             RequestOrder requestOrder,
             BigInteger appPrice,
@@ -129,53 +143,34 @@ public class BrokerService {
             BigInteger datasetPrice,
             boolean withDataset
     ) {
-        try {
-            checkRequestOrder(requestOrder, withDataset);
-            Objects.requireNonNull(appPrice, "Application price must not be null");
-            Objects.requireNonNull(workerpoolPrice, "Worker pool price must not be null");
-            if (withDataset) {
-                Objects.requireNonNull(datasetPrice, "Dataset price must not be null");
-            }
-
-            boolean isAppPriceAccepted = requestOrder.getAppmaxprice().longValue() >= appPrice.longValue();
-            boolean isPoolPriceAccepted = requestOrder.getWorkerpoolmaxprice().longValue() >= workerpoolPrice.longValue();
-            boolean isAccepted = isAppPriceAccepted && isPoolPriceAccepted;
-            String messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}]",
-                    isAppPriceAccepted, isPoolPriceAccepted);
-            if (withDataset) {
-                boolean isDatasetPriceAccepted = requestOrder.getDatasetmaxprice().longValue() >= datasetPrice.longValue();
-                isAccepted = isAccepted && isDatasetPriceAccepted;
-                messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}, isDatasetPriceAccepted:{2}]",
-                        isAppPriceAccepted, isPoolPriceAccepted, isDatasetPriceAccepted
-                );
-            }
-            if (!isAccepted) {
-                log.error("Prices not accepted (too expensive) {}", messageDetails);
-            }
-            return isAccepted;
-        } catch (NullPointerException e) {
-            log.error("Failed to check hasRequesterAcceptedPrices", e);
-            return false;
+        boolean isAppPriceAccepted = requestOrder.getAppmaxprice().longValue() >= appPrice.longValue();
+        boolean isPoolPriceAccepted = requestOrder.getWorkerpoolmaxprice().longValue() >= workerpoolPrice.longValue();
+        boolean isAccepted = isAppPriceAccepted && isPoolPriceAccepted;
+        String messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}]",
+                isAppPriceAccepted, isPoolPriceAccepted);
+        if (withDataset) {
+            boolean isDatasetPriceAccepted = requestOrder.getDatasetmaxprice().longValue() >= datasetPrice.longValue();
+            isAccepted = isAccepted && isDatasetPriceAccepted;
+            messageDetails = MessageFormat.format("[isAppPriceAccepted:{0}, isPoolPriceAccepted:{1}, isDatasetPriceAccepted:{2}]",
+                    isAppPriceAccepted, isPoolPriceAccepted, isDatasetPriceAccepted
+            );
         }
+        if (!isAccepted) {
+            log.error("Prices not accepted (too expensive) {}", messageDetails);
+        }
+        return isAccepted;
     }
 
     boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit, boolean withDataset) {
-        try {
-            checkRequestOrder(requestOrder, withDataset);
-
-            BigInteger price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice());
-            if (withDataset) {
-                price = price.add(requestOrder.getDatasetmaxprice());
-            }
-            if (price.longValue() > deposit) {
-                log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
-                return false;
-            }
-            return true;
-        } catch (NullPointerException e) {
-            log.error("Failed to check hasRequesterDepositedEnough", e);
+        BigInteger price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice());
+        if (withDataset) {
+            price = price.add(requestOrder.getDatasetmaxprice());
+        }
+        if (price.longValue() > deposit) {
+            log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
             return false;
         }
+        return true;
     }
 
     /**

@@ -21,13 +21,21 @@ import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.ChainAccount;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.common.sdk.order.payload.AppOrder;
+import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.common.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.web3j.crypto.Credentials;
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Keys;
 
 import java.math.BigInteger;
+import java.text.MessageFormat;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,24 +44,80 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(OutputCaptureExtension.class)
 class BrokerServiceTests {
 
     private IexecHubService iexecHubService;
     private BrokerService brokerService;
 
+    private static final ChainAccount deposit = ChainAccount.builder().deposit(100L).build();
+    private static final ChainAccount emptyDeposit = ChainAccount.builder().deposit(0L).build();
+
     @BeforeEach
     void init() {
         ChainConfig chainConfig = mock(ChainConfig.class);
         iexecHubService = mock(IexecHubService.class);
-        when(chainConfig.getBrokerUrl()).thenReturn("localhost");
+        when(chainConfig.getBrokerUrl()).thenReturn("http://localhost");
         brokerService = new BrokerService(chainConfig, iexecHubService);
+    }
+
+    AppOrder generateAppOrder() {
+        return AppOrder.builder()
+                .app(generateEthereumAddress())
+                .price(BigInteger.ONE)
+                .build();
+    }
+
+    DatasetOrder generateDatasetOrder() {
+        return DatasetOrder.builder()
+                .dataset(generateEthereumAddress())
+                .price(BigInteger.ONE)
+                .build();
+    }
+
+    WorkerpoolOrder generateWorkerpoolOrder() {
+        return WorkerpoolOrder.builder()
+                .workerpool(generateEthereumAddress())
+                .price(BigInteger.ONE)
+                .build();
+    }
+
+    BrokerOrder generateBrokerOrder(boolean withDataset) {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder.RequestOrderBuilder requestOrderBuilder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE);
+        BrokerOrder.BrokerOrderBuilder brokerOrderBuilder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .workerpoolOrder(workerpoolOrder);
+        if (withDataset) {
+            DatasetOrder datasetOrder = generateDatasetOrder();
+            requestOrderBuilder
+                    .dataset(datasetOrder.getDataset())
+                    .datasetmaxprice(BigInteger.ONE);
+            brokerOrderBuilder.datasetOrder(datasetOrder);
+        }
+        return brokerOrderBuilder.requestOrder(requestOrderBuilder.build())
+                .build();
+    }
+
+    String generateEthereumAddress() {
+        try {
+            ECKeyPair ecKeypair = Keys.createEcKeyPair();
+            return Credentials.create(ecKeypair).getAddress();
+        } catch(Exception e) {
+            throw new RuntimeException("Cannot generate ethereum address", e);
+        }
     }
 
     //region matchOrders
     @Test
     void shouldNotMatchOrderWhenBrokerOrderIsNull() {
         assertThatThrownBy(() -> brokerService.matchOrders(null))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessage("Broker order cannot be null");
     }
 
@@ -64,7 +128,7 @@ class BrokerServiceTests {
                 .workerpoolOrder(WorkerpoolOrder.builder().build())
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessage("App order cannot be null");
     }
 
@@ -75,7 +139,7 @@ class BrokerServiceTests {
                 .workerpoolOrder(WorkerpoolOrder.builder().build())
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessage("Request order cannot be null");
     }
 
@@ -86,28 +150,174 @@ class BrokerServiceTests {
                 .requestOrder(RequestOrder.builder().build())
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Workerpool order cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Worker pool order cannot be null");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenAppAddressDoesNotMatch() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app("")
+                .appmaxprice(BigInteger.ZERO)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ZERO)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .requestOrder(requestOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("App address is not the same in order and request order");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenWorkerpoolAddressDoesNotMatch() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ZERO)
+                .workerpool("")
+                .workerpoolmaxprice(BigInteger.ZERO)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .requestOrder(requestOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Worker pool address is not the same in order and request order");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenAppPriceIsNull() {
+        AppOrder appOrder = AppOrder.builder().app(generateEthereumAddress()).build();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("App price cannot be null");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenWorkerpoolPriceIsNull() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder().workerpool(generateEthereumAddress()).build();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Worker pool price cannot be null");
     }
 
     @Test
     void shouldNotMatchOrderWhenRequestOrderNeedsDatasetAndDatasetOrderIsNull() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .dataset(generateEthereumAddress())
+                .datasetmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
         BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(AppOrder.builder().build())
-                .requestOrder(RequestOrder.builder().dataset("0x1").datasetmaxprice(BigInteger.ONE).build())
-                .workerpoolOrder(WorkerpoolOrder.builder().build())
+                .appOrder(appOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NullPointerException.class)
                 .hasMessage("Dataset order cannot be null");
     }
 
     @Test
-    void shouldNotMatchOrderWhenPricesAreNotDefined() {
+    void shouldNotMatchOrderWhenRequestOrderNeedsDatasetAndDatasetAddressDoesNotMatch() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .dataset(generateEthereumAddress())
+                .datasetmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
         BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(AppOrder.builder().build())
-                .requestOrder(RequestOrder.builder().build())
-                .workerpoolOrder(WorkerpoolOrder.builder().build())
+                .appOrder(appOrder)
+                .datasetOrder(datasetOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Dataset address is not the same in order and request order");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenRequestOrderNeedsDatasetAndDatasetPriceIsNull() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        DatasetOrder datasetOrder = DatasetOrder.builder().dataset(generateEthereumAddress()).build();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .dataset(datasetOrder.getDataset())
+                .datasetmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .datasetOrder(datasetOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .build();
+        assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Dataset price cannot be null");
+    }
+
+    @Test
+    void shouldNotMatchOrderWhenPricesNotAccepted() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ZERO)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ZERO)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(IllegalStateException.class)
@@ -115,63 +325,88 @@ class BrokerServiceTests {
     }
 
     @Test
-    void shouldFailToMatchOrderWhenDepositIsToLow() {
-        AppOrder appOrder = AppOrder.builder()
-                .price(BigInteger.ONE)
-                .build();
+    void shouldNotMatchOrderWhenDepositIsToLow() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = RequestOrder.builder()
+                .app(appOrder.getApp())
                 .appmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
                 .workerpoolmaxprice(BigInteger.ONE)
-                .build();
-        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
-                .price(BigInteger.ONE)
                 .build();
         BrokerOrder brokerOrder = BrokerOrder.builder()
                 .appOrder(appOrder)
                 .requestOrder(requestOrder)
                 .workerpoolOrder(workerpoolOrder)
                 .build();
-        ChainAccount chainAccount = ChainAccount.builder()
-                .deposit(0L)
-                .build();
-        when(iexecHubService.getChainAccount(anyString())).thenReturn(Optional.of(chainAccount));
+        when(iexecHubService.getChainAccount(anyString())).thenReturn(Optional.of(emptyDeposit));
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Deposit too low");
     }
 
     @Test
-    void shouldNotMatchOrderAndReturnEmptyString() {
-        AppOrder appOrder = AppOrder.builder()
-                .price(BigInteger.ONE)
-                .build();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .appmaxprice(BigInteger.ONE)
-                .workerpoolmaxprice(BigInteger.ONE)
-                .build();
-        WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
-                .price(BigInteger.ONE)
-                .build();
-        BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(appOrder)
-                .requestOrder(requestOrder)
-                .workerpoolOrder(workerpoolOrder)
-                .build();
-        ChainAccount chainAccount = ChainAccount.builder()
-                .deposit(3L)
-                .build();
-        when(iexecHubService.getChainAccount(anyString())).thenReturn(Optional.of(chainAccount));
+    void shouldNotMatchOrderAndReturnEmptyStringWithDataset(CapturedOutput output) {
+        BrokerOrder brokerOrder = generateBrokerOrder(true);
+        RequestOrder requestOrder = brokerOrder.getRequestOrder();
+        when(iexecHubService.getChainAccount(anyString())).thenReturn(Optional.of(deposit));
         assertThat(brokerService.matchOrders(brokerOrder)).isEmpty();
+        String expectedMessage = MessageFormat.format("Matching valid orders on-chain [requester:{0}, beneficiary:{1}, pool:{2}, app:{3}, dataset:{4}]",
+                requestOrder.getRequester(), requestOrder.getBeneficiary(), requestOrder.getWorkerpool(), requestOrder.getApp(), requestOrder.getDataset());
+        assertThat(output.getOut()).contains(expectedMessage);
+    }
+
+    @Test
+    void shouldNotMatchOrderAndReturnEmptyStringWithoutDataset(CapturedOutput output) {
+        BrokerOrder brokerOrder = generateBrokerOrder(false);
+        RequestOrder requestOrder = brokerOrder.getRequestOrder();
+        when(iexecHubService.getChainAccount(anyString())).thenReturn(Optional.of(deposit));
+        assertThat(brokerService.matchOrders(brokerOrder)).isEmpty();
+        String expectedMessage = MessageFormat.format("Matching valid orders on-chain [requester:{0}, beneficiary:{1}, pool:{2}, app:{3}]",
+                requestOrder.getRequester(), requestOrder.getBeneficiary(), requestOrder.getWorkerpool(), requestOrder.getApp());
+        assertThat(output.getOut()).contains(expectedMessage);
     }
     //endregion
 
     //region fireMatchOrders
     @Test
-    void shouldFailToMatchOrders() {
+    void shouldFailToMatchOrdersWithDataset() {
+        AppOrder appOrder = generateAppOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .requester(generateEthereumAddress())
+                .beneficiary(generateEthereumAddress())
+                .app(appOrder.getApp())
+                .dataset(datasetOrder.getDataset())
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .build();
         BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(AppOrder.builder().build())
-                .requestOrder(RequestOrder.builder().build())
-                .workerpoolOrder(WorkerpoolOrder.builder().build())
+                .appOrder(appOrder)
+                .datasetOrder(datasetOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .build();
+        assertThat(brokerService.fireMatchOrders(brokerOrder))
+                .isEmpty();
+    }
+
+    @Test
+    void shouldFailToMatchOrdersWithoutDataset() {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = RequestOrder.builder()
+                .requester(generateEthereumAddress())
+                .beneficiary(generateEthereumAddress())
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .build();
+        BrokerOrder brokerOrder = BrokerOrder.builder()
+                .appOrder(appOrder)
+                .requestOrder(requestOrder)
+                .workerpoolOrder(workerpoolOrder)
                 .build();
         assertThat(brokerService.fireMatchOrders(brokerOrder))
                 .isEmpty();
@@ -179,13 +414,6 @@ class BrokerServiceTests {
     //endregion
 
     //region hasRequesterAcceptedPrices
-    @Test
-    void shouldFailForEmptyRequestOrder() {
-        RequestOrder requestOrder = RequestOrder.builder().build();
-        assertThat(brokerService.hasRequesterAcceptedPrices(requestOrder, null, null, null, false))
-                .isFalse();
-    }
-
     @Test
     void shouldFailWhenPricesUnderThreshold() {
         RequestOrder requestOrder = RequestOrder.builder()
@@ -241,15 +469,6 @@ class BrokerServiceTests {
     //endregion
 
     //region hasRequesterDepositedEnough
-    @Test
-    void shouldNotAcceptDepositWhenRequestOrderIsNull() {
-        RequestOrder requestOrder = RequestOrder.builder().build();
-        assertThat(brokerService.hasRequesterDepositedEnough(null, 0L, true))
-                .isFalse();
-        assertThat(brokerService.hasRequesterDepositedEnough(requestOrder, 0L, false))
-                .isFalse();
-    }
-
     @Test
     void shouldCheckDepositAgainstRequiredPrices() {
         RequestOrder requestOrder = RequestOrder.builder()
