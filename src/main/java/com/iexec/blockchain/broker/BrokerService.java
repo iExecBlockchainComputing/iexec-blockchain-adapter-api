@@ -57,14 +57,14 @@ public class BrokerService {
         Objects.requireNonNull(assetAddress, assetType + " address cannot be null");
         Objects.requireNonNull(assetPrice, assetType + " price cannot be null");
         if (!requestOrderAddress.equalsIgnoreCase(assetAddress)) {
-            throw new IllegalStateException(assetType + " address is not the same in order and request order");
+            throw new IllegalStateException("Ethereum address is not the same in " + assetType.toLowerCase() + " order and request order");
         }
     }
 
     void checkRequestOrder(RequestOrder requestOrder) {
         Objects.requireNonNull(requestOrder, "Request order cannot be null");
         Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price cannot be null");
-        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester worker pool max price cannot be null");
+        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester workerpool max price cannot be null");
         if (withDataset(requestOrder.getDataset())) {
             Objects.requireNonNull(requestOrder.getDatasetmaxprice(), "Requester dataset max price cannot be null");
         }
@@ -77,11 +77,11 @@ public class BrokerService {
         RequestOrder requestOrder = brokerOrder.getRequestOrder();
         WorkerpoolOrder workerpoolOrder = brokerOrder.getWorkerpoolOrder();
         Objects.requireNonNull(appOrder, "App order cannot be null");
-        Objects.requireNonNull(workerpoolOrder, "Worker pool order cannot be null");
+        Objects.requireNonNull(workerpoolOrder, "Workerpool order cannot be null");
 
         checkRequestOrder(requestOrder);
         checkAssetOrder(requestOrder.getApp(), appOrder.getApp(), appOrder.getAppprice(), "App");
-        checkAssetOrder(requestOrder.getWorkerpool(), workerpoolOrder.getWorkerpool(), workerpoolOrder.getWorkerpoolprice(),"Worker pool");
+        checkAssetOrder(requestOrder.getWorkerpool(), workerpoolOrder.getWorkerpool(), workerpoolOrder.getWorkerpoolprice(),"Workerpool");
         if (withDataset(requestOrder.getDataset())) {
             Objects.requireNonNull(datasetOrder, "Dataset order cannot be null");
             checkAssetOrder(requestOrder.getDataset(), datasetOrder.getDataset(), datasetOrder.getDatasetprice(), "Dataset");

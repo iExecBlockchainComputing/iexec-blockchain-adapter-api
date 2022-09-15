@@ -151,7 +151,7 @@ class BrokerServiceTests {
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("Worker pool order cannot be null");
+                .hasMessage("Workerpool order cannot be null");
     }
 
     @Test
@@ -171,7 +171,7 @@ class BrokerServiceTests {
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("App address is not the same in order and request order");
+                .hasMessage("Ethereum address is not the same in app order and request order");
     }
 
     @Test
@@ -191,7 +191,7 @@ class BrokerServiceTests {
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Worker pool address is not the same in order and request order");
+                .hasMessage("Ethereum address is not the same in workerpool order and request order");
     }
 
     @Test
@@ -231,7 +231,7 @@ class BrokerServiceTests {
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("Worker pool price cannot be null");
+                .hasMessage("Workerpool price cannot be null");
     }
 
     @Test
@@ -277,7 +277,7 @@ class BrokerServiceTests {
                 .build();
         assertThatThrownBy(() -> brokerService.matchOrders(brokerOrder))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Dataset address is not the same in order and request order");
+                .hasMessage("Ethereum address is not the same in dataset order and request order");
     }
 
     @Test
