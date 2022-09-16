@@ -52,24 +52,6 @@ public class BrokerService {
                 .target(BrokerClient.class, chainConfig.getBrokerUrl());
     }
 
-    void checkAssetOrder(String requestOrderAddress, String assetAddress, BigInteger assetPrice, String assetType) {
-        Objects.requireNonNull(requestOrderAddress,  assetType + " address cannot be null in request order");
-        Objects.requireNonNull(assetAddress, assetType + " address cannot be null");
-        Objects.requireNonNull(assetPrice, assetType + " price cannot be null");
-        if (!requestOrderAddress.equalsIgnoreCase(assetAddress)) {
-            throw new IllegalStateException("Ethereum address is not the same in " + assetType.toLowerCase() + " order and request order");
-        }
-    }
-
-    void checkRequestOrder(RequestOrder requestOrder) {
-        Objects.requireNonNull(requestOrder, "Request order cannot be null");
-        Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price cannot be null");
-        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester workerpool max price cannot be null");
-        if (withDataset(requestOrder.getDataset())) {
-            Objects.requireNonNull(requestOrder.getDatasetmaxprice(), "Requester dataset max price cannot be null");
-        }
-    }
-
     void checkBrokerOrder(BrokerOrder brokerOrder) {
         Objects.requireNonNull(brokerOrder, "Broker order cannot be null");
         AppOrder appOrder = brokerOrder.getAppOrder();
@@ -85,6 +67,24 @@ public class BrokerService {
         if (withDataset(requestOrder.getDataset())) {
             Objects.requireNonNull(datasetOrder, "Dataset order cannot be null");
             checkAssetOrder(requestOrder.getDataset(), datasetOrder.getDataset(), datasetOrder.getDatasetprice(), "Dataset");
+        }
+    }
+
+    void checkRequestOrder(RequestOrder requestOrder) {
+        Objects.requireNonNull(requestOrder, "Request order cannot be null");
+        Objects.requireNonNull(requestOrder.getAppmaxprice(), "Requester application max price cannot be null");
+        Objects.requireNonNull(requestOrder.getWorkerpoolmaxprice(), "Requester workerpool max price cannot be null");
+        if (withDataset(requestOrder.getDataset())) {
+            Objects.requireNonNull(requestOrder.getDatasetmaxprice(), "Requester dataset max price cannot be null");
+        }
+    }
+
+    void checkAssetOrder(String requestOrderAddress, String assetAddress, BigInteger assetPrice, String assetType) {
+        Objects.requireNonNull(requestOrderAddress,  assetType + " address cannot be null in request order");
+        Objects.requireNonNull(assetAddress, assetType + " address cannot be null");
+        Objects.requireNonNull(assetPrice, assetType + " price cannot be null");
+        if (!requestOrderAddress.equalsIgnoreCase(assetAddress)) {
+            throw new IllegalStateException("Ethereum address is not the same in " + assetType.toLowerCase() + " order and request order");
         }
     }
 
