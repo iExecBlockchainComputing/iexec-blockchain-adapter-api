@@ -108,7 +108,10 @@ public class BrokerService {
         long deposit = iexecHubService.getChainAccount(requestOrder.getRequester())
                 .map(ChainAccount::getDeposit)
                 .orElse(-1L);
-        if (!hasRequesterDepositedEnough(brokerOrder.getRequestOrder(), deposit, withDataset)) {
+        if (!hasRequesterDepositedEnough(deposit,
+                appOrder.getAppprice().longValue(),
+                workerpoolOrder.getWorkerpoolprice().longValue(),
+                datasetPrice.longValue())) {
             throw new IllegalStateException("Deposit too low");
         }
         String beneficiary = brokerOrder.getRequestOrder().getBeneficiary();
@@ -161,12 +164,9 @@ public class BrokerService {
         return isAccepted;
     }
 
-    boolean hasRequesterDepositedEnough(RequestOrder requestOrder, long deposit, boolean withDataset) {
-        BigInteger price = requestOrder.getWorkerpoolmaxprice().add(requestOrder.getAppmaxprice());
-        if (withDataset) {
-            price = price.add(requestOrder.getDatasetmaxprice());
-        }
-        if (price.longValue() > deposit) {
+    boolean hasRequesterDepositedEnough(long deposit, long appPrice, long workerpoolPrice, long datasetPrice) {
+        long price = appPrice + workerpoolPrice + datasetPrice;
+        if (price > deposit) {
             log.error("Deposit too low [price:{}, deposit:{}]", price, deposit);
             return false;
         }

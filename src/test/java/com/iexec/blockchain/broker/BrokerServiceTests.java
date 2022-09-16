@@ -471,13 +471,8 @@ class BrokerServiceTests {
     //region hasRequesterDepositedEnough
     @Test
     void shouldCheckDepositAgainstRequiredPrices() {
-        RequestOrder requestOrder = RequestOrder.builder()
-                .appmaxprice(BigInteger.ONE)
-                .datasetmaxprice(BigInteger.ONE)
-                .workerpoolmaxprice(BigInteger.ONE)
-                .build();
-        assertThat(brokerService.hasRequesterDepositedEnough(requestOrder, 5L, true)).isTrue();
-        assertThat(brokerService.hasRequesterDepositedEnough(requestOrder, 0L, true)).isFalse();
+        assertThat(brokerService.hasRequesterDepositedEnough(5L, 1L, 1L, 1L)).isTrue();
+        assertThat(brokerService.hasRequesterDepositedEnough(0L, 1L, 1L, 1L)).isFalse();
     }
     //endregion
 
