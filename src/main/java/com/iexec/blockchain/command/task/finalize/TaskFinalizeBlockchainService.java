@@ -75,7 +75,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
 
     @Override
     public TransactionReceipt sendBlockchainCommand(TaskFinalizeArgs args) throws Exception {
-        return iexecHubService.finalize(args.getChainTaskId(),
+        return iexecHubService.finalizeTask(args.getChainTaskId(),
                 args.getResultLink(),
                 args.getCallbackData());
     }

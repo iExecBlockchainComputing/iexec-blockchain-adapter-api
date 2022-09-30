@@ -106,7 +106,7 @@ public class IexecHubService extends IexecHubAbstractService {
                         stringToBytes(resultDigest)).send();
     }
 
-    public TransactionReceipt finalize(String chainTaskId,
+    public TransactionReceipt finalizeTask(String chainTaskId,
                                        String resultLink,
                                        String callbackData) throws Exception {
         byte[] results = StringUtils.isNotEmpty(resultLink) ?
