@@ -53,7 +53,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
             logError(chainTaskId, args, "task is not revealing");
             return false;
         }
-        if (!(now() < chainTask.getFinalDeadline())) {
+        if (now() >= chainTask.getFinalDeadline()) {
             logError(chainTaskId, args, "after final deadline");
             return false;
         }
