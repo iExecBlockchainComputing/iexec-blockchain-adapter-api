@@ -192,38 +192,14 @@ public class IexecHubService extends IexecHubAbstractService {
         return new Date(startTime + maxTime * maxNbOfPeriods);
     }
 
-    public Boolean isChainTaskActive(ChainTaskStatus status) {
-        switch (status) {
-            case UNSET:
-                break;//Could happen if node not synchronized. Should wait.
-            case ACTIVE:
-                return true;
-            case REVEALING:
-                return false;
-            case COMPLETED:
-                return false;
-            case FAILLED:
-                return false;
-            default:
-                return false;
-        }
-        return false;
+    public boolean isChainTaskActive(ChainTaskStatus status) {
+        log.debug("Current chain task status is {}", status);
+        return ChainTaskStatus.ACTIVE.equals(status);
     }
 
-    public Boolean isChainTaskRevealing(ChainTaskStatus status) {
-        switch (status) {
-            case UNSET:
-                break;//Should not happen
-            case ACTIVE:
-                break;//Could happen if node not synchronized. Should wait.
-            case REVEALING:
-                return true;
-            case COMPLETED:
-                return false;
-            case FAILLED:
-                return false;
-        }
-        return false;
+    public boolean isChainTaskRevealing(ChainTaskStatus status) {
+        log.debug("Current chain task status is {}", status);
+        return ChainTaskStatus.REVEALING.equals(status);
     }
 
     public boolean isBeforeContributionDeadlineToContribute(ChainTask chainTask) {
