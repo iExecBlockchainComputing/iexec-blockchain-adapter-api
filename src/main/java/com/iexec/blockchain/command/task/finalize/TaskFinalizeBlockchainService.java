@@ -49,7 +49,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
             return false;
         }
         ChainTask chainTask = optional.get();
-        if (!chainTask.getStatus().equals(ChainTaskStatus.REVEALING)) {
+        if (chainTask.getStatus() != ChainTaskStatus.REVEALING) {
             logError(chainTaskId, args, "task is not revealing");
             return false;
         }
