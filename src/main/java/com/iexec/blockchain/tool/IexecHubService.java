@@ -192,20 +192,6 @@ public class IexecHubService extends IexecHubAbstractService {
         return new Date(startTime + maxTime * maxNbOfPeriods);
     }
 
-    public boolean isChainTaskActive(ChainTaskStatus status) {
-        log.debug("Current chain task status is {}", status);
-        return ChainTaskStatus.ACTIVE.equals(status);
-    }
-
-    public boolean isChainTaskRevealing(ChainTaskStatus status) {
-        log.debug("Current chain task status is {}", status);
-        return ChainTaskStatus.REVEALING.equals(status);
-    }
-
-    public boolean isBeforeContributionDeadlineToContribute(ChainTask chainTask) {
-        return new Date().getTime() < chainTask.getContributionDeadline();
-    }
-
     public boolean hasEnoughStakeToContribute(String chainDealId, String workerWallet) {
         Optional<ChainAccount> optionalChainAccount = getChainAccount(workerWallet);
         Optional<ChainDeal> optionalChainDeal = getChainDeal(chainDealId);
