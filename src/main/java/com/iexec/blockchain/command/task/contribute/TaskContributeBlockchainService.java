@@ -21,11 +21,14 @@ import com.iexec.blockchain.command.generic.CommandBlockchain;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.ChainTask;
+import com.iexec.common.chain.ChainTaskStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
+
+import static com.iexec.common.utils.DateTimeUtils.now;
 
 @Slf4j
 @Service
@@ -51,17 +54,16 @@ public class TaskContributeBlockchainService implements CommandBlockchain<TaskCo
         }
         ChainTask chainTask = optionalChainTask.get();
 
-        if (!iexecHubService.isChainTaskActive(chainTask.getStatus())) {
+        if (chainTask.getStatus() != ChainTaskStatus.ACTIVE) {
             logError(chainTaskId, args, "task is not active");
             return false;
         }
-        //Order matters, status should be at least active
-        if (!iexecHubService.hasEnoughStakeToContribute(chainTask.getDealid(), workerWallet)) {
-            logError(chainTaskId, args, "stake too low");
+        if (now() >= chainTask.getContributionDeadline()) {
+            logError(chainTaskId, args, "after contribution deadline");
             return false;
         }
-        if (!iexecHubService.isBeforeContributionDeadlineToContribute(chainTask)) {
-            logError(chainTaskId, args, "after contribution deadline");
+        if (!iexecHubService.hasEnoughStakeToContribute(chainTask.getDealid(), workerWallet)) {
+            logError(chainTaskId, args, "stake too low");
             return false;
         }
         if (!iexecHubService.isContributionUnsetToContribute(chainTaskId, workerWallet)) {
