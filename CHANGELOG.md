@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ## 7.1.0 2022-07-01
 
-Not released on GitHub
+* Not released on GitHub
 
 * Add OpenFeign client library in dedicated iexec-blockchain-adapter-api-library jar
 * Use Spring Boot 2.6.2
