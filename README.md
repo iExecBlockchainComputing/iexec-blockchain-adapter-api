@@ -4,7 +4,7 @@
 
 A blockchain adapter API for iExec Smart-Contracts and other Ethereum things.
 
-The iExec Blockchain Adapter API is available as an OCI image on [dockerhub](https://hub.docker.com/r/iexechub/iexec-blockchain-adapter-api/tags).
+The iExec Blockchain Adapter API is available as an OCI image on [Docker Hub](https://hub.docker.com/r/iexechub/iexec-blockchain-adapter-api/tags).
 
 To run properly, the iExec Blockchain Adapter API requires:
 * A reachable blockchain node URL hosting iExec smart contracts.
