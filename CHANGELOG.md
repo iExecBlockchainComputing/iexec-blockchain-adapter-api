@@ -6,9 +6,7 @@ All notable changes to this project will be documented in this file.
 
 * Hotfix integration tests
 
-## 7.1.0 2022-07-01
-
-* Not released on GitHub
+## [[7.1.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.1.0) 2022-07-01 
 
 * Add OpenFeign client library in dedicated iexec-blockchain-adapter-api-library jar
 * Use Spring Boot 2.6.2

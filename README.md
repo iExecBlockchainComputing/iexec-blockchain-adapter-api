@@ -2,19 +2,19 @@
 
 ## Overview
 
-A blockchain adapter API for iExec Smart-Contracts and other Ethereum things.
+A blockchain adapter API for interacting with iExec Smart-Contracts and for doing other Ethereum things.
 
 The iExec Blockchain Adapter API is available as an OCI image on [Docker Hub](https://hub.docker.com/r/iexechub/iexec-blockchain-adapter-api/tags).
 
 To run properly, the iExec Blockchain Adapter API requires:
-* A reachable blockchain node URL hosting iExec smart contracts.
-* A reachable MongoDB instance to persist its data.
-* A reachable broker to match iExec orders.
+* A blockchain node. iExec smart contracts must be deployed on the blockchain network.
+* A MongoDB instance to persist its data.
+* A broker service to match iExec orders.
 * An Ethereum wallet to interact with Smart Contracts on the blockchain network.
 
 ## Configuration
 
-| Environment variables | Description | Values | Default value |
+| Environment variable | Description | Type | Default value |
 | --- | --- | --- | --- |
 | IEXEC_BLOCKCHAIN_ADAPTER_API_PORT | Server HTTP port of the blockchain adapter API. | Positive integer | `13010` |
 | IEXEC_BLOCKCHAIN_ADAPTER_API_USERNAME | Login username of the server. | String | `admin` |
