@@ -1,4 +1,4 @@
-@Library('global-jenkins-library@2.1.2') _
+@Library('global-jenkins-library@2.1.4') _
 buildJavaProject(
         buildInfo: getBuildInfo(),
         integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
