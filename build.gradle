@@ -9,7 +9,10 @@ plugins {
 
 ext {
 	openFeignVersion = '11.6'
-	gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+}
+
+if (!project.hasProperty('gitBranch')) {
+    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
 allprojects {
@@ -23,6 +26,13 @@ allprojects {
 		mavenLocal()
 		mavenCentral()
 		// iExec
+		maven {
+			url "https://docker-regis-adm.iex.ec/repository/maven-public/"
+			credentials {
+				username nexusUser
+				password nexusPassword
+			}
+		}
 		maven {
 			url "https://nexus.intra.iex.ec/repository/maven-public/"
 		}
@@ -120,8 +130,8 @@ publishing {
 	repositories {
 		maven {
 			credentials {
-				username project.hasProperty("nexusUser")? project.nexusUser: ''
-				password project.hasProperty("nexusPassword")? project.nexusPassword: ''
+				username nexusUser
+				password nexusPassword
 			}
 			url = project.hasProperty("nexusUrl")? project.nexusUrl: ''
 		}
