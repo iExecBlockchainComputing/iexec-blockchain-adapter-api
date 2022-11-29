@@ -1,8 +1,12 @@
-# iexec-blockchain-adapter-api
+# iExec Blockchain Adapter API
 
 ## Overview
 
-A blockchain adapter API for interacting with iExec Smart-Contracts and for doing other Ethereum things.
+The Blockchain Adapter API enables interacting with iExec smart contracts plus doing other Ethereum things.
+The Blockchain Adapter API accepts incoming requests asking for submitting transactions to iExec smart contracts.
+Incoming requests are locally stored in a database.
+Transactions related to these requests are being asynchronously sent to a blockchain node.
+At any time, the caller can retrieve the processing status for his request.
 
 The iExec Blockchain Adapter API is available as an OCI image on [Docker Hub](https://hub.docker.com/r/iexechub/iexec-blockchain-adapter-api/tags).
 
@@ -16,7 +20,7 @@ To run properly, the iExec Blockchain Adapter API requires:
 
 | Environment variable | Description | Type | Default value |
 | --- | --- | --- | --- |
-| IEXEC_BLOCKCHAIN_ADAPTER_API_PORT | Server HTTP port of the blockchain adapter API. | Positive integer | `13010` |
+| IEXEC_BLOCKCHAIN_ADAPTER_API_PORT | Server HTTP port of the Blockchain Adapter API. | Positive integer | `13010` |
 | IEXEC_BLOCKCHAIN_ADAPTER_API_USERNAME | Login username of the server. | String | `admin` |
 | IEXEC_BLOCKCHAIN_ADAPTER_API_PASSWORD | Login password of the server. | String | `whatever` |
 | IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_HOST | Mongo server host. Cannot be set with URI. | String | `localhost` |
@@ -36,6 +40,6 @@ To run properly, the iExec Blockchain Adapter API requires:
 
 `./gradlew docker`
 
-# CI/CD build
+## CI/CD build
 
 `docker image build -f docker/Dockerfile .`
