@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[7.1.2]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.1.2) 2022-11-29
+
+* Update build workflow to 2.1.4, update documentation in README and add CHANGELOG.
+
 ## [[7.1.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.1.1) 2022-07-01
 
 * Hotfix integration tests.
