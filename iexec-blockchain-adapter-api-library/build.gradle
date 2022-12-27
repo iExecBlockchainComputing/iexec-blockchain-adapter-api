@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'io.freefair.lombok'
     id 'jacoco'
     id 'maven-publish'
 }
