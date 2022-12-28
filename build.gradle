@@ -18,8 +18,6 @@ if (!project.hasProperty('gitBranch')) {
 
 allprojects {
 	group = 'com.iexec.blockchain'
-	sourceCompatibility = 11
-	targetCompatibility = 11
 	if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
 		version += '-NEXT-SNAPSHOT'
 	}
@@ -39,6 +37,11 @@ allprojects {
 		}
 		maven {
 			url "https://jitpack.io"
+		}
+	}
+	java {
+		toolchain {
+			languageVersion.set(JavaLanguageVersion.of(11))
 		}
 	}
 }
