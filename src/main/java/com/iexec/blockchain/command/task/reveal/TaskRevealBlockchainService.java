@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.Date;
 import java.util.Optional;
 
 import static com.iexec.common.utils.DateTimeUtils.now;
