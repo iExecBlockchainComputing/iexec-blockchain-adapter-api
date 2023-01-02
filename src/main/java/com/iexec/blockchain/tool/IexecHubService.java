@@ -22,7 +22,6 @@ import com.iexec.common.contract.generated.IexecHubContract;
 import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -34,7 +33,6 @@ import java.util.Optional;
 
 import static com.iexec.common.utils.BytesUtils.stringToBytes;
 
-@Slf4j
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 

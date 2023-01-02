@@ -20,12 +20,10 @@ package com.iexec.blockchain.command.task.initialize;
 import com.iexec.blockchain.command.generic.CommandEngine;
 import com.iexec.blockchain.tool.QueueService;
 import com.iexec.common.chain.ChainUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import static com.iexec.blockchain.tool.IexecHubService.isByte32;
 
-@Slf4j
 @Service
 public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskInitializeArgs> {
 

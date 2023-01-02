@@ -18,10 +18,8 @@ package com.iexec.blockchain.command.task.contribute;
 
 
 import com.iexec.blockchain.command.generic.CommandStorage;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class TaskContributeStorageService extends CommandStorage<TaskContribute, TaskContributeArgs> {
 
