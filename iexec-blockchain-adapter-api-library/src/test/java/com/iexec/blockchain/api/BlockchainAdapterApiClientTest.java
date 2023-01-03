@@ -4,7 +4,7 @@ import feign.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class BlockchainAdapterApiClientTest {
+class BlockchainAdapterApiClientTest {
 
     @Test
     void instantiationTest() {
