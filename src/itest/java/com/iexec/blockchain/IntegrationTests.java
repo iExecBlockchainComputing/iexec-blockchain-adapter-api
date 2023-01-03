@@ -4,7 +4,6 @@ import com.iexec.blockchain.api.BlockchainAdapterApiClient;
 import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.signer.SignerService;
-import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.*;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.web3j.crypto.Hash;
@@ -57,16 +55,10 @@ class IntegrationTests {
     private int randomServerPort;
 
     @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
     private IexecHubService iexecHubService;
 
     @Autowired
     private CredentialsService credentialsService;
-
-    @Autowired
-    private ChainConfig chainConfig;
 
     @Autowired
     private BrokerService brokerService;
