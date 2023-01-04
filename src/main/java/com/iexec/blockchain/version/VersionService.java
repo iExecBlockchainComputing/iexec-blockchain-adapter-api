@@ -33,8 +33,4 @@ public class VersionService {
         return buildProperties.getVersion();
     }
 
-    public boolean isSnapshot() {
-        return VersionUtils.isSnapshot(getVersion());
-    }
-
 }
