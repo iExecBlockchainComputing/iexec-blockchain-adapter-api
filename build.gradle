@@ -9,7 +9,10 @@ plugins {
 
 ext {
 	openFeignVersion = '11.6'
-	gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+}
+
+if (!project.hasProperty('gitBranch')) {
+    ext.gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
 }
 
 allprojects {
