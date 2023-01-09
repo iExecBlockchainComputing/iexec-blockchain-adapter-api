@@ -13,7 +13,7 @@ dependencies {
     implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 java {
