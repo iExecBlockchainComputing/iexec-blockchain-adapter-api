@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[7.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.2.0) 2023-01-09
+
+* Increments jenkins-library up to version 2.2.3. Enable SonarCloud analyses on branches and pull requests.
+* Improve thread management in some tests.
+
 ## [[7.1.2]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.1.2) 2022-11-29
 
 * Update build workflow to 2.1.4, update documentation in README and add CHANGELOG.
