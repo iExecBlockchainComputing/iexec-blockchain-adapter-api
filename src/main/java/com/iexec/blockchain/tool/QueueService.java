@@ -45,7 +45,7 @@ public class QueueService {
      * The first action is the action with the highest priority that is in the queue for the longer time.
      */
     void executeActions() {
-        while (Thread.currentThread().isAlive()) {
+        while (Thread.currentThread().isAlive() && !Thread.currentThread().isInterrupted()) {
             executeFirstAction();
         }
     }

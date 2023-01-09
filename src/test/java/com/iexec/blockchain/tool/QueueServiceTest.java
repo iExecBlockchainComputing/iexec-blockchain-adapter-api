@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -24,12 +26,16 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QueueServiceTest {
+
+    private ExecutorService executorService;
+
     @InjectMocks
     @Spy
     private QueueService queueService;
 
     @BeforeEach
     void setUp() {
+        executorService = Executors.newSingleThreadExecutor();
         MockitoAnnotations.openMocks(this);
     }
 
@@ -75,12 +81,15 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
+        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1);
-        tasksExecutionFuture.cancel(true);
+        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
+        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
+        // A call to ExecutorService#shutdownNow is done to interrupt the thread
+        executorService.shutdownNow();
 
         // We simply ensure the execution has completed.
         assertThat(highPriorityTimestamps.size()).isOne();
@@ -95,12 +104,15 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
+        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> lowPriorityTimestamps.size() == 1);
-        tasksExecutionFuture.cancel(true);
+        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
+        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
+        // A call to ExecutorService#shutdownNow is done to interrupt the thread
+        executorService.shutdownNow();
 
         // We simply ensure the execution has completed.
         assertThat(lowPriorityTimestamps.size()).isOne();
@@ -121,12 +133,15 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> tasksExecutionFuture = CompletableFuture.runAsync(queueService::executeActions);
+        CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1 && lowPriorityTimestamps.size() == 1);
-        tasksExecutionFuture.cancel(true);
+        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
+        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
+        // A call to ExecutorService#shutdownNow is done to interrupt the thread
+        executorService.shutdownNow();
 
         // We have executed a single task per priority so we that's what we should now have.
         assertThat(highPriorityTimestamps.size()).isOne();
@@ -177,12 +192,15 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        final CompletableFuture<Void> executionFuture = CompletableFuture.runAsync(queueService::executeActions);
+        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> executionOrder.size() == totalTasksNumber);
-        executionFuture.cancel(true);
+        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
+        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
+        // A call to ExecutorService#shutdownNow is done to interrupt the thread
+        executorService.shutdownNow();
 
         // Tasks should have been executed in the right order.
         // This should look like [0, 1, 2, 3, 4, 5].
