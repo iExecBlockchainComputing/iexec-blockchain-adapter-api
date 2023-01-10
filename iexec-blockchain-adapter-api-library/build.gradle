@@ -5,15 +5,9 @@ plugins {
     id 'maven-publish'
 }
 
-ext {
-    springBootVersion = '2.6.14'
-}
-
 dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
 }
 
 java {
