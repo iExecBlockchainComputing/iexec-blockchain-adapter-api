@@ -28,7 +28,7 @@ jacocoTestReport {
         xml.required = true
     }
 }
-tasks.test.finalizedBy    tasks.jacocoTestReport
+tasks.test.finalizedBy tasks.jacocoTestReport
 
 publishing {
     publications {
