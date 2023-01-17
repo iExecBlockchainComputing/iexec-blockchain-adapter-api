@@ -40,7 +40,7 @@ To run properly, the iExec Blockchain Adapter API requires:
 
 A `/actuator/health` endpoint is enabled by default and can be accessed on the **IEXEC_BLOCKCHAIN_ADAPTER_API_PORT**.
 This endpoint allows to define health checks in an orchestrator or a [compose file](https://github.com/compose-spec/compose-spec/blob/master/spec.md#healthcheck).
-No default strategy has been implemented in the [Dockerfile](Dockerfile) at the moment.
+No default strategy has been implemented in the [Dockerfile](docker/Dockerfile) at the moment.
 
 ## Running in development mode
 
