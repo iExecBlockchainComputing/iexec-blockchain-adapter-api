@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [[7.3.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.3.0) 2023-01-18
 
-* Add health endpoint to allow health checks mechanism enablement.
+* Add endpoint to allow health checks.
 
 ## [[7.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.2.0) 2023-01-09
 
