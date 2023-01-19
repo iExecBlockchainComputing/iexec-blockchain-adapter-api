@@ -27,7 +27,7 @@ public class WebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapte
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/webjars/**").anonymous() // <--- END Anonymous swagger access
-                .antMatchers("/config/chain").permitAll()
+                .antMatchers("/actuator/health", "/config/chain").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
