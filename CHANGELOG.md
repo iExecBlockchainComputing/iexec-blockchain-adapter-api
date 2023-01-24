@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.0.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.0) 2023
+
+### New Features
+* #59 Support Gramine framework for TEE tasks.
+* #68 Add iExec banner at startup.
+### Quality
+* #65 #64 #60 #58 Improve code quality.
+### Dependency Upgrades
+* #67 Upgrade to Spring Boot 2.6.14.
+* #63 Upgrade to Gradle 7.6.
+
 ## [[7.3.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.3.0) 2023-01-18
 
 * Add endpoint to allow health checks.
