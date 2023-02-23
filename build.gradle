@@ -87,6 +87,13 @@ springBoot {
 	buildInfo()
 }
 
+tasks.named("bootJar") {
+	manifest {
+		attributes("Implementation-Title": "iExec Blockchain Adapter API",
+		           "Implementation-Version": project.version)
+	}
+}
+
 sourceSets {
 	integrationTest {
 		java {
@@ -126,7 +133,7 @@ jar {
 publishing {
 	publications {
 		maven(MavenPublication) {
-			artifact bootJar
+			artifact tasks.named("bootJar")
 			from components.java
 		}
 	}
