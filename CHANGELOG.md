@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 * Expose a `BrokerClient` in library.
 * Add iExec banner at startup.
+* Show application version on banner.
 ### Quality
 * Improve code quality.
 * Use new TEE classes in tests.
