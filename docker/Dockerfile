@@ -1,5 +1,5 @@
 # Build app container
-FROM openjdk:11.0.15-jre-slim
+FROM eclipse-temurin:11.0.18_10-jre
 
 ARG jar
 
