@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 * Upgrade to Spring Boot 2.6.14.
 * Upgrade to Gradle 7.6.
 * Upgrade OkHttp to 4.9.0.
+* Upgrade to `iexec-common` 7.0.0.
 
 ## [[7.3.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v7.3.0) 2023-01-18
 
