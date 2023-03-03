@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.command.task.initialize;
+package com.iexec.blockchain.broker;
 
+import com.iexec.common.sdk.broker.BrokerOrder;
+import com.iexec.common.sdk.cli.FillOrdersCliOutput;
+import feign.RequestLine;
 
-import com.iexec.blockchain.command.generic.CommandStorage;
-import org.springframework.stereotype.Service;
+public interface BrokerClient {
 
-@Service
-public class TaskInitializeStorageService extends CommandStorage<TaskInitialize, TaskInitializeArgs> {
+    @RequestLine("POST /orders/match")
+    FillOrdersCliOutput matchOrders(BrokerOrder order);
 
-    public TaskInitializeStorageService(TaskInitializeRepository taskInitializeRepository) {
-        super(taskInitializeRepository);
-    }
-
-    @Override
-    public TaskInitialize newCommandInstance() {
-        return new TaskInitialize();
-    }
 }

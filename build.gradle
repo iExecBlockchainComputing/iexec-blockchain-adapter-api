@@ -1,14 +1,15 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '2.6.2'
-	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'io.freefair.lombok' version '6.6.1'
+	id 'org.springframework.boot' version '2.6.14'
+	id 'io.spring.dependency-management' version '1.1.0'
 	id 'jacoco'
 	id 'org.sonarqube' version '3.3'
 	id 'maven-publish'
 }
 
 ext {
-	openFeignVersion = '11.6'
+	openFeignVersion = '11.7'
 }
 
 if (!project.hasProperty('gitBranch')) {
@@ -17,8 +18,6 @@ if (!project.hasProperty('gitBranch')) {
 
 allprojects {
 	group = 'com.iexec.blockchain'
-	sourceCompatibility = 11
-	targetCompatibility = 11
 	if (gitBranch != 'main' && gitBranch != 'master' && !(gitBranch ==~ '(release|hotfix|support)/.*')) {
 		version += '-NEXT-SNAPSHOT'
 	}
@@ -40,6 +39,11 @@ allprojects {
 			url "https://jitpack.io"
 		}
 	}
+	java {
+		toolchain {
+			languageVersion.set(JavaLanguageVersion.of(11))
+		}
+	}
 }
 
 configurations {
@@ -49,9 +53,6 @@ configurations {
 }
 
 dependencies {
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
 	// Spring Doc
 	implementation 'org.springdoc:springdoc-openapi-ui:1.6.3'
 
@@ -66,9 +67,9 @@ dependencies {
 
 	// web3j bug required
 	// NoSuchMethodError: 'okhttp3.RequestBody okhttp3.RequestBody.create(java.lang.String, okhttp3.MediaType)'
-	implementation 'com.squareup.okhttp3:okhttp:4.3.1' // Web3j issue: https://github.com/web3j/web3j/issues/1180
-	// NoSuchMethodError: 'byte[] kotlin.collections.ArraysKt.copyInto(byte[], byte[], int, int, int)'
-	implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.3.50' // https://stackoverflow.com/a/57907899
+	// Spring Boot dependencies BOM enforces okhttp3 3.14.9 in 2.6.X
+	// It is required to define the dependency version required by web3j until migration to at least Spring Boot 2.7.X
+	implementation 'com.squareup.okhttp3:okhttp:4.9.0' // Web3j issue: https://github.com/web3j/web3j/issues/1180
 
 	// feign
 	implementation "io.github.openfeign:feign-core:$openFeignVersion"
@@ -84,6 +85,13 @@ dependencies {
 
 springBoot {
 	buildInfo()
+}
+
+tasks.named("bootJar") {
+	manifest {
+		attributes("Implementation-Title": "iExec Blockchain Adapter API",
+		           "Implementation-Version": project.version)
+	}
 }
 
 sourceSets {
@@ -125,7 +133,7 @@ jar {
 publishing {
 	publications {
 		maven(MavenPublication) {
-			artifact bootJar
+			artifact tasks.named("bootJar")
 			from components.java
 		}
 	}
@@ -150,7 +158,7 @@ jacoco {
 // sonarqube code coverage requires jacoco XML report
 jacocoTestReport {
     reports {
-        xml.enabled true
+        xml.required = true
     }
 }
 tasks.test.finalizedBy    tasks.jacocoTestReport

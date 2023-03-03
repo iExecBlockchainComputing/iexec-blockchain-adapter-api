@@ -23,13 +23,15 @@ import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.ChainContribution;
 import com.iexec.common.chain.ChainContributionStatus;
 import com.iexec.common.chain.ChainTask;
+import com.iexec.common.chain.ChainTaskStatus;
 import com.iexec.common.worker.result.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.Date;
 import java.util.Optional;
+
+import static com.iexec.common.utils.DateTimeUtils.now;
 
 @Slf4j
 @Service
@@ -56,11 +58,11 @@ public class TaskRevealBlockchainService implements CommandBlockchain<TaskReveal
         }
         ChainTask chainTask = optionalChainTask.get();
 
-        if (!iexecHubService.isChainTaskRevealing(chainTask.getStatus())) {
+        if (chainTask.getStatus() != ChainTaskStatus.REVEALING) {
             logError(chainTaskId, args, "task is not revealing");
             return false;
         }
-        if (chainTask.getRevealDeadline() < new Date().getTime()) {
+        if (now() >= chainTask.getRevealDeadline()) {
             logError(chainTaskId, args, "after reveal deadline");
             return false;
         }
