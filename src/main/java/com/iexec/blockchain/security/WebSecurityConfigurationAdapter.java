@@ -20,14 +20,8 @@ public class WebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapte
                 .csrf().disable()
                 .cors().and()
                 .authorizeRequests()
-                .mvcMatchers("/v2/api-docs", // <--- START Anonymous swagger access
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/configuration/security",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/webjars/**").anonymous() // <--- END Anonymous swagger access
-                .antMatchers("/actuator/health", "/config/chain").permitAll()
+                .mvcMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").anonymous() // Anonymous swagger access
+                .mvcMatchers("/actuator/health", "/actuator/prometheus", "/config/chain").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
