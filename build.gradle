@@ -76,6 +76,9 @@ dependencies {
 	implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
 	implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
 
+	// observability
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
 	// integration tests
 	implementation project(':iexec-blockchain-adapter-api-library')
 
