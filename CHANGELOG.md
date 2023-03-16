@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 * Enable Prometheus actuator. (#79)
 ### Bug Fixes
 * Fix security rule to access Swagger API. (#79)
+### Dependency Upgrades
+* Upgrade to `feign` 11.10. (#80)
 
 ## [[8.0.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.0) 2023-03-03
 
