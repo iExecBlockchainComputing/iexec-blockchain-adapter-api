@@ -280,8 +280,9 @@ class IntegrationTests {
                 .build();
     }
 
+    //TODO: Use `Awaitility` in `waitStatus` & `waitBeforeFinalizing` methods
     /**
-     *
+     * 
      * @param pollingTimeMs recommended value is block time
      */
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) throws Exception {
