@@ -54,7 +54,7 @@ class IntegrationTests {
     public static final int BLOCK_TIME_MS = 5000;
     public static final int MAX_BLOCK_TO_WAIT = 3;
     public static final int POLLING_PER_BLOCK = 2;
-    public static final int POLLING_TIME_MS = BLOCK_TIME_MS / POLLING_PER_BLOCK;
+    public static final int POLLING_INTERVAL_MS = BLOCK_TIME_MS / POLLING_PER_BLOCK;
     public static final int MAX_POLLING_ATTEMPTS = MAX_BLOCK_TO_WAIT
             * POLLING_PER_BLOCK;
 
@@ -88,7 +88,7 @@ class IntegrationTests {
         Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
         log.info("Requested task initialize: {}", chainTaskId);
         //should wait since returned taskID is computed, initialize is not mined yet
-        waitStatus(chainTaskId, ACTIVE, POLLING_TIME_MS, MAX_POLLING_ATTEMPTS);
+        waitStatus(chainTaskId, ACTIVE, POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
 
         String someBytes32Payload = TeeUtils.TEE_SCONE_ONLY_TAG; //any would be fine
         String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
@@ -103,7 +103,7 @@ class IntegrationTests {
         String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
         Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
         log.info("Requested task contribute: {}", contributeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.REVEALING, POLLING_TIME_MS, 
+        waitStatus(chainTaskId, ChainTaskStatus.REVEALING, POLLING_INTERVAL_MS, 
             MAX_POLLING_ATTEMPTS);
 
         TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
@@ -116,7 +116,7 @@ class IntegrationTests {
         String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
         Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
         log.info("Requested task finalize: {}", finalizeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED, POLLING_TIME_MS, 
+        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED, POLLING_INTERVAL_MS, 
             MAX_POLLING_ATTEMPTS);
     }
 
@@ -138,7 +138,7 @@ class IntegrationTests {
                         try {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
-                            waitStatus(chainTaskId, ACTIVE, POLLING_TIME_MS, 
+                            waitStatus(chainTaskId, ACTIVE, POLLING_INTERVAL_MS, 
                                 (taskVolume + 2) * MAX_POLLING_ATTEMPTS);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
@@ -152,7 +152,7 @@ class IntegrationTests {
     }
 
     private String triggerDeal(int taskVolume) {
-        int secondsPollingInterval = POLLING_TIME_MS / 1000;
+        int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
         int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
@@ -313,7 +313,7 @@ class IntegrationTests {
         int attempts = 0;
         while (revealCounter != winnerCounter) {
             log.info("Waiting for reveals ({}/{})", revealCounter, winnerCounter);
-            Thread.sleep(POLLING_TIME_MS);
+            Thread.sleep(POLLING_INTERVAL_MS);
             revealCounter = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getRevealCounter)
                     .orElse(0);
