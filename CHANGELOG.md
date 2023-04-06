@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [[8.0.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.1) 2023-03-28
+## [[8.0.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.1) 2023-04-06
 
 ### Quality
-* Run integration tests on `poco-chain@native-v5.4.1-5s`. (#81)
+* Run integration tests on `poco-chain@native-v5.4.2-5s`. (#81)
 
 ## [[8.0.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.0) 2023-03-03
 
