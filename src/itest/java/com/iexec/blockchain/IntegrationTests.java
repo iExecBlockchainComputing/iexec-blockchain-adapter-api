@@ -46,7 +46,7 @@ import static com.iexec.common.chain.ChainTaskStatus.UNSET;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles("itest")
 class IntegrationTests {
 
     public static final String USER = "admin";
