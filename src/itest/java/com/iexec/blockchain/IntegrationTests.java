@@ -34,7 +34,6 @@ import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 
 import java.math.BigInteger;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -153,8 +152,7 @@ class IntegrationTests {
     }
 
     private String triggerDeal(int taskVolume) {
-        int secondsPollingInterval = Duration.ofMillis(POLLING_INTERVAL_MS)
-            .toSecondsPart();
+        int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
         int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
