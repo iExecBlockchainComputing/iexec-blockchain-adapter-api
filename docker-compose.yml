@@ -7,7 +7,7 @@ networks:
 services:
 
   ibaa-chain:
-    image: docker-regis.iex.ec/poco-chain:token-v5.1.0
+    image: docker-regis.iex.ec/poco-chain:native-v5.4.2-5s
     container_name: ibaa-chain
     ports:
       - 28545:8545
@@ -19,7 +19,7 @@ services:
     container_name: ibaa-broker
     environment:
       - CHAIN=http://ibaa-chain:8545
-      - PROXY=0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002
+      - PROXY=0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca
       - MNEMONIC=${BROKER_PRIVATE_KEY} #must use an other wallet for the broker, like wallet-abc
       - PORT=3000
     ports:
@@ -28,6 +28,7 @@ services:
       - ibaa-chain
     networks:
       - iexec-blockchain-adapter-api-net
+    restart: unless-stopped
 
   ibaa-blockchain-adapter-mongo:
     image: library/mongo:4.4
