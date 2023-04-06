@@ -1,8 +1,0 @@
-spring:
-  data:
-    mongodb:
-      port: 23012
-
-chain:
-  node-address: http://localhost:28545
-  broker-url: http://localhost:23000
