@@ -63,6 +63,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// iexec
+	implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
 	implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
 
 	// web3j bug required
