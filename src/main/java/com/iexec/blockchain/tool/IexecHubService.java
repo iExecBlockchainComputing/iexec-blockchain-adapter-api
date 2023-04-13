@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package com.iexec.blockchain.tool;
 
-
-import com.iexec.common.chain.*;
-import com.iexec.common.contract.generated.IexecHubContract;
-import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
+import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -31,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
 
-import static com.iexec.common.utils.BytesUtils.stringToBytes;
+import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 
 @Service
 public class IexecHubService extends IexecHubAbstractService {

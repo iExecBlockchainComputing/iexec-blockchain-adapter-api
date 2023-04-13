@@ -1,9 +1,25 @@
+/*
+ * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.iexec.blockchain.dataset;
 
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.blockchain.tool.QueueService;
 import com.iexec.blockchain.tool.Status;
-import com.iexec.common.chain.ChainDataset;
+import com.iexec.commons.poco.chain.ChainDataset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -177,8 +193,8 @@ class DatasetServiceTest {
     void shouldGetDatasetByAddressWithFetch() {
         when(datasetRepository.findByAddress(DATASET_ADDRESS))
                 .thenReturn(Optional.empty());
-        com.iexec.common.contract.generated.Dataset datasetContract =
-                mock(com.iexec.common.contract.generated.Dataset.class);
+        com.iexec.commons.poco.contract.generated.Dataset datasetContract =
+                mock(com.iexec.commons.poco.contract.generated.Dataset.class);
         when(iexecHubService.getDatasetContract(DATASET_ADDRESS))
                 .thenReturn(datasetContract);
         ChainDataset chainDataset = ChainDataset.builder()
@@ -227,8 +243,8 @@ class DatasetServiceTest {
     void shouldGetDatasetByAddressWithFailedFetchSinceNoChainDataset() {
         when(datasetRepository.findByAddress(DATASET_ADDRESS))
                 .thenReturn(Optional.empty());
-        com.iexec.common.contract.generated.Dataset datasetContract =
-                mock(com.iexec.common.contract.generated.Dataset.class);
+        com.iexec.commons.poco.contract.generated.Dataset datasetContract =
+                mock(com.iexec.commons.poco.contract.generated.Dataset.class);
         when(iexecHubService.getDatasetContract(DATASET_ADDRESS))
                 .thenReturn(datasetContract);
         when(iexecHubService.getChainDataset(datasetContract))
