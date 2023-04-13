@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2023
 
 ### New Features
-* Enable Prometheus actuator. (#79)
+- Enable Prometheus actuator. (#79)
 ### Bug Fixes
-* Fix security rule to access Swagger API. (#79)
+- Fix security rule to access Swagger API. (#79)
 ### Dependency Upgrades
-* Upgrade to `feign` 11.10. (#80)
+- Upgrade to `feign` 11.10. (#80)
+- Upgrade to `iexec-common` 8.0.0. (#83)
+- Upgrade to `iexec-commons-poco` 1.0.2. (#83)
 
 ## [[8.0.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.1) 2023-04-06
 
