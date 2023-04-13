@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.iexec.blockchain;
 
 import com.iexec.blockchain.api.BlockchainAdapterApiClient;
@@ -6,7 +22,6 @@ import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.signer.SignerService;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.common.chain.*;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
@@ -15,10 +30,11 @@ import com.iexec.common.sdk.order.payload.AppOrder;
 import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
-import com.iexec.common.security.Signature;
-import com.iexec.common.tee.TeeUtils;
-import com.iexec.common.utils.BytesUtils;
-import com.iexec.common.utils.HashUtils;
+import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.security.Signature;
+import com.iexec.commons.poco.tee.TeeUtils;
+import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.utils.HashUtils;
 import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -41,8 +57,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-import static com.iexec.common.chain.ChainTaskStatus.ACTIVE;
-import static com.iexec.common.chain.ChainTaskStatus.UNSET;
+import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
+import static com.iexec.commons.poco.chain.ChainTaskStatus.UNSET;
 
 @Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -207,7 +223,7 @@ class IntegrationTests {
     private AppOrder buildAppOrder(String appAddress, int volume) {
         return AppOrder.builder()
                 .app(appAddress)
-                .price(BigInteger.ZERO)
+                .appprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
@@ -220,7 +236,7 @@ class IntegrationTests {
     private WorkerpoolOrder buildWorkerpoolOrder(String workerpoolAddress, int volume) {
         return WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
-                .price(BigInteger.ZERO)
+                .workerpoolprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .trust(BigInteger.ZERO)
@@ -235,7 +251,7 @@ class IntegrationTests {
     private DatasetOrder buildDatasetOrder(String datasetAddress, int volume) {
         return DatasetOrder.builder()
                 .dataset(datasetAddress)
-                .price(BigInteger.ZERO)
+                .datasetprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
                 .tag(BytesUtils.EMPTY_HEX_STRING_32)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package com.iexec.blockchain.broker;
 
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.common.chain.ChainAccount;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.common.sdk.cli.FillOrdersCliOutput;
 import com.iexec.common.sdk.order.payload.AppOrder;
 import com.iexec.common.sdk.order.payload.DatasetOrder;
 import com.iexec.common.sdk.order.payload.RequestOrder;
 import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
-import com.iexec.common.utils.BytesUtils;
 import com.iexec.common.utils.FeignBuilder;
+import com.iexec.commons.poco.chain.ChainAccount;
+import com.iexec.commons.poco.utils.BytesUtils;
 import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
