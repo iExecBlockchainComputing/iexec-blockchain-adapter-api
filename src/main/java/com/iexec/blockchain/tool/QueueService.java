@@ -1,96 +1,53 @@
 package com.iexec.blockchain.tool;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
+import javax.validation.constraints.NotNull;
+import java.util.concurrent.*;
 
 /**
- * Execute {@link Runnable}s as they arrive.
- * Some {@link Runnable}s can have higher priority than others, so they can be treated before the others.
+ * Execute {@link Runnable}s as they are submitted.
+ * <p>
+ * The thread pool uses a {@link java.util.concurrent.PriorityBlockingQueue} to execute tasks depending on a priority order.
+ * The {@code ThreadPoolExecutor#newTaskFor} method is overridden to wrap the submitted {@link java.lang.Runnable} in a
+ * {@link TaskWithPriority<Runnable>} where it will be vast back to a {@link BlockchainAction}.
+ * <p>
+ * The {@link TaskWithPriority} is a {@link java.lang.Comparable} with a deferred call to {@link BlockchainAction#compareTo(BlockchainAction)}.
+ * This enables the thread pool to retrieve tasks from the queue depending on the implemented priority rule.
+ * The priority rule is a simple {@code boolean} flag in {@link BlockchainAction}.
+ * Tasks with a priority flag defined as {@literal true}, then a lower creation timestamp are sorted first.
  */
-@Slf4j
 @Service
 public class QueueService {
-    private final PriorityBlockingQueue<BlockchainAction> queue = new PriorityBlockingQueue<>();
-    private final ExecutorService executorService;
-    private CompletableFuture<Void> actionExecutor;
+    private final PriorityBlockingQueue<Runnable> queue = new PriorityBlockingQueue<>();
+    private final ThreadPoolExecutor executorService;
 
     public QueueService() {
-        executorService = Executors.newFixedThreadPool(1);
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue) {
+            @Override
+            protected <T> RunnableFuture<T> newTaskFor(@NotNull Runnable runnable, T value) {
+                return new TaskWithPriority<>(runnable);
+            }
+        };
     }
 
     /**
-     * Scheduled method execution.
-     * If the {@link QueueService#actionExecutor} isn't running, start a new thread.
-     * Otherwise, do nothing.
-     */
-    @Scheduled(fixedRate = 30000)
-    private void startAsyncActionsExecution() {
-        if (actionExecutor != null && !actionExecutor.isDone()) {
-            return;
-        }
-
-        actionExecutor = CompletableFuture.runAsync(this::executeActions, executorService);
-    }
-
-    /**
-     * Execute {@link Runnable}s as they come.
-     * At each occurrence, execute the first action in the queue or wait for a new one to appear.
-     * The first action is the action with the highest priority that is in the queue for the longer time.
-     */
-    void executeActions() {
-        while (Thread.currentThread().isAlive() && !Thread.currentThread().isInterrupted()) {
-            executeFirstAction();
-        }
-    }
-
-    /**
-     * Execute the first action in the queue or wait for a new one to appear.
-     * The first action is the action with the highest priority that is in the queue for the longer time.
-     */
-    private void executeFirstAction() {
-        try {
-            // Wait until a new action is available.
-            Runnable runnable = queue.take().getRunnable();
-            // Execute an action and wait for its completion.
-            runnable.run();
-        } catch (InterruptedException e) {
-            log.error("Action thread got interrupted.", e);
-            Thread.currentThread().interrupt();
-        } catch (RuntimeException e) {
-            log.error("An error occurred while executing an action.", e);
-        }
-    }
-
-    /**
-     * Add a {@link Runnable} to the low priority or the high priority queue, depending on {@code priority}.
-     * If it's not priority, it will be executed once:
-     * <ul>
-     *     <li>All low priority {@link Runnable}s inserted before this one have completed;</li>
-     *     <li>All high priority {@link Runnable}s inserted before the execution of this one have completed.</li>
-     * </ul>
+     * Submit a {@link Runnable} to the thread pool.
      *
-     * If it's priority, it will be executed once
-     * all high priority {@link Runnable}s inserted before this one have completed.
-     *
-     * @param runnable {@link Runnable} to execute.
-     * @param priority Whether this {@link Runnable} is priority.
+     * @param runnable {@link Runnable} to submit to the queue.
+     * @param priority Whether this {@link Runnable} has a high ({@literal true}) or low ({@literal false}) priority.
      */
     public void addExecutionToQueue(Runnable runnable, boolean priority) {
-        queue.add(new BlockchainAction(runnable, priority));
+        executorService.submit(new BlockchainAction(runnable, priority));
     }
 
     /**
-     * Represent an action that could wait in a {@link java.util.Queue}.
+     * Represent an action submitted to the {@link java.util.concurrent.PriorityBlockingQueue}.
      * It contains its timestamp creation, its priority and its {@link Runnable}.
      */
-    private static class BlockchainAction implements Comparable<BlockchainAction> {
+    @EqualsAndHashCode
+    static class BlockchainAction implements Comparable<BlockchainAction>, Runnable {
         private final Runnable runnable;
         private final boolean priority;
         private final long time;
@@ -101,15 +58,13 @@ public class QueueService {
             this.time = System.nanoTime();
         }
 
-        public Runnable getRunnable() {
-            return runnable;
+        @Override
+        public void run() {
+            runnable.run();
         }
 
         @Override
-        public int compareTo(BlockchainAction other) {
-            if (other == null) {
-                return -1;
-            }
+        public int compareTo(@NotNull BlockchainAction other) {
             if (this.priority && !other.priority) {
                 return -1;
             }
@@ -118,19 +73,26 @@ public class QueueService {
             }
             return Long.compare(this.time, other.time);
         }
+    }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BlockchainAction that = (BlockchainAction) o;
-            return priority == that.priority && time == that.time && Objects.equals(runnable, that.runnable);
+    /**
+     * Wrap a {@link BlockchainAction} for a thread pool with a {@code PriorityBlockingQueue<Runnable>}.
+     * <p>
+     * This class instances are {@code Comparable} and defer the comparison to {@link BlockchainAction#compareTo(BlockchainAction)}.
+     */
+    @EqualsAndHashCode(callSuper = true)
+    static class TaskWithPriority<T> extends FutureTask<T> implements Comparable<TaskWithPriority<?>> {
+        private final BlockchainAction action;
+        TaskWithPriority(Runnable task) {
+            super(task, null);
+            this.action = (BlockchainAction) task;
         }
 
         @Override
-        public int hashCode() {
-            return Objects.hash(runnable, priority, time);
+        public int compareTo(@NotNull TaskWithPriority other) {
+            return this.action.compareTo(other.action);
         }
     }
+
 }
 
