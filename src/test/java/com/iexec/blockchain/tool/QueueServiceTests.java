@@ -102,7 +102,6 @@ class QueueServiceTests {
 
         // Create a bunch of tasks.
         final Function<Integer, Runnable> runnableCreator = i -> () -> {
-            wait100ms();
             try {
                 // Get how many tasks are still in queue after this one.
                 remainingTasksInQueue.add(((Queue<?>) queueField.get(queueService)).size());
