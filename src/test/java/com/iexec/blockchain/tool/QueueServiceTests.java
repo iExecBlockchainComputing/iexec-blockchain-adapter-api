@@ -27,8 +27,6 @@ class QueueServiceTests {
 
         queueService.addExecutionToQueue(highPriorityRunnable, true);
 
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -45,8 +43,6 @@ class QueueServiceTests {
 
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
 
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -70,8 +66,6 @@ class QueueServiceTests {
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
         queueService.addExecutionToQueue(highPriorityRunnable, true);
 
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -119,8 +113,6 @@ class QueueServiceTests {
             queueService.addExecutionToQueue(runnableCreator.apply(i), true);
         }
 
-        // Start execution thread.
-        // It won't stop itself, so we have to do it.
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
