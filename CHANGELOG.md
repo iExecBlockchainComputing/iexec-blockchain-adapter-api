@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Enable Prometheus actuator. (#79)
+- Rework `QueueService` with a thread pool based on a `PriorityBlockingQueue`. (#84)
 ### Bug Fixes
 - Fix security rule to access Swagger API. (#79)
 ### Dependency Upgrades
