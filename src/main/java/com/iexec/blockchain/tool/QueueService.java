@@ -11,7 +11,7 @@ import java.util.concurrent.*;
  * <p>
  * The thread pool uses a {@link java.util.concurrent.PriorityBlockingQueue} to execute tasks depending on a priority order.
  * The {@code ThreadPoolExecutor#newTaskFor} method is overridden to wrap the submitted {@link java.lang.Runnable} in a
- * {@link TaskWithPriority<Runnable>} where it will be vast back to a {@link BlockchainAction}.
+ * {@link TaskWithPriority<Runnable>} where it will be cast back to a {@link BlockchainAction}.
  * <p>
  * The {@link TaskWithPriority} is a {@link java.lang.Comparable} with a deferred call to {@link BlockchainAction#compareTo(BlockchainAction)}.
  * This enables the thread pool to retrieve tasks from the queue depending on the implemented priority rule.
