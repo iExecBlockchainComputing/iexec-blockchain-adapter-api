@@ -1,75 +1,23 @@
 package com.iexec.blockchain.tool;
 
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class QueueServiceTest {
+class QueueServiceTests {
 
-    private ExecutorService executorService;
-
-    @InjectMocks
-    @Spy
-    private QueueService queueService;
-
-    @BeforeEach
-    void setUp() {
-        executorService = Executors.newSingleThreadExecutor();
-        MockitoAnnotations.openMocks(this);
-    }
-
-    // region startAsyncActionsExecution
-    @Test
-    void shouldStartASingleThread() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
-        // Make some `QueueService` members accessible, so we can easily test them.
-        final Method startAsyncActionsExecutionMethod = QueueService.class.getDeclaredMethod("startAsyncActionsExecution");
-        startAsyncActionsExecutionMethod.setAccessible(true);
-        final Field actionExecutorField = QueueService.class.getDeclaredField("actionExecutor");
-        actionExecutorField.setAccessible(true);
-
-        // First execution should start a new thread.
-        startAsyncActionsExecutionMethod.invoke(queueService);
-        waitForNewActionCompletion();
-        Mockito.verify(queueService, Mockito.times(1)).executeActions();
-
-        // Second execution should not start a new thread.
-        startAsyncActionsExecutionMethod.invoke(queueService);
-        waitForNewActionCompletion();
-        Mockito.verify(queueService, Mockito.times(1)).executeActions();
-    }
-
-    private void waitForNewActionCompletion() {
-        final AtomicBoolean actionExecuted = new AtomicBoolean(false);
-        final Runnable action = () -> actionExecuted.set(true);
-        queueService.addExecutionToQueue(action, true);
-
-        Awaitility
-                .await()
-                .atMost(200, TimeUnit.MILLISECONDS)
-                .until(actionExecuted::get);
-    }
-    // endregion
+    private final QueueService queueService = new QueueService();
 
     // region executeActions
     @Test
@@ -81,15 +29,10 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1);
-        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
-        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
-        // A call to ExecutorService#shutdownNow is done to interrupt the thread
-        executorService.shutdownNow();
 
         // We simply ensure the execution has completed.
         assertThat(highPriorityTimestamps.size()).isOne();
@@ -104,15 +47,10 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> lowPriorityTimestamps.size() == 1);
-        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
-        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
-        // A call to ExecutorService#shutdownNow is done to interrupt the thread
-        executorService.shutdownNow();
 
         // We simply ensure the execution has completed.
         assertThat(lowPriorityTimestamps.size()).isOne();
@@ -128,24 +66,20 @@ class QueueServiceTest {
 
         // Add a low priority and a high priority tasks to queue.
         // The queueService should select the high priority task before the low priority.
+        queueService.addExecutionToQueue(this::wait100ms, false);
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
         queueService.addExecutionToQueue(highPriorityRunnable, true);
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        CompletableFuture.runAsync(queueService::executeActions);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1 && lowPriorityTimestamps.size() == 1);
-        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
-        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
-        // A call to ExecutorService#shutdownNow is done to interrupt the thread
-        executorService.shutdownNow();
 
         // We have executed a single task per priority so we that's what we should now have.
-        assertThat(highPriorityTimestamps.size()).isOne();
-        assertThat(lowPriorityTimestamps .size()).isOne();
+        assertThat(highPriorityTimestamps).hasSize(1);
+        assertThat(lowPriorityTimestamps).hasSize(1);
 
         // The high priority task should have completed before the low priority one has started.
         assertThat(highPriorityTimestamps.get(0)).isLessThan(lowPriorityTimestamps.get(0));
@@ -168,12 +102,7 @@ class QueueServiceTest {
 
         // Create a bunch of tasks.
         final Function<Integer, Runnable> runnableCreator = i -> () -> {
-            try {
-                // Wait a bit of time to emulate a real function.
-                TimeUnit.MILLISECONDS.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            wait100ms();
             try {
                 // Get how many tasks are still in queue after this one.
                 remainingTasksInQueue.add(((Queue<?>) queueField.get(queueService)).size());
@@ -183,6 +112,7 @@ class QueueServiceTest {
             executionOrder.add(i);
         };
 
+        queueService.addExecutionToQueue(this::wait100ms, false);
         for (int i = 0; i < taskNumberPerPriority; i++) {
             queueService.addExecutionToQueue(runnableCreator.apply(taskNumberPerPriority + i), false);
         }
@@ -192,15 +122,10 @@ class QueueServiceTest {
 
         // Start execution thread.
         // It won't stop itself, so we have to do it.
-        CompletableFuture.runAsync(queueService::executeActions, executorService);
         Awaitility
                 .await()
                 .atMost(5, TimeUnit.SECONDS)
                 .until(() -> executionOrder.size() == totalTasksNumber);
-        // Thread blocks indefinitely on PriorityBlockingQueue#take and needs to be interrupted
-        // CompletableFuture#cancel does not interrupt the thread, an ExecutorService is needed
-        // A call to ExecutorService#shutdownNow is done to interrupt the thread
-        executorService.shutdownNow();
 
         // Tasks should have been executed in the right order.
         // This should look like [0, 1, 2, 3, 4, 5].
@@ -218,5 +143,75 @@ class QueueServiceTest {
                 .collect(Collectors.toList());
         assertThat(remainingTasksInQueue).isEqualTo(expectedRemainingTasksInQueue);
     }
+
+    private void wait100ms() {
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
     // endregion
+
+    //region BlockchainAction
+    @Test
+    void compareBlockchainActionAgainstNull() {
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {}, true);
+        assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> highPriorityAction.compareTo(null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void validateBlockchainActionComparisons() {
+        final int hasHigherPriority = -1;
+        final int hasLowerPriority = 1;
+        QueueService.BlockchainAction action1 = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.BlockchainAction action2 = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.BlockchainAction action3 = new QueueService.BlockchainAction(() -> {}, true);
+        QueueService.BlockchainAction action4 = new QueueService.BlockchainAction(() -> {}, true);
+        //check action1
+        assertThat(action1).isEqualByComparingTo(action1);
+        assertThat(action1.compareTo(action2)).isEqualTo(hasHigherPriority);
+        assertThat(action1.compareTo(action3)).isEqualTo(hasLowerPriority);
+        assertThat(action1.compareTo(action4)).isEqualTo(hasLowerPriority);
+        //check action2
+        assertThat(action2).isEqualByComparingTo(action2);
+        assertThat(action2.compareTo(action1)).isEqualTo(hasLowerPriority);
+        assertThat(action2.compareTo(action3)).isEqualTo(hasLowerPriority);
+        assertThat(action2.compareTo(action4)).isEqualTo(hasLowerPriority);
+        //check action3
+        assertThat(action3).isEqualByComparingTo(action3);
+        assertThat(action3.compareTo(action1)).isEqualTo(hasHigherPriority);
+        assertThat(action3.compareTo(action2)).isEqualTo(hasHigherPriority);
+        assertThat(action3.compareTo(action4)).isEqualTo(hasHigherPriority);
+        //check action4
+        assertThat(action4).isEqualByComparingTo(action4);
+        assertThat(action4.compareTo(action1)).isEqualTo(hasHigherPriority);
+        assertThat(action4.compareTo(action2)).isEqualTo(hasHigherPriority);
+        assertThat(action4.compareTo(action3)).isEqualTo(hasLowerPriority);
+    }
+    //endregion
+
+    //region TaskWithPriority
+    @Test
+    void compareTaskWithPriorityAgainstNul() {
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {}, true);
+        assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> highPriorityAction.compareTo(null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void validateTaskWithPriorityComparisons() {
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.TaskWithPriority<Runnable> task1 = new QueueService.TaskWithPriority<>(lowPriorityAction);
+        QueueService.TaskWithPriority<Runnable> task2 = new QueueService.TaskWithPriority<>(lowPriorityAction);
+        assertThat(task1.compareTo(task2)).isZero();
+    }
+    //endregion
 }
