@@ -78,7 +78,7 @@ public class QueueService {
     /**
      * Wrap a {@link BlockchainAction} for a thread pool with a {@code PriorityBlockingQueue<Runnable>}.
      * <p>
-     * This class instances are {@code Comparable} and defer the comparison to {@link BlockchainAction#compareTo(BlockchainAction)}.
+     * These class instances are {@code Comparable} and defer the comparison to {@link BlockchainAction#compareTo(BlockchainAction)}.
      */
     @EqualsAndHashCode(callSuper = true)
     static class TaskWithPriority<T> extends FutureTask<T> implements Comparable<TaskWithPriority<?>> {
