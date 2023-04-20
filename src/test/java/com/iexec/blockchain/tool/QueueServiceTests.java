@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -62,9 +63,11 @@ class QueueServiceTests {
 
         // Add a low priority and a high priority tasks to queue.
         // The queueService should select the high priority task before the low priority.
-        queueService.addExecutionToQueue(this::wait100ms, false);
+        AtomicBoolean queueReady = new AtomicBoolean(false);
+        queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
         queueService.addExecutionToQueue(highPriorityRunnable, true);
+        queueReady.set(true);
 
         Awaitility
                 .await()
@@ -105,13 +108,15 @@ class QueueServiceTests {
             executionOrder.add(i);
         };
 
-        queueService.addExecutionToQueue(this::wait100ms, false);
+        AtomicBoolean queueReady = new AtomicBoolean(false);
+        queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
         for (int i = 0; i < taskNumberPerPriority; i++) {
             queueService.addExecutionToQueue(runnableCreator.apply(taskNumberPerPriority + i), false);
         }
         for (int i = 0; i < taskNumberPerPriority; i++) {
             queueService.addExecutionToQueue(runnableCreator.apply(i), true);
         }
+        queueReady.set(true);
 
         Awaitility
                 .await()
@@ -135,12 +140,10 @@ class QueueServiceTests {
         assertThat(remainingTasksInQueue).isEqualTo(expectedRemainingTasksInQueue);
     }
 
-    private void wait100ms() {
-        try {
-            TimeUnit.MILLISECONDS.sleep(100);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    private void waitQueueReady(AtomicBoolean queueReady) {
+        Awaitility.await()
+                .atMost(5, TimeUnit.SECONDS)
+                .until(queueReady::getPlain);
     }
     // endregion
 
