@@ -37,9 +37,10 @@ public class QueueService {
      *
      * @param runnable {@link Runnable} to submit to the queue.
      * @param priority Whether this {@link Runnable} has a high ({@literal true}) or low ({@literal false}) priority.
+     * @return A Future representing pending completion of the runnable.
      */
-    public void addExecutionToQueue(Runnable runnable, boolean priority) {
-        executorService.submit(new BlockchainAction(runnable, priority));
+    public Future<Void> addExecutionToQueue(Runnable runnable, boolean priority) {
+        return executorService.submit(new BlockchainAction(runnable, priority), null);
     }
 
     /**

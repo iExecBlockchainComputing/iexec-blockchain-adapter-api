@@ -1,12 +1,15 @@
 package com.iexec.blockchain.tool;
 
+import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -16,8 +19,10 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Slf4j
 class QueueServiceTests {
 
+    private static final int TIMEOUT_DURATION = 5;
     private final QueueService queueService = new QueueService();
 
     // region executeActions
@@ -30,7 +35,7 @@ class QueueServiceTests {
 
         Awaitility
                 .await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(TIMEOUT_DURATION, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1);
 
         // We simply ensure the execution has completed.
@@ -46,7 +51,7 @@ class QueueServiceTests {
 
         Awaitility
                 .await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(TIMEOUT_DURATION, TimeUnit.SECONDS)
                 .until(() -> lowPriorityTimestamps.size() == 1);
 
         // We simply ensure the execution has completed.
@@ -64,14 +69,20 @@ class QueueServiceTests {
         // Add a low priority and a high priority tasks to queue.
         // The queueService should select the high priority task before the low priority.
         AtomicBoolean queueReady = new AtomicBoolean(false);
-        queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
+        Future<Void> future = queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
         queueService.addExecutionToQueue(lowPriorityRunnable, false);
         queueService.addExecutionToQueue(highPriorityRunnable, true);
         queueReady.set(true);
 
+        try {
+            future.get(TIMEOUT_DURATION, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            Assertions.fail("Queue was not ready on time");
+        }
+
         Awaitility
                 .await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(TIMEOUT_DURATION, TimeUnit.SECONDS)
                 .until(() -> highPriorityTimestamps.size() == 1 && lowPriorityTimestamps.size() == 1);
 
         // We have executed a single task per priority so we that's what we should now have.
@@ -109,7 +120,7 @@ class QueueServiceTests {
         };
 
         AtomicBoolean queueReady = new AtomicBoolean(false);
-        queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
+        Future<Void> future = queueService.addExecutionToQueue(() -> waitQueueReady(queueReady), false);
         for (int i = 0; i < taskNumberPerPriority; i++) {
             queueService.addExecutionToQueue(runnableCreator.apply(taskNumberPerPriority + i), false);
         }
@@ -117,6 +128,12 @@ class QueueServiceTests {
             queueService.addExecutionToQueue(runnableCreator.apply(i), true);
         }
         queueReady.set(true);
+
+        try {
+            future.get(TIMEOUT_DURATION, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            Assertions.fail("Queue was not ready on time");
+        }
 
         Awaitility
                 .await()
@@ -142,7 +159,7 @@ class QueueServiceTests {
 
     private void waitQueueReady(AtomicBoolean queueReady) {
         Awaitility.await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(TIMEOUT_DURATION, TimeUnit.SECONDS)
                 .until(queueReady::getPlain);
     }
     // endregion
