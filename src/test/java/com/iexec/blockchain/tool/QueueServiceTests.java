@@ -137,7 +137,7 @@ class QueueServiceTests {
 
         Awaitility
                 .await()
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(TIMEOUT_DURATION, TimeUnit.SECONDS)
                 .until(() -> executionOrder.size() == totalTasksNumber);
 
         // Tasks should have been executed in the right order.
