@@ -11,8 +11,8 @@ All notable changes to this project will be documented in this file.
 - Fix security rule to access Swagger API. (#79)
 ### Dependency Upgrades
 - Upgrade to `feign` 11.10. (#80)
-- Upgrade to `iexec-common` 8.0.0. (#83)
-- Upgrade to `iexec-commons-poco` 1.0.2. (#83)
+- Upgrade to `iexec-common` 8.1.0-NEXT-SNAPSHOT. (#83 #85)
+- Upgrade to `iexec-commons-poco` 2.0.0. (#83 #85)
 
 ## [[8.0.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.1) 2023-04-06
 
