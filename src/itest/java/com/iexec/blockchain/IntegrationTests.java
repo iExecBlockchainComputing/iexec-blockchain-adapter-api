@@ -26,11 +26,11 @@ import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.common.sdk.order.payload.AppOrder;
-import com.iexec.common.sdk.order.payload.DatasetOrder;
-import com.iexec.common.sdk.order.payload.RequestOrder;
-import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
 import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.order.AppOrder;
+import com.iexec.commons.poco.order.DatasetOrder;
+import com.iexec.commons.poco.order.RequestOrder;
+import com.iexec.commons.poco.order.WorkerpoolOrder;
 import com.iexec.commons.poco.security.Signature;
 import com.iexec.commons.poco.tee.TeeUtils;
 import com.iexec.commons.poco.utils.BytesUtils;
@@ -159,7 +159,7 @@ class IntegrationTests {
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            log.error("Watcher failed with an exception", e);
                             Assertions.fail();
                         }
                     }));
@@ -339,20 +339,19 @@ class IntegrationTests {
                 throw new Exception("Too long to wait for reveal: " + chainTaskId);
             }
         }
-        System.out.println("All revealed (" + revealCounter + "/" + winnerCounter + ")");
+        log.info("All revealed ({}/{})", revealCounter, winnerCounter);
     }
 
     public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
                                                      String enclaveChallenge) {
         String workerWallet = credentialsService.getCredentials().getAddress();
-        String hash =
-                HashUtils.concatenateAndHash(workerWallet,
-                        chainTaskId,
-                        enclaveChallenge);
+        String hash = HashUtils.concatenateAndHash(
+                workerWallet,
+                chainTaskId,
+                enclaveChallenge);
 
-        Sign.SignatureData sign =
-                Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
-                        credentialsService.getCredentials().getEcKeyPair());
+        Sign.SignatureData sign = Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
+                credentialsService.getCredentials().getEcKeyPair());
 
         return WorkerpoolAuthorization.builder()
                 .workerWallet(workerWallet)
