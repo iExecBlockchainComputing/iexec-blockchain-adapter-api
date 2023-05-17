@@ -18,11 +18,11 @@ package com.iexec.blockchain.signer;
 
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
-import com.iexec.common.sdk.order.OrderSigner;
-import com.iexec.common.sdk.order.payload.AppOrder;
-import com.iexec.common.sdk.order.payload.DatasetOrder;
-import com.iexec.common.sdk.order.payload.RequestOrder;
-import com.iexec.common.sdk.order.payload.WorkerpoolOrder;
+import com.iexec.commons.poco.eip712.OrderSigner;
+import com.iexec.commons.poco.order.AppOrder;
+import com.iexec.commons.poco.order.DatasetOrder;
+import com.iexec.commons.poco.order.RequestOrder;
+import com.iexec.commons.poco.order.WorkerpoolOrder;
 import org.springframework.stereotype.Service;
 
 @Service
