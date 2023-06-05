@@ -16,10 +16,8 @@
 
 package com.iexec.blockchain.broker;
 
-import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.common.utils.FeignBuilder;
 import com.iexec.commons.poco.chain.ChainAccount;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.order.AppOrder;
@@ -27,9 +25,9 @@ import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
 import com.iexec.commons.poco.order.WorkerpoolOrder;
 import com.iexec.commons.poco.utils.BytesUtils;
-import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -42,6 +40,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Profile("itest")
 public class BrokerService {
 
     private final IexecHubService iexecHubService;
