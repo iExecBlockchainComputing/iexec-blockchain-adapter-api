@@ -109,11 +109,11 @@ sourceSets {
 }
 
 task itestSetup(type: Exec) {
-	commandLine 'docker-compose', 'up', '-d'
+	commandLine 'docker', 'compose', 'up', '-d'
 }
 
 task itestTeardown(type: Exec) {
-	commandLine 'docker-compose', 'down'
+	commandLine 'docker', 'compose', 'down'
 }
 
 task itest(type: Test) {
