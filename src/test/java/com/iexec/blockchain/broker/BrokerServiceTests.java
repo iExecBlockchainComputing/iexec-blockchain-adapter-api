@@ -16,7 +16,6 @@
 
 package com.iexec.blockchain.broker;
 
-import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
@@ -55,10 +54,8 @@ class BrokerServiceTests {
 
     @BeforeEach
     void init() {
-        ChainConfig chainConfig = mock(ChainConfig.class);
         iexecHubService = mock(IexecHubService.class);
-        when(chainConfig.getBrokerUrl()).thenReturn("http://localhost");
-        brokerService = new BrokerService(chainConfig, iexecHubService);
+        brokerService = new BrokerService(iexecHubService);
     }
 
     AppOrder generateAppOrder() {

@@ -19,9 +19,9 @@ package com.iexec.blockchain.broker;
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.common.sdk.cli.FillOrdersCliOutput;
 import com.iexec.common.utils.FeignBuilder;
 import com.iexec.commons.poco.chain.ChainAccount;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -31,25 +31,24 @@ import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class BrokerService {
 
-    private final BrokerClient brokerClient;
     private final IexecHubService iexecHubService;
 
 
-    public BrokerService(ChainConfig chainConfig, IexecHubService iexecHubService) {
-        //TODO Assert broker is up
+    public BrokerService(IexecHubService iexecHubService) {
         this.iexecHubService = iexecHubService;
-        this.brokerClient = FeignBuilder.createBuilder(Logger.Level.BASIC)
-                .target(BrokerClient.class, chainConfig.getBrokerUrl());
     }
 
     void checkBrokerOrder(BrokerOrder brokerOrder) {
@@ -126,9 +125,29 @@ public class BrokerService {
 
     Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
         try {
-            FillOrdersCliOutput dealResponse = brokerClient.matchOrders(brokerOrder);
-            log.info("Matched orders [chainDealId:{}, tx:{}]", dealResponse.getDealid(), dealResponse.getTxHash());
-            return Optional.of(dealResponse.getDealid());
+            TransactionReceipt receipt = iexecHubService.
+                    getHubContract()
+                    .matchOrders(
+                            brokerOrder.getAppOrder().toHubContract(),
+                            brokerOrder.getDatasetOrder().toHubContract(),
+                            brokerOrder.getWorkerpoolOrder().toHubContract(),
+                            brokerOrder.getRequestOrder().toHubContract()
+                    ).send();
+            log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
+            log.info("logs count {}", receipt.getLogs().size());
+
+            List<String> events = IexecHubContract.getSchedulerNoticeEvents(receipt)
+                    .stream()
+                    .filter(event -> brokerOrder.getWorkerpoolOrder().getWorkerpool().equals(event.workerpool))
+                    .map(event -> BytesUtils.bytesToString(event.dealid))
+                    .collect(Collectors.toList());
+            log.info("events count {}", events.size());
+            if (events.size() != 1) {
+                throw new IllegalStateException("A single deal should have been created, not " + events.size());
+            }
+            String dealId = events.get(0);
+            log.info("Matched orders [chainDealId:{}, tx:{}]", dealId, receipt.getTransactionHash());
+            return Optional.of(dealId);
         } catch (Exception e) {
             log.error("Failed to request match order [requester:{}, app:{}, workerpool:{}, dataset:{}]",
                     brokerOrder.getRequestOrder().getRequester(),
