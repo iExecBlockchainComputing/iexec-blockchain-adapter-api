@@ -14,22 +14,6 @@ services:
     networks:
       - iexec-blockchain-adapter-api-net
 
-  ibaa-broker:
-    image: docker-regis.iex.ec/iexec-autonomous-brokering-engine:dev #warn, using nexus repo + dev tag, can it be public?
-    container_name: ibaa-broker
-    environment:
-      - CHAIN=http://ibaa-chain:8545
-      - PROXY=0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca
-      - MNEMONIC=${BROKER_PRIVATE_KEY} #must use an other wallet for the broker, like wallet-abc
-      - PORT=3000
-    ports:
-      - 23000:3000
-    depends_on:
-      - ibaa-chain
-    networks:
-      - iexec-blockchain-adapter-api-net
-    restart: unless-stopped
-
   ibaa-blockchain-adapter-mongo:
     image: library/mongo:4.4
     container_name: ibaa-blockchain-adapter-mongo
