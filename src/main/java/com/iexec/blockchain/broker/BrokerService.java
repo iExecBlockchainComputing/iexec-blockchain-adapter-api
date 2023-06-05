@@ -119,25 +119,30 @@ public class BrokerService {
             messageDetails += ", dataset:" + datasetOrder.getDataset();
         }
         log.info("Matching valid orders on-chain [{}]", messageDetails);
-        return fireMatchOrders(brokerOrder).orElse("");
+        return fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder)
+                .orElse("");
     }
 
-    Optional<String> fireMatchOrders(BrokerOrder brokerOrder) {
+    Optional<String> fireMatchOrders(
+            AppOrder appOrder,
+            DatasetOrder datasetOrder,
+            WorkerpoolOrder workerpoolOrder,
+            RequestOrder requestOrder) {
         try {
             TransactionReceipt receipt = iexecHubService.
                     getHubContract()
                     .matchOrders(
-                            brokerOrder.getAppOrder().toHubContract(),
-                            brokerOrder.getDatasetOrder().toHubContract(),
-                            brokerOrder.getWorkerpoolOrder().toHubContract(),
-                            brokerOrder.getRequestOrder().toHubContract()
+                            appOrder.toHubContract(),
+                            datasetOrder.toHubContract(),
+                            workerpoolOrder.toHubContract(),
+                            requestOrder.toHubContract()
                     ).send();
             log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
             log.info("logs count {}", receipt.getLogs().size());
 
             List<String> events = IexecHubContract.getSchedulerNoticeEvents(receipt)
                     .stream()
-                    .filter(event -> brokerOrder.getWorkerpoolOrder().getWorkerpool().equals(event.workerpool))
+                    .filter(event -> workerpoolOrder.getWorkerpool().equals(event.workerpool))
                     .map(event -> BytesUtils.bytesToString(event.dealid))
                     .collect(Collectors.toList());
             log.info("events count {}", events.size());
@@ -149,10 +154,8 @@ public class BrokerService {
             return Optional.of(dealId);
         } catch (Exception e) {
             log.error("Failed to request match order [requester:{}, app:{}, workerpool:{}, dataset:{}]",
-                    brokerOrder.getRequestOrder().getRequester(),
-                    brokerOrder.getRequestOrder().getApp(),
-                    brokerOrder.getRequestOrder().getWorkerpool(),
-                    brokerOrder.getRequestOrder().getDataset(), e);
+                    requestOrder.getRequester(), requestOrder.getApp(),
+                    requestOrder.getWorkerpool(), requestOrder.getDataset(), e);
         }
         return Optional.empty();
     }

@@ -19,10 +19,7 @@ package com.iexec.blockchain.broker;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
-import com.iexec.commons.poco.order.AppOrder;
-import com.iexec.commons.poco.order.DatasetOrder;
-import com.iexec.commons.poco.order.RequestOrder;
-import com.iexec.commons.poco.order.WorkerpoolOrder;
+import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,13 +59,28 @@ class BrokerServiceTests {
         return AppOrder.builder()
                 .app(generateEthereumAddress())
                 .appprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
-    DatasetOrder generateDatasetOrder() {
+    DatasetOrder generateDatasetOrder(boolean withDataset) {
+        String address = withDataset ? generateEthereumAddress() : BytesUtils.EMPTY_ADDRESS;
         return DatasetOrder.builder()
-                .dataset(generateEthereumAddress())
+                .dataset(address)
                 .datasetprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
@@ -76,28 +88,46 @@ class BrokerServiceTests {
         return WorkerpoolOrder.builder()
                 .workerpool(generateEthereumAddress())
                 .workerpoolprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .trust(BigInteger.ZERO)
+                .category(BigInteger.ZERO)
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
     BrokerOrder generateBrokerOrder(boolean withDataset) {
         AppOrder appOrder = generateAppOrder();
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder.RequestOrderBuilder requestOrderBuilder = RequestOrder.builder()
+        DatasetOrder datasetOrder = generateDatasetOrder(withDataset);
+        String requestAddress = generateEthereumAddress();
+        RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(BigInteger.ONE)
+                .dataset(datasetOrder.getDataset())
+                .datasetmaxprice(BigInteger.ONE)
                 .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(BigInteger.ONE);
-        BrokerOrder.BrokerOrderBuilder brokerOrderBuilder = BrokerOrder.builder()
+                .workerpoolmaxprice(BigInteger.ONE)
+                .requester(requestAddress)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .category(BigInteger.ZERO)
+                .trust(BigInteger.ONE)
+                .beneficiary(requestAddress)
+                .callback(BytesUtils.EMPTY_ADDRESS)
+                .params("")
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
+                .build();
+        return BrokerOrder.builder()
                 .appOrder(appOrder)
-                .workerpoolOrder(workerpoolOrder);
-        if (withDataset) {
-            DatasetOrder datasetOrder = generateDatasetOrder();
-            requestOrderBuilder
-                    .dataset(datasetOrder.getDataset())
-                    .datasetmaxprice(BigInteger.ONE);
-            brokerOrderBuilder.datasetOrder(datasetOrder);
-        }
-        return brokerOrderBuilder.requestOrder(requestOrderBuilder.build())
+                .datasetOrder(datasetOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .requestOrder(requestOrder)
                 .build();
     }
 
@@ -257,7 +287,7 @@ class BrokerServiceTests {
     void shouldNotMatchOrderWhenRequestOrderNeedsDatasetAndDatasetAddressDoesNotMatch() {
         AppOrder appOrder = generateAppOrder();
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        DatasetOrder datasetOrder = generateDatasetOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(true);
         RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(BigInteger.ONE)
@@ -369,7 +399,7 @@ class BrokerServiceTests {
     @Test
     void shouldFailToMatchOrdersWithDataset() {
         AppOrder appOrder = generateAppOrder();
-        DatasetOrder datasetOrder = generateDatasetOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(true);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = RequestOrder.builder()
                 .requester(generateEthereumAddress())
@@ -378,34 +408,23 @@ class BrokerServiceTests {
                 .dataset(datasetOrder.getDataset())
                 .workerpool(workerpoolOrder.getWorkerpool())
                 .build();
-        BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(appOrder)
-                .datasetOrder(datasetOrder)
-                .requestOrder(requestOrder)
-                .workerpoolOrder(workerpoolOrder)
-                .build();
-        assertThat(brokerService.fireMatchOrders(brokerOrder))
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
 
     @Test
     void shouldFailToMatchOrdersWithoutDataset() {
         AppOrder appOrder = generateAppOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(false);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = RequestOrder.builder()
                 .requester(generateEthereumAddress())
                 .beneficiary(generateEthereumAddress())
                 .app(appOrder.getApp())
-                .appmaxprice(BigInteger.ONE)
                 .workerpool(workerpoolOrder.getWorkerpool())
                 .workerpoolmaxprice(BigInteger.ONE)
                 .build();
-        BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(appOrder)
-                .requestOrder(requestOrder)
-                .workerpoolOrder(workerpoolOrder)
-                .build();
-        assertThat(brokerService.fireMatchOrders(brokerOrder))
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
     //endregion
