@@ -33,13 +33,17 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.RemoteFunctionCall;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Numeric;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.Optional;
 
+import static com.iexec.blockchain.broker.BrokerService.SCHEDULER_NOTICE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -426,8 +430,6 @@ class BrokerServiceTests {
         when(remoteCall.send()).thenThrow(IOException.class);
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
                 .isEmpty();
-        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
-                .isEmpty();
     }
 
     @Test
@@ -443,10 +445,34 @@ class BrokerServiceTests {
         when(remoteCall.send()).thenThrow(IOException.class);
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
                 .isEmpty();
-        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
-                .isEmpty();
     }
 
+    @Test
+    void shouldMatchOrdersWithDataset() throws Exception {
+        String dealId = "dealId";
+        AppOrder appOrder = generateAppOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(true);
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
+        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
+        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
+                Numeric.toBigInt(workerpoolOrder.getWorkerpool()), 64);
+        Log web3Log = new Log();
+        web3Log.setData(dealId);
+        web3Log.setTopics(List.of(SCHEDULER_NOTICE, workerpoolAddress));
+        TransactionReceipt receipt = new TransactionReceipt();
+        receipt.setTransactionHash("txHash");
+        receipt.setBlockNumber("0x1");
+        receipt.setStatus("1");
+        receipt.setLogs(List.of(web3Log));
+        when(remoteCall.send()).thenReturn(receipt);
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+                .isNotEmpty()
+                .contains(dealId);
+    }
     //endregion
 
     //region hasRequesterAcceptedPrices
