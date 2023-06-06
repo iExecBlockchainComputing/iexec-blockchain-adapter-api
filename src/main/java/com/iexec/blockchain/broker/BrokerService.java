@@ -19,7 +19,6 @@ package com.iexec.blockchain.broker;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -29,7 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.web3j.crypto.Hash;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
@@ -42,6 +44,8 @@ import java.util.stream.Collectors;
 @Service
 @Profile("itest")
 public class BrokerService {
+
+    static final String SCHEDULER_NOTICE = Hash.sha3String("SchedulerNotice(address,bytes32)");
 
     private final IexecHubService iexecHubService;
 
@@ -130,7 +134,7 @@ public class BrokerService {
             WorkerpoolOrder workerpoolOrder,
             RequestOrder requestOrder) {
         try {
-            TransactionReceipt receipt = iexecHubService.
+            final TransactionReceipt receipt = iexecHubService.
                     getHubContract()
                     .matchOrders(
                             appOrder.toHubContract(),
@@ -141,17 +145,18 @@ public class BrokerService {
             log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
             log.info("logs count {}", receipt.getLogs().size());
 
-            String workerpoolAddress = workerpoolOrder.getWorkerpool();
-            List<String> events = IexecHubContract.getSchedulerNoticeEvents(receipt)
-                    .stream()
-                    .filter(event -> workerpoolAddress.equals(event.workerpool))
-                    .map(event -> BytesUtils.bytesToString(event.dealid))
+            final String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
+                    Numeric.toBigInt(workerpoolOrder.getWorkerpool()), 64);
+            final List<String> expectedTopics = List.of(SCHEDULER_NOTICE, workerpoolAddress);
+            List<String> events = receipt.getLogs().stream()
+                    .filter(log -> expectedTopics.equals(log.getTopics()))
+                    .map(Log::getData)
                     .collect(Collectors.toList());
-            log.info("events count {}", events.size());
+            log.info("logs {}", events);
             if (events.size() != 1) {
                 throw new IllegalStateException("A single deal should have been created, not " + events.size());
             }
-            String dealId = events.get(0);
+            final String dealId = events.get(0);
             log.info("Matched orders [chainDealId:{}, tx:{}]", dealId, receipt.getTransactionHash());
             return Optional.of(dealId);
         } catch (Exception e) {
