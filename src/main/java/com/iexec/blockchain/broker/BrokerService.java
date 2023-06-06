@@ -95,7 +95,8 @@ public class BrokerService {
         RequestOrder requestOrder = brokerOrder.getRequestOrder();
         final boolean withDataset = withDataset(requestOrder.getDataset());
         BigInteger datasetPrice = withDataset ? datasetOrder.getDatasetprice() : BigInteger.ZERO;
-        if (!hasRequesterAcceptedPrices(brokerOrder.getRequestOrder(),
+        if (!hasRequesterAcceptedPrices(
+                requestOrder,
                 appOrder.getAppprice(),
                 workerpoolOrder.getWorkerpoolprice(),
                 datasetPrice,
@@ -112,7 +113,7 @@ public class BrokerService {
                 datasetPrice.longValue())) {
             throw new IllegalStateException("Deposit too low");
         }
-        String beneficiary = brokerOrder.getRequestOrder().getBeneficiary();
+        String beneficiary = requestOrder.getBeneficiary();
         String messageDetails = MessageFormat.format("requester:{0}, beneficiary:{1}, pool:{2}, app:{3}",
                 requestOrder.getRequester(), beneficiary, workerpoolOrder.getWorkerpool(), appOrder.getApp());
         if (withDataset) {
@@ -140,9 +141,10 @@ public class BrokerService {
             log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
             log.info("logs count {}", receipt.getLogs().size());
 
+            String workerpoolAddress = workerpoolOrder.getWorkerpool();
             List<String> events = IexecHubContract.getSchedulerNoticeEvents(receipt)
                     .stream()
-                    .filter(event -> workerpoolOrder.getWorkerpool().equals(event.workerpool))
+                    .filter(event -> workerpoolAddress.equals(event.workerpool))
                     .map(event -> BytesUtils.bytesToString(event.dealid))
                     .collect(Collectors.toList());
             log.info("events count {}", events.size());

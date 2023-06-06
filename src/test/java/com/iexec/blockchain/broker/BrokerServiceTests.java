@@ -19,23 +19,30 @@ package com.iexec.blockchain.broker;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
+import org.web3j.protocol.core.RemoteFunctionCall;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,15 +50,19 @@ import static org.mockito.Mockito.when;
 @ExtendWith(OutputCaptureExtension.class)
 class BrokerServiceTests {
 
+    @Mock
     private IexecHubService iexecHubService;
     private BrokerService brokerService;
+
+    @Mock
+    RemoteFunctionCall<TransactionReceipt> remoteCall;
 
     private static final ChainAccount deposit = ChainAccount.builder().deposit(100L).build();
     private static final ChainAccount emptyDeposit = ChainAccount.builder().deposit(0L).build();
 
     @BeforeEach
     void init() {
-        iexecHubService = mock(IexecHubService.class);
+        MockitoAnnotations.openMocks(this);
         brokerService = new BrokerService(iexecHubService);
     }
 
@@ -100,12 +111,10 @@ class BrokerServiceTests {
                 .build();
     }
 
-    BrokerOrder generateBrokerOrder(boolean withDataset) {
-        AppOrder appOrder = generateAppOrder();
-        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        DatasetOrder datasetOrder = generateDatasetOrder(withDataset);
+    RequestOrder generateRequestOrder(
+            AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder) {
         String requestAddress = generateEthereumAddress();
-        RequestOrder requestOrder = RequestOrder.builder()
+        return RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(BigInteger.ONE)
                 .dataset(datasetOrder.getDataset())
@@ -123,6 +132,14 @@ class BrokerServiceTests {
                 .salt(BytesUtils.toByte32HexString(1))
                 .sign("sign")
                 .build();
+    }
+
+    BrokerOrder generateBrokerOrder(boolean withDataset) {
+        AppOrder appOrder = generateAppOrder();
+        WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(withDataset);
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
         return BrokerOrder.builder()
                 .appOrder(appOrder)
                 .datasetOrder(datasetOrder)
@@ -397,36 +414,39 @@ class BrokerServiceTests {
 
     //region fireMatchOrders
     @Test
-    void shouldFailToMatchOrdersWithDataset() {
+    void shouldFailToMatchOrdersWithDataset() throws Exception {
         AppOrder appOrder = generateAppOrder();
         DatasetOrder datasetOrder = generateDatasetOrder(true);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .requester(generateEthereumAddress())
-                .beneficiary(generateEthereumAddress())
-                .app(appOrder.getApp())
-                .dataset(datasetOrder.getDataset())
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .build();
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
+        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
+        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        when(remoteCall.send()).thenThrow(IOException.class);
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+                .isEmpty();
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
 
     @Test
-    void shouldFailToMatchOrdersWithoutDataset() {
+    void shouldFailToMatchOrdersWithoutDataset() throws Exception {
         AppOrder appOrder = generateAppOrder();
         DatasetOrder datasetOrder = generateDatasetOrder(false);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .requester(generateEthereumAddress())
-                .beneficiary(generateEthereumAddress())
-                .app(appOrder.getApp())
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(BigInteger.ONE)
-                .build();
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
+        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
+        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        when(remoteCall.send()).thenThrow(IOException.class);
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+                .isEmpty();
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
+
     //endregion
 
     //region hasRequesterAcceptedPrices
