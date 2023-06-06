@@ -65,9 +65,6 @@ public class ChainConfig {
     @Value("${chain.gas-price-cap}")
     private long gasPriceCap;
 
-    @Value("${chain.broker-url}")
-    private String brokerUrl;
-
     @Getter(AccessLevel.NONE) // no getter
     private final Validator validator;
 

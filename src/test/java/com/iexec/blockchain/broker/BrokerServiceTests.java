@@ -16,30 +16,33 @@
 
 package com.iexec.blockchain.broker;
 
-import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
-import com.iexec.commons.poco.order.AppOrder;
-import com.iexec.commons.poco.order.DatasetOrder;
-import com.iexec.commons.poco.order.RequestOrder;
-import com.iexec.commons.poco.order.WorkerpoolOrder;
+import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
+import org.web3j.protocol.core.RemoteFunctionCall;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,31 +50,48 @@ import static org.mockito.Mockito.when;
 @ExtendWith(OutputCaptureExtension.class)
 class BrokerServiceTests {
 
+    @Mock
     private IexecHubService iexecHubService;
     private BrokerService brokerService;
+
+    @Mock
+    RemoteFunctionCall<TransactionReceipt> remoteCall;
 
     private static final ChainAccount deposit = ChainAccount.builder().deposit(100L).build();
     private static final ChainAccount emptyDeposit = ChainAccount.builder().deposit(0L).build();
 
     @BeforeEach
     void init() {
-        ChainConfig chainConfig = mock(ChainConfig.class);
-        iexecHubService = mock(IexecHubService.class);
-        when(chainConfig.getBrokerUrl()).thenReturn("http://localhost");
-        brokerService = new BrokerService(chainConfig, iexecHubService);
+        MockitoAnnotations.openMocks(this);
+        brokerService = new BrokerService(iexecHubService);
     }
 
     AppOrder generateAppOrder() {
         return AppOrder.builder()
                 .app(generateEthereumAddress())
                 .appprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
-    DatasetOrder generateDatasetOrder() {
+    DatasetOrder generateDatasetOrder(boolean withDataset) {
+        String address = withDataset ? generateEthereumAddress() : BytesUtils.EMPTY_ADDRESS;
         return DatasetOrder.builder()
-                .dataset(generateEthereumAddress())
+                .dataset(address)
                 .datasetprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
@@ -79,28 +99,52 @@ class BrokerServiceTests {
         return WorkerpoolOrder.builder()
                 .workerpool(generateEthereumAddress())
                 .workerpoolprice(BigInteger.ONE)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .trust(BigInteger.ZERO)
+                .category(BigInteger.ZERO)
+                .apprestrict(BytesUtils.EMPTY_ADDRESS)
+                .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
+                .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
+                .build();
+    }
+
+    RequestOrder generateRequestOrder(
+            AppOrder appOrder, DatasetOrder datasetOrder, WorkerpoolOrder workerpoolOrder) {
+        String requestAddress = generateEthereumAddress();
+        return RequestOrder.builder()
+                .app(appOrder.getApp())
+                .appmaxprice(BigInteger.ONE)
+                .dataset(datasetOrder.getDataset())
+                .datasetmaxprice(BigInteger.ONE)
+                .workerpool(workerpoolOrder.getWorkerpool())
+                .workerpoolmaxprice(BigInteger.ONE)
+                .requester(requestAddress)
+                .volume(BigInteger.ONE)
+                .tag(OrderTag.TEE_SCONE.getValue())
+                .category(BigInteger.ZERO)
+                .trust(BigInteger.ONE)
+                .beneficiary(requestAddress)
+                .callback(BytesUtils.EMPTY_ADDRESS)
+                .params("")
+                .salt(BytesUtils.toByte32HexString(1))
+                .sign("sign")
                 .build();
     }
 
     BrokerOrder generateBrokerOrder(boolean withDataset) {
         AppOrder appOrder = generateAppOrder();
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder.RequestOrderBuilder requestOrderBuilder = RequestOrder.builder()
-                .app(appOrder.getApp())
-                .appmaxprice(BigInteger.ONE)
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(BigInteger.ONE);
-        BrokerOrder.BrokerOrderBuilder brokerOrderBuilder = BrokerOrder.builder()
+        DatasetOrder datasetOrder = generateDatasetOrder(withDataset);
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        return BrokerOrder.builder()
                 .appOrder(appOrder)
-                .workerpoolOrder(workerpoolOrder);
-        if (withDataset) {
-            DatasetOrder datasetOrder = generateDatasetOrder();
-            requestOrderBuilder
-                    .dataset(datasetOrder.getDataset())
-                    .datasetmaxprice(BigInteger.ONE);
-            brokerOrderBuilder.datasetOrder(datasetOrder);
-        }
-        return brokerOrderBuilder.requestOrder(requestOrderBuilder.build())
+                .datasetOrder(datasetOrder)
+                .workerpoolOrder(workerpoolOrder)
+                .requestOrder(requestOrder)
                 .build();
     }
 
@@ -260,7 +304,7 @@ class BrokerServiceTests {
     void shouldNotMatchOrderWhenRequestOrderNeedsDatasetAndDatasetAddressDoesNotMatch() {
         AppOrder appOrder = generateAppOrder();
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        DatasetOrder datasetOrder = generateDatasetOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(true);
         RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(BigInteger.ONE)
@@ -370,47 +414,39 @@ class BrokerServiceTests {
 
     //region fireMatchOrders
     @Test
-    void shouldFailToMatchOrdersWithDataset() {
+    void shouldFailToMatchOrdersWithDataset() throws Exception {
         AppOrder appOrder = generateAppOrder();
-        DatasetOrder datasetOrder = generateDatasetOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(true);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .requester(generateEthereumAddress())
-                .beneficiary(generateEthereumAddress())
-                .app(appOrder.getApp())
-                .dataset(datasetOrder.getDataset())
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .build();
-        BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(appOrder)
-                .datasetOrder(datasetOrder)
-                .requestOrder(requestOrder)
-                .workerpoolOrder(workerpoolOrder)
-                .build();
-        assertThat(brokerService.fireMatchOrders(brokerOrder))
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
+        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
+        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        when(remoteCall.send()).thenThrow(IOException.class);
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+                .isEmpty();
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
 
     @Test
-    void shouldFailToMatchOrdersWithoutDataset() {
+    void shouldFailToMatchOrdersWithoutDataset() throws Exception {
         AppOrder appOrder = generateAppOrder();
+        DatasetOrder datasetOrder = generateDatasetOrder(false);
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
-        RequestOrder requestOrder = RequestOrder.builder()
-                .requester(generateEthereumAddress())
-                .beneficiary(generateEthereumAddress())
-                .app(appOrder.getApp())
-                .appmaxprice(BigInteger.ONE)
-                .workerpool(workerpoolOrder.getWorkerpool())
-                .workerpoolmaxprice(BigInteger.ONE)
-                .build();
-        BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(appOrder)
-                .requestOrder(requestOrder)
-                .workerpoolOrder(workerpoolOrder)
-                .build();
-        assertThat(brokerService.fireMatchOrders(brokerOrder))
+        RequestOrder requestOrder = generateRequestOrder(
+                appOrder, datasetOrder, workerpoolOrder);
+        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
+        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
+        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        when(remoteCall.send()).thenThrow(IOException.class);
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+                .isEmpty();
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
+
     //endregion
 
     //region hasRequesterAcceptedPrices
