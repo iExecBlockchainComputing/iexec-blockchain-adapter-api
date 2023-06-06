@@ -1,9 +1,0 @@
-spring:
-  data:
-    mongodb:
-      port: 23012
-
-chain:
-  id: 65535
-  node-address: http://localhost:28545
-  hub-address: "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca"

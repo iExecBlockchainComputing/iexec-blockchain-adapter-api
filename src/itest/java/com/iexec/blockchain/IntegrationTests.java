@@ -42,27 +42,38 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 
 import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.commons.poco.chain.ChainTaskStatus.UNSET;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
 @ActiveProfiles("itest")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegrationTests {
 
     public static final String USER = "admin";
@@ -71,8 +82,20 @@ class IntegrationTests {
     public static final int MAX_BLOCK_TO_WAIT = 3;
     public static final int POLLING_PER_BLOCK = 2;
     public static final int POLLING_INTERVAL_MS = BLOCK_TIME_MS / POLLING_PER_BLOCK;
-    public static final int MAX_POLLING_ATTEMPTS = MAX_BLOCK_TO_WAIT
-            * POLLING_PER_BLOCK;
+    public static final int MAX_POLLING_ATTEMPTS = MAX_BLOCK_TO_WAIT * POLLING_PER_BLOCK;
+
+    @Container
+    static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
+            .withExposedService("ibaa-chain", 8545, Wait.forListeningPort())
+            .withExposedService("ibaa-blockchain-adapter-mongo", 13012, Wait.forListeningPort());
+
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("chain.id", () -> "65535");
+        registry.add("chain.hubAddress", () -> "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca");
+        registry.add("chain.nodeAddress", () -> getServiceUrl(environment.getServicePort("ibaa-chain", 8545)));
+        registry.add("spring.data.mongodb.port", () -> environment.getServicePort("ibaa-blockchain-adapter-mongo", 13012));
+    }
 
     @LocalServerPort
     private int randomServerPort;
@@ -91,9 +114,15 @@ class IntegrationTests {
     private BlockchainAdapterApiClient appClient;
 
     @BeforeEach
-    void setUp() {
+    void setUp(TestInfo testInfo) {
+        log.info(">>> {}", testInfo.getDisplayName());
         appClient = BlockchainAdapterApiClientBuilder
-                .getInstanceWithBasicAuth(Logger.Level.FULL, "http://localhost:" + randomServerPort, USER, PASSWORD);
+                .getInstanceWithBasicAuth(Logger.Level.FULL, getServiceUrl(randomServerPort), USER, PASSWORD);
+    }
+
+    private static String getServiceUrl(int servicePort) {
+        log.info("service url http://localhost:{}", servicePort);
+        return "http://localhost:" + servicePort;
     }
 
     @Test
@@ -137,7 +166,7 @@ class IntegrationTests {
     }
 
     @Test
-    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock(){
+    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock() throws Exception {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
         String dealId = triggerDeal(taskVolume);
         List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
@@ -167,7 +196,7 @@ class IntegrationTests {
         txCompletionWatchers.forEach(CompletableFuture::join);
     }
 
-    private String triggerDeal(int taskVolume) {
+    private String triggerDeal(int taskVolume) throws Exception {
         int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
         int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
@@ -208,10 +237,9 @@ class IntegrationTests {
         String dealId = brokerService.matchOrders(brokerOrder);
         Assertions.assertTrue(StringUtils.isNotEmpty(dealId));
         log.info("Created deal: {}", dealId);
-        //no need to wait since broker is synchronous, just checking deal
-        //existence for double checking
+        // no need to wait since broker is synchronous, just checking deal existence
         Optional<ChainDeal> chainDeal = iexecHubService.getChainDeal(dealId);
-        Assertions.assertTrue(chainDeal.isPresent());
+        assertThat(chainDeal).isPresent();
         return dealId;
     }
 
@@ -303,18 +331,18 @@ class IntegrationTests {
         ChainTaskStatus status = null;
         int attempts = 0;
         while(true) {
-            log.info("Status [status:{}, chainTaskId:{}]", status, chainTaskId);
+            attempts++;
+            log.info("Status [status:{}, chainTaskId:{}, attempt:{}]", status, chainTaskId, attempts);
             status = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getStatus)
                     .orElse(UNSET);
-            attempts++;
             if (status.equals(statusToWait) || attempts > maxAttempts) {
                 break;
             }
             TimeUnit.MILLISECONDS.sleep(pollingTimeMs);
         }
         if (!status.equals(statusToWait)) {
-            throw new Exception("Too long to wait for task: " + chainTaskId);
+            throw new TimeoutException("Too long to wait for task: " + chainTaskId);
         }
         log.info("Status reached [status:{}, chainTaskId:{}]", status, chainTaskId);
     }
@@ -328,15 +356,16 @@ class IntegrationTests {
         int winnerCounter = chainTask.getWinnerCounter();
         int revealCounter = chainTask.getRevealCounter();
         int attempts = 0;
+        log.info("{} {}", POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
         while (revealCounter != winnerCounter) {
-            log.info("Waiting for reveals ({}/{})", revealCounter, winnerCounter);
-            Thread.sleep(POLLING_INTERVAL_MS);
+            attempts++;
+            log.info("Waiting for reveals ({}/{}), attempt {}", revealCounter, winnerCounter, attempts);
+            Thread.sleep(BLOCK_TIME_MS);
             revealCounter = iexecHubService.getChainTask(chainTaskId)
                     .map(ChainTask::getRevealCounter)
                     .orElse(0);
-            attempts++;
-            if (attempts == MAX_POLLING_ATTEMPTS) {
-                throw new Exception("Too long to wait for reveal: " + chainTaskId);
+            if (attempts == MAX_BLOCK_TO_WAIT) {
+                throw new TimeoutException("Too long to wait for reveal: " + chainTaskId);
             }
         }
         log.info("All revealed ({}/{})", revealCounter, winnerCounter);

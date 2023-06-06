@@ -1,25 +1,11 @@
-version: "3.5"
-
-networks:
-  iexec-blockchain-adapter-api-net:
-    name: iexec-blockchain-adapter-api-net
-
 services:
 
   ibaa-chain:
     image: docker-regis.iex.ec/poco-chain:native-v5.4.2-5s
-    container_name: ibaa-chain
-    ports:
-      - 28545:8545
-    networks:
-      - iexec-blockchain-adapter-api-net
+    expose:
+      - "8545"
 
   ibaa-blockchain-adapter-mongo:
     image: library/mongo:4.4
-    container_name: ibaa-blockchain-adapter-mongo
     entrypoint: "/bin/bash"
     command: -c "mongod --bind_ip_all --port 13012"
-    ports:
-      - 23012:13012
-    networks:
-      - iexec-blockchain-adapter-api-net
