@@ -134,7 +134,7 @@ public class BrokerService {
             WorkerpoolOrder workerpoolOrder,
             RequestOrder requestOrder) {
         try {
-            TransactionReceipt receipt = iexecHubService.
+            final TransactionReceipt receipt = iexecHubService.
                     getHubContract()
                     .matchOrders(
                             appOrder.toHubContract(),
@@ -145,17 +145,18 @@ public class BrokerService {
             log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
             log.info("logs count {}", receipt.getLogs().size());
 
-            String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
+            final String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
                     Numeric.toBigInt(workerpoolOrder.getWorkerpool()), 64);
+            final List<String> expectedTopics = List.of(SCHEDULER_NOTICE, workerpoolAddress);
             List<String> events = receipt.getLogs().stream()
-                    .filter(log -> List.of(SCHEDULER_NOTICE, workerpoolAddress).equals(log.getTopics()))
+                    .filter(log -> expectedTopics.equals(log.getTopics()))
                     .map(Log::getData)
                     .collect(Collectors.toList());
             log.info("logs {}", events);
             if (events.size() != 1) {
                 throw new IllegalStateException("A single deal should have been created, not " + events.size());
             }
-            String dealId = events.get(0);
+            final String dealId = events.get(0);
             log.info("Matched orders [chainDealId:{}, tx:{}]", dealId, receipt.getTransactionHash());
             return Optional.of(dealId);
         } catch (Exception e) {
