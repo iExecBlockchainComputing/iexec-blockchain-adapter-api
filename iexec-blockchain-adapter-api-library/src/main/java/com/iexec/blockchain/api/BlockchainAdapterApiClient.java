@@ -16,14 +16,12 @@
 
 package com.iexec.blockchain.api;
 
-import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.adapter.CommandStatus;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.config.PublicChainConfig;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.commons.poco.chain.ChainDataset;
 import com.iexec.commons.poco.chain.ChainTask;
 import feign.Param;
 import feign.RequestLine;
@@ -43,20 +41,6 @@ public interface BlockchainAdapterApiClient {
     //TODO update endpoint
     @RequestLine("POST /broker/broker/orders/match")
     String matchOrders(BrokerOrder brokerOrder);
-
-    @RequestLine("POST /datasets/requests?name={name}&multiAddress={multiAddress}&checksum={checksum}")
-    String createDataset(@Param("name") String name,
-                         @Param("multiAddress") String multiAddress,
-                         @Param("checksum") String checksum);
-
-    @RequestLine("GET /datasets/requests/{requestId}")
-    String getAddressForCreateDatasetRequest(@Param("requestId") String requestId);
-
-    @RequestLine("GET /datasets/requests/{requestId}/status")
-    Status getStatusForCreateDatasetRequest(@Param("requestId") String requestId);
-
-    @RequestLine("GET /datasets?address={address}")
-    ChainDataset getDatasetByAddress(@Param("address") String address);
 
     @RequestLine("GET /metrics")
     String getMetrics();
