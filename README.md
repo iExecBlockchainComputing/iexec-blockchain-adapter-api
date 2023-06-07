@@ -48,3 +48,7 @@ No default strategy has been implemented in the [Dockerfile](docker/Dockerfile) 
 ## CI/CD build
 
 `docker image build -f docker/Dockerfile .`
+
+## License
+
+This repository code is released under the [Apache License 2.0](LICENSE).
