@@ -32,7 +32,6 @@ To run properly, the iExec Blockchain Adapter API requires:
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN` | Define if iExec on-chain protocol is built on top of token (`false`) or native currency (`true`). | Boolean | `false` |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER` | Transactions will be sent with `networkGasPrice * gasPriceMultiplier`. | Float | `1.0` |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP` | In Wei, will be used for transactions if `networkGasPrice * gasPriceMultiplier > gasPriceCap`. | Positive integer | `22000000000` |
-| `IEXEC_BLOCKCHAIN_ADAPTER_API_BROKER_URL` | URL of the broker to interact with when matching iExec orders. | URL | `http://localhost:3000` |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH` | Path to the wallet of the server. | String | `src/main/resources/wallet.json` |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD` | Password to unlock the wallet of the server. | String | `whatever` |
 
