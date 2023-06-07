@@ -16,14 +16,12 @@
 
 package com.iexec.blockchain.api;
 
-import com.iexec.blockchain.tool.Status;
 import com.iexec.common.chain.adapter.CommandStatus;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.config.PublicChainConfig;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.commons.poco.chain.ChainDataset;
 import com.iexec.commons.poco.chain.ChainTask;
 import feign.Param;
 import feign.RequestLine;
