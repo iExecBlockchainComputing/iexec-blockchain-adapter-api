@@ -9,7 +9,7 @@ plugins {
 }
 
 ext {
-	openFeignVersion = '11.7'
+	openFeignVersion = '11.10'
 }
 
 if (!project.hasProperty('gitBranch')) {
@@ -47,9 +47,8 @@ allprojects {
 }
 
 configurations {
-	integrationTestCompile.extendsFrom testCompile
-	integrationTestRuntime.extendsFrom testRuntime
-	integrationTestImplementation.extendsFrom testImplementation
+	itestRuntime.extendsFrom testRuntime
+	itestImplementation.extendsFrom testImplementation
 }
 
 dependencies {
@@ -63,6 +62,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	// iexec
+	implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
 	implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
 
 	// web3j bug required
@@ -72,15 +72,19 @@ dependencies {
 	implementation 'com.squareup.okhttp3:okhttp:4.9.0' // Web3j issue: https://github.com/web3j/web3j/issues/1180
 
 	// feign
-	implementation "io.github.openfeign:feign-core:$openFeignVersion"
 	implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
 	implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
+
+	// observability
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
 	// integration tests
 	implementation project(':iexec-blockchain-adapter-api-library')
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.awaitility:awaitility:4.0.1'
+	testImplementation 'org.awaitility:awaitility'
+
+	itestImplementation 'org.testcontainers:junit-jupiter:1.18.1'
 }
 
 springBoot {
@@ -95,32 +99,24 @@ tasks.named("bootJar") {
 }
 
 sourceSets {
-	integrationTest {
+	itest {
 		java {
 			compileClasspath += main.output + test.output
 			runtimeClasspath += main.output + test.output
-			srcDir 'src/itest/java'
 		}
-		resources.srcDir 'src/itest/resources'
 	}
 }
 
-task itestSetup(type: Exec) {
-	commandLine 'docker-compose', 'up', '-d'
-}
-
-task itestTeardown(type: Exec) {
-	commandLine 'docker-compose', 'down'
-}
-
-task itest(type: Test) {
+tasks.register("itest", Test) {
+	doFirst {
+		exec {
+			commandLine 'docker', 'compose', 'pull', '-q'
+		}
+	}
 	group 'Verification'
 	description 'Runs the integration tests.'
-	dependsOn   itestSetup
-	finalizedBy itestTeardown
-	setTestClassesDirs(sourceSets.integrationTest.output)
-	classpath = sourceSets.integrationTest.runtimeClasspath
-	useJUnitPlatform()
+	setTestClassesDirs(sourceSets.itest.output)
+	classpath = sourceSets.itest.runtimeClasspath
 }
 
 jar {
@@ -148,7 +144,8 @@ publishing {
 	}
 }
 
-test {
+tasks.withType(Test).configureEach {
+	finalizedBy jacocoTestReport
 	useJUnitPlatform()
 }
 
@@ -161,7 +158,6 @@ jacocoTestReport {
         xml.required = true
     }
 }
-tasks.test.finalizedBy    tasks.jacocoTestReport
 tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
 ext.jarPathForOCI  = relativePath(tasks.bootJar.outputs.files.singleFile)

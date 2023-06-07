@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class PublicConfigurationController {
         final PublicChainConfig publicChainConfig = PublicChainConfig
                 .builder()
                 .chainId(chainConfig.getChainId())
-                .isSidechain(chainConfig.isSidechain())
+                .sidechain(chainConfig.isSidechain())
                 .chainNodeUrl(chainConfig.getNodeAddress())
                 .iexecHubContractAddress(chainConfig.getHubAddress())
                 .blockTime(Duration.ofSeconds(blockTime))

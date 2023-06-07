@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.1.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.0) 2023-06-07
+
+### New Features
+- Enable Prometheus actuator. (#79)
+- Rework `QueueService` with a thread pool based on a `PriorityBlockingQueue`. (#84)
+- Do not use `broker` to match ordes on chain. (#87 #88)
+### Bug Fixes
+- Fix security rule to access Swagger API. (#79)
+### Quality
+- Use `testcontainers` in integration tests. (#89)
+- Remove `com.iexec.blockchain.dataset` package and update `feign` client endpoints. (#91)
+### Dependency Upgrades
+- Upgrade to `feign` 11.10. (#80)
+- Upgrade to `iexec-common` 8.2.0. (#83 #85 #90)
+- Upgrade to `iexec-commons-poco` 3.0.2. (#83 #85 #86 #90)
+
 ## [[8.0.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.0.1) 2023-04-06
 
 ### Quality
