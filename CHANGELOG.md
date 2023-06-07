@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - Do not use `broker` to match ordes on chain. (#87 #88)
 ### Bug Fixes
 - Fix security rule to access Swagger API. (#79)
+### Quality
+- Use `testcontainers` in integration tests. (#89)
 ### Dependency Upgrades
 - Upgrade to `feign` 11.10. (#80)
 - Upgrade to `iexec-common` 8.1.0-NEXT-SNAPSHOT. (#83 #85)
