@@ -19,7 +19,6 @@ package com.iexec.blockchain.tool;
 import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.commons.poco.chain.*;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -35,22 +34,14 @@ import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 
-    public static final int ONE_SECOND = 1000;
-    private final CredentialsService credentialsService;
-    private final Web3jService web3jService;
-    private final Integer blockTime;
-    private final Integer chainId;
-
     public IexecHubService(CredentialsService credentialsService,
                            Web3jService web3jService,
                            ChainConfig chainConfig) {
-        super(credentialsService.getCredentials(),
+        super(
+                credentialsService.getCredentials(),
                 web3jService,
-                chainConfig.getHubAddress());
-        this.credentialsService = credentialsService;
-        this.web3jService = web3jService;
-        blockTime = chainConfig.getBlockTime();
-        chainId = chainConfig.getChainId();
+                chainConfig.getHubAddress()
+        );
     }
 
     public static boolean isSignature(String hexString) {
@@ -68,9 +59,10 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public TransactionReceipt initializeTask(String chainDealId,
-                                                                int taskIndex) throws Exception {
-        return getContract()
-                .initialize(stringToBytes(chainDealId),
+                                             int taskIndex) throws Exception {
+        return iexecHubContract
+                .initialize(
+                        stringToBytes(chainDealId),
                         BigInteger.valueOf(taskIndex))
                 .send();
     }
@@ -82,25 +74,29 @@ public class IexecHubService extends IexecHubAbstractService {
                                          String enclaveSignature) throws Exception {
         String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
         String resultSeal =
-                ResultUtils.computeResultSeal(credentialsService.getCredentials().getAddress(),
+                ResultUtils.computeResultSeal(credentials.getAddress(),
                         chainTaskId,
                         resultDigest);
 
-        return getContract()
-                .contribute(stringToBytes(chainTaskId),
+        return iexecHubContract
+                .contribute(
+                        stringToBytes(chainTaskId),
                         stringToBytes(resultHash),
                         stringToBytes(resultSeal),
                         enclaveChallenge,
                         stringToBytes(enclaveSignature),
-                        stringToBytes(workerpoolSignature)).send();
+                        stringToBytes(workerpoolSignature))
+                .send();
     }
 
 
     public TransactionReceipt reveal(String chainTaskId,
                                      String resultDigest) throws Exception {
-        return getContract()
-                .reveal(stringToBytes(chainTaskId),
-                        stringToBytes(resultDigest)).send();
+        return iexecHubContract
+                .reveal(
+                        stringToBytes(chainTaskId),
+                        stringToBytes(resultDigest))
+                .send();
     }
 
     public TransactionReceipt finalizeTask(String chainTaskId,
@@ -111,22 +107,16 @@ public class IexecHubService extends IexecHubAbstractService {
         byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
                 stringToBytes(callbackData) : new byte[0];
 
-        return getContract()
-                .finalize(stringToBytes(chainTaskId),
+        return iexecHubContract
+                .finalize(
+                        stringToBytes(chainTaskId),
                         results,
-                        resultsCallback).send();
+                        resultsCallback)
+                .send();
     }
-
-    private IexecHubContract getContract() {
-        return getHubContract(web3jService.getWritingContractGasProvider(),
-                chainId,
-                blockTime * ONE_SECOND,
-                50);
-    }
-
 
     public boolean hasEnoughGas() {
-        return hasEnoughGas(credentialsService.getCredentials().getAddress());
+        return hasEnoughGas(credentials.getAddress());
     }
 
     /**
