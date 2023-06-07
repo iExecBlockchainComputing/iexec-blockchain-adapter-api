@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 - Fix security rule to access Swagger API. (#79)
 ### Quality
 - Use `testcontainers` in integration tests. (#89)
-- Remove `com.iexec.blockchain.dataset` package. (#91)
+- Remove `com.iexec.blockchain.dataset` package and update `feign` client endpoints. (#91)
 ### Dependency Upgrades
 - Upgrade to `feign` 11.10. (#80)
 - Upgrade to `iexec-common` 8.2.0. (#83 #85 #90)
