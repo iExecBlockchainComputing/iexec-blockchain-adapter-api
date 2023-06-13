@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2023
 
+## [[8.1.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.0) 2023-06-07
+
 ### New Features
 - Enable Prometheus actuator. (#79)
 - Rework `QueueService` with a thread pool based on a `PriorityBlockingQueue`. (#84)
