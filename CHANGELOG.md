@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2023
 
+### New Features
+- Remove `nexus.intra.iex.ec` repository. (#96)
+
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.1) 2023-06-23
 
 ### Dependency Upgrades
@@ -15,7 +18,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 - Enable Prometheus actuator. (#79)
 - Rework `QueueService` with a thread pool based on a `PriorityBlockingQueue`. (#84)
-- Do not use `broker` to match ordes on chain. (#87 #88)
+- Do not use `broker` to match orders on chain. (#87 #88)
 ### Bug Fixes
 - Fix security rule to access Swagger API. (#79)
 ### Quality
