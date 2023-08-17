@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Remove `nexus.intra.iex.ec` repository. (#96)
+### Dependency Upgrades
+- Upgrade to `eclipse-temurin` 11.0.20. (#98)
 
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.1) 2023-06-23
 
