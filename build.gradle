@@ -83,6 +83,7 @@ dependencies {
 	implementation project(':iexec-blockchain-adapter-api-library')
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation 'org.awaitility:awaitility'
 
 	itestImplementation 'org.testcontainers:junit-jupiter:1.18.1'
