@@ -43,6 +43,15 @@ allprojects {
 	}
 }
 
+sourceSets {
+	itest {
+		java {
+			compileClasspath += main.output + test.output
+			runtimeClasspath += main.output + test.output
+		}
+	}
+}
+
 configurations {
 	itestRuntime.extendsFrom testRuntime
 	itestImplementation.extendsFrom testImplementation
@@ -87,15 +96,6 @@ tasks.named("bootJar") {
 	manifest {
 		attributes("Implementation-Title": "iExec Blockchain Adapter API",
 		           "Implementation-Version": project.version)
-	}
-}
-
-sourceSets {
-	itest {
-		java {
-			compileClasspath += main.output + test.output
-			runtimeClasspath += main.output + test.output
-		}
 	}
 }
 
