@@ -111,13 +111,6 @@ tasks.register("itest", Test) {
 	classpath = sourceSets.itest.runtimeClasspath
 }
 
-jar {
-	enabled = true
-	archiveClassifier.set('library')
-	from sourceSets.main.allSource
-	duplicatesStrategy = 'exclude'
-}
-
 publishing {
 	publications {
 		maven(MavenPublication) {
