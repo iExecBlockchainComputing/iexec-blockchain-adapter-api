@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin` 11.0.20. (#98)
 - Upgrade to Spring Boot 2.7.14. (#99)
 - Upgrade to Spring Dependency Management Plugin 1.1.3. (#99)
+- Upgrade to `testcontainers` 1.19.0. (#101)
 
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.1) 2023-06-23
 
