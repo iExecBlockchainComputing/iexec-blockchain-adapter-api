@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### New Features
 - Remove `nexus.intra.iex.ec` repository. (#96)
+### Bug Fixes
+- Fix and harmonize `Dockerfile entrypoint` in all Spring Boot applications. (#102)
 ### Quality
 - Upgrade to Gradle 8.2.1 with up-to-date plugins. (#100)
 ### Dependency Upgrades
