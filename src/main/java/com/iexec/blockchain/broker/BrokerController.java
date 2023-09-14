@@ -34,7 +34,7 @@ public class BrokerController {
      * @return deal ID if orders are matched on-chain
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @PostMapping("/broker/orders/match")
+    @PostMapping("/orders/match")
     public ResponseEntity<String> matchOrders(@RequestBody BrokerOrder brokerOrder) {
         try {
             String dealId = brokerService.matchOrders(brokerOrder);
