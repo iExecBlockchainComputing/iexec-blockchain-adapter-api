@@ -37,9 +37,7 @@ import feign.RequestLine;
 public interface BlockchainAdapterApiClient {
 
     // region authenticated APIs
-
-    //TODO update endpoint
-    @RequestLine("POST /broker/broker/orders/match")
+    @RequestLine("POST /broker/orders/match")
     String matchOrders(BrokerOrder brokerOrder);
 
     @RequestLine("GET /metrics")

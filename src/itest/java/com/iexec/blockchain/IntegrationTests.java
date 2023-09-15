@@ -39,6 +39,7 @@ import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
@@ -322,53 +323,49 @@ class IntegrationTests {
                 .build();
     }
 
-    //TODO: Use `Awaitility` in `waitStatus` & `waitBeforeFinalizing` methods
     /**
      * 
      * @param pollingTimeMs recommended value is block time
      */
-    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) throws Exception {
-        ChainTaskStatus status = null;
-        int attempts = 0;
-        while(true) {
-            attempts++;
-            log.info("Status [status:{}, chainTaskId:{}, attempt:{}]", status, chainTaskId, attempts);
-            status = iexecHubService.getChainTask(chainTaskId)
-                    .map(ChainTask::getStatus)
-                    .orElse(UNSET);
-            if (status.equals(statusToWait) || attempts > maxAttempts) {
-                break;
-            }
-            TimeUnit.MILLISECONDS.sleep(pollingTimeMs);
-        }
-        if (!status.equals(statusToWait)) {
-            throw new TimeoutException("Too long to wait for task: " + chainTaskId);
-        }
-        log.info("Status reached [status:{}, chainTaskId:{}]", status, chainTaskId);
+    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) {
+        final AtomicInteger attempts = new AtomicInteger();
+        Awaitility.await()
+                .pollInterval(pollingTimeMs, TimeUnit.MILLISECONDS)
+                .timeout((long) maxAttempts * pollingTimeMs, TimeUnit.MILLISECONDS)
+                .until(() -> {
+                            final ChainTaskStatus status = iexecHubService.getChainTask(chainTaskId)
+                                    .map(ChainTask::getStatus)
+                                    .orElse(UNSET);
+                            log.info("Status [status:{}, chainTaskId:{}, attempt:{}]", status, chainTaskId, attempts.incrementAndGet());
+                            return status.equals(statusToWait);
+                        }
+                );
+        log.info("Status reached [status:{}, chainTaskId:{}]", statusToWait, chainTaskId);
     }
 
-    private void waitBeforeFinalizing(String chainTaskId) throws Exception {
-        Optional<ChainTask> oChainTask = iexecHubService.getChainTask(chainTaskId);
+    private void waitBeforeFinalizing(String chainTaskId) {
+        final Optional<ChainTask> oChainTask = iexecHubService.getChainTask(chainTaskId);
         if (oChainTask.isEmpty()) {
             return;
         }
-        ChainTask chainTask = oChainTask.get();
-        int winnerCounter = chainTask.getWinnerCounter();
-        int revealCounter = chainTask.getRevealCounter();
-        int attempts = 0;
+        final ChainTask chainTask = oChainTask.get();
+        final int winnerCounter = chainTask.getWinnerCounter();
         log.info("{} {}", POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
-        while (revealCounter != winnerCounter) {
-            attempts++;
-            log.info("Waiting for reveals ({}/{}), attempt {}", revealCounter, winnerCounter, attempts);
-            Thread.sleep(BLOCK_TIME_MS);
-            revealCounter = iexecHubService.getChainTask(chainTaskId)
-                    .map(ChainTask::getRevealCounter)
-                    .orElse(0);
-            if (attempts == MAX_BLOCK_TO_WAIT) {
-                throw new TimeoutException("Too long to wait for reveal: " + chainTaskId);
-            }
-        }
-        log.info("All revealed ({}/{})", revealCounter, winnerCounter);
+
+        final AtomicInteger attempts = new AtomicInteger();
+        Awaitility.await()
+                .pollInterval(POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
+                .timeout((long) MAX_POLLING_ATTEMPTS * POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
+                .until(() -> {
+                            final int revealCounter = iexecHubService.getChainTask(chainTaskId)
+                                    .map(ChainTask::getRevealCounter)
+                                    .orElse(0);
+                            log.info("Waiting for reveals ({}/{}), attempt {}", revealCounter, winnerCounter, attempts.incrementAndGet());
+                            return revealCounter == winnerCounter;
+                        }
+                );
+
+        log.info("All revealed ({}/{})", winnerCounter, winnerCounter);
     }
 
     public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
