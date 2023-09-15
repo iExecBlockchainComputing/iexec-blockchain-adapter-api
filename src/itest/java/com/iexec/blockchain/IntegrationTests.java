@@ -344,12 +344,12 @@ class IntegrationTests {
     }
 
     private void waitBeforeFinalizing(String chainTaskId) {
-        Optional<ChainTask> oChainTask = iexecHubService.getChainTask(chainTaskId);
+        final Optional<ChainTask> oChainTask = iexecHubService.getChainTask(chainTaskId);
         if (oChainTask.isEmpty()) {
             return;
         }
-        ChainTask chainTask = oChainTask.get();
-        int winnerCounter = chainTask.getWinnerCounter();
+        final ChainTask chainTask = oChainTask.get();
+        final int winnerCounter = chainTask.getWinnerCounter();
         log.info("{} {}", POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
 
         final AtomicInteger attempts = new AtomicInteger();
@@ -357,7 +357,7 @@ class IntegrationTests {
                 .pollInterval(POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .timeout((long) MAX_POLLING_ATTEMPTS * POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .until(() -> {
-                            int revealCounter = iexecHubService.getChainTask(chainTaskId)
+                            final int revealCounter = iexecHubService.getChainTask(chainTaskId)
                                     .map(ChainTask::getRevealCounter)
                                     .orElse(0);
                             log.info("Waiting for reveals ({}/{}), attempt {}", revealCounter, winnerCounter, attempts.incrementAndGet());
