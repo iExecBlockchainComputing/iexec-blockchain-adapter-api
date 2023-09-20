@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,66 +17,56 @@
 package com.iexec.blockchain.tool;
 
 import com.iexec.common.chain.validation.ValidNonZeroEthereumAddress;
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.URL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
 import javax.annotation.PostConstruct;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
+import javax.validation.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import java.util.Set;
 
-@Component
-@Getter
-@ToString
+@Slf4j
+@Value
 @Builder
-@AllArgsConstructor
+@ConstructorBinding
+@ConfigurationProperties(prefix = "chain")
 public class ChainConfig {
 
-    @Value("${chain.id}")
     @Positive(message = "Chain id should be positive")
     @NotNull
-    private Integer chainId;
+    int id;
 
-    @Value("${chain.node-address}")
     @URL
     @NotEmpty
-    private String nodeAddress;
+    String nodeAddress;
 
-    @Value("${chain.block-time}")
     @Positive(message = "Block time should be positive")
     @NotNull
-    private Integer blockTime;
+    int blockTime;
 
-    @Value("${chain.hub-address}")
     @ValidNonZeroEthereumAddress
-    private String hubAddress;
+    String hubAddress;
 
-    @Value("${chain.is-sidechain}")
-    private boolean isSidechain;
+    boolean isSidechain;
 
-    @Value("${chain.gas-price-multiplier}")
-    private float gasPriceMultiplier;
+    float gasPriceMultiplier;
 
-    @Value("${chain.gas-price-cap}")
-    private long gasPriceCap;
-
-    @Getter(AccessLevel.NONE) // no getter
-    private final Validator validator;
-
-    @Autowired
-    public ChainConfig(Validator validator) {
-        this.validator = validator;
-    }
+    long gasPriceCap;
 
     @PostConstruct
     private void validate() {
-        if (!validator.validate(this).isEmpty()) {
-            throw new ConstraintViolationException(validator.validate(this));
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = factory.getValidator();
+            Set<ConstraintViolation<ChainConfig>> violations = validator.validate(this);
+            if (!violations.isEmpty()) {
+                throw new ConstraintViolationException(violations);
+            }
         }
     }
 }

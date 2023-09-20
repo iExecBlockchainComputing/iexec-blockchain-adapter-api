@@ -31,7 +31,8 @@ public class SignerService {
     private final OrderSigner orderSigner;
 
     public SignerService(ChainConfig chainConfig, CredentialsService credentialsService) {
-        this.orderSigner = new OrderSigner(chainConfig.getChainId(),
+        this.orderSigner = new OrderSigner(
+                chainConfig.getId(),
                 chainConfig.getHubAddress(),
                 credentialsService.getCredentials().getEcKeyPair());
     }
