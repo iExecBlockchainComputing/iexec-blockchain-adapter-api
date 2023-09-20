@@ -1,25 +1,30 @@
 package com.iexec.blockchain.tool;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.validation.ConstraintViolationException;
-import javax.validation.Validation;
-import javax.validation.Validator;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Slf4j
 class ChainConfigTest {
-    final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
     private final static int DEFAULT_CHAIN_ID = 1;
     private final static String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
     private final static String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
     private static final int DEFAULT_BLOCK_TIME = 1;
+
+    private void validate(ChainConfig chainConfig) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
+        validateConfig.setAccessible(true);
+        validateConfig.invoke(chainConfig);
+    }
 
     // region Valid data
     static Stream<Arguments> validData() {
@@ -36,21 +41,16 @@ class ChainConfigTest {
     void shouldValidate(Integer chainId,
                         String nodeAddress,
                         String hubAddress,
-                        Integer blockTime)
-            throws NoSuchMethodException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
-
+                        Integer blockTime) {
         final ChainConfig chainConfig = ChainConfig.builder()
-                .chainId(chainId)
+                .id(chainId)
                 .nodeAddress(nodeAddress)
                 .blockTime(blockTime)
                 .hubAddress(hubAddress)
-                .validator(validator)
                 .build();
 
-        System.out.println(chainConfig);
-        assertThatCode(() -> validateConfig.invoke(chainConfig))
+        log.info("{}", chainConfig);
+        assertThatCode(() -> validate(chainConfig))
                 .doesNotThrowAnyException();
     }
     // endregion
@@ -58,7 +58,6 @@ class ChainConfigTest {
     // region Invalid chain ids
     static Stream<Integer> invalidChainIds() {
         return Stream.of(
-                null,   // Chain id should not be null
                 0,      // Chain id should be strictly positive
                 -1      // Chain id should be strictly positive
         );
@@ -66,23 +65,20 @@ class ChainConfigTest {
 
     @ParameterizedTest
     @MethodSource("invalidChainIds")
-    void shouldNotValidateChainId(Integer chainId) throws NoSuchMethodException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
+    void shouldNotValidateChainId(int chainId) {
 
         final ChainConfig chainConfig = ChainConfig.builder()
-                .chainId(chainId)
+                .id(chainId)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
                 .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
-                .validator(validator)
                 .build();
 
-        System.out.println(chainConfig);
-        assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
+        log.info("{}", chainConfig);
+        assertThatThrownBy(() -> validate(chainConfig))
                 .getRootCause()
                 .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining("chainId")
+                .hasMessageContaining("Chain id should be positive")
         ;
     }
     // endregion
@@ -99,20 +95,16 @@ class ChainConfigTest {
 
     @ParameterizedTest
     @MethodSource("invalidNodeAddresses")
-    void shouldNotValidateNodeAddress(String nodeAddress) throws NoSuchMethodException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
-
+    void shouldNotValidateNodeAddress(String nodeAddress) {
         final ChainConfig chainConfig = ChainConfig.builder()
-                .chainId(DEFAULT_CHAIN_ID)
+                .id(DEFAULT_CHAIN_ID)
                 .nodeAddress(nodeAddress)
                 .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
-                .validator(validator)
                 .build();
 
-        System.out.println(chainConfig);
-        assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
+        log.info("{}", chainConfig);
+        assertThatThrownBy(() -> validate(chainConfig))
                 .getRootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("nodeAddress")
@@ -123,7 +115,6 @@ class ChainConfigTest {
     // region Invalid block time
     static Stream<Integer> invalidBlockTimes() {
         return Stream.of(
-                null, // Block time should not be null
                 0,    // Block time should be strictly positive
                 -1    // Block time should be strictly positive
         );
@@ -131,20 +122,16 @@ class ChainConfigTest {
 
     @ParameterizedTest
     @MethodSource("invalidBlockTimes")
-    void shouldNotValidateBlockTime(Integer blockTime) throws NoSuchMethodException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
-
+    void shouldNotValidateBlockTime(int blockTime) {
         final ChainConfig chainConfig = ChainConfig.builder()
-                .chainId(DEFAULT_CHAIN_ID)
+                .id(DEFAULT_CHAIN_ID)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
                 .blockTime(blockTime)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
-                .validator(validator)
                 .build();
 
-        System.out.println(chainConfig);
-        assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
+        log.info("{}", chainConfig);
+        assertThatThrownBy(() -> validate(chainConfig))
                 .getRootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("blockTime")
@@ -166,19 +153,15 @@ class ChainConfigTest {
     @ParameterizedTest
     @MethodSource("invalidHubAddresses")
     void shouldNotValidateHubAddress(String hubAddress) throws NoSuchMethodException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
-
         final ChainConfig chainConfig = ChainConfig.builder()
-                .chainId(DEFAULT_CHAIN_ID)
+                .id(DEFAULT_CHAIN_ID)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
                 .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(hubAddress)
-                .validator(validator)
                 .build();
 
-        System.out.println(chainConfig);
-        assertThatThrownBy(() -> validateConfig.invoke(chainConfig))
+        log.info("{}", chainConfig);
+        assertThatThrownBy(() -> validate(chainConfig))
                 .getRootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("hubAddress")
