@@ -26,7 +26,7 @@ public class Web3jService extends Web3jAbstractService {
 
     public Web3jService(ChainConfig chainConfig) {
         super(
-                chainConfig.getChainId(),
+                chainConfig.getId(),
                 chainConfig.getNodeAddress(),
                 Duration.ofSeconds(chainConfig.getBlockTime()),
                 chainConfig.getGasPriceMultiplier(),
