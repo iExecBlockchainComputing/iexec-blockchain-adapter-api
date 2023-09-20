@@ -20,45 +20,45 @@ import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.common.config.PublicChainConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
 import java.time.Duration;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.when;
 
 class PublicConfigurationControllerTests {
 
-    @Mock
-    ChainConfig chainConfig;
+    private static final int ID = 65535;
+    private static final String NODE_ADDRESS = "http://localhost:8545";
+    private static final String HUB_ADDRESS = "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca";
+    private static final int BLOCK_TIME = 5;
+    private static final boolean IS_SIDECHAIN = true;
 
-    @InjectMocks
+    ChainConfig chainConfig = ChainConfig.builder()
+            .id(ID)
+            .nodeAddress(NODE_ADDRESS)
+            .hubAddress(HUB_ADDRESS)
+            .blockTime(BLOCK_TIME)
+            .isSidechain(IS_SIDECHAIN)
+            .build();
+
     PublicConfigurationController controller;
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.openMocks(this);
+        controller = new PublicConfigurationController(chainConfig);
     }
 
     @Test
     void shouldReturnConfig() {
-        int blockTime = 5;
         PublicChainConfig expectedConfig = PublicChainConfig
                 .builder()
-                .sidechain(true)
-                .chainId(65535)
-                .chainNodeUrl("http://localhost:8545")
-                .iexecHubContractAddress("0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca")
-                .blockTime(Duration.ofSeconds(blockTime))
+                .sidechain(IS_SIDECHAIN)
+                .chainId(ID)
+                .chainNodeUrl(NODE_ADDRESS)
+                .iexecHubContractAddress(HUB_ADDRESS)
+                .blockTime(Duration.ofSeconds(BLOCK_TIME))
                 .build();
-        when(chainConfig.getChainId()).thenReturn(expectedConfig.getChainId());
-        when(chainConfig.isSidechain()).thenReturn(expectedConfig.isSidechain());
-        when(chainConfig.getNodeAddress()).thenReturn(expectedConfig.getChainNodeUrl());
-        when(chainConfig.getHubAddress()).thenReturn(expectedConfig.getIexecHubContractAddress());
-        when(chainConfig.getBlockTime()).thenReturn(blockTime);
         ResponseEntity<PublicChainConfig> response = controller.getPublicChainConfig();
         assertThat(response.getBody())
                 .isNotNull()
