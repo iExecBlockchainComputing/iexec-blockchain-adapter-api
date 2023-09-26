@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - Upgrade to Spring Dependency Management Plugin 1.1.3. (#99)
 - Upgrade to `testcontainers` 1.19.0. (#101)
 - Upgrade to `jenkins-library` 2.7.3. (#103)
+- Upgrade to `iexec-common` 8.3.0. (#106)
+- Upgrade to `iexec-common-poco` 3.1.0. (#106)
 
 ## [[8.1.1]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.1.1) 2023-06-23
 
