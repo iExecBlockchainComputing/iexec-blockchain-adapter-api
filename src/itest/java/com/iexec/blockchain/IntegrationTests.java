@@ -19,7 +19,7 @@ package com.iexec.blockchain;
 import com.iexec.blockchain.api.BlockchainAdapterApiClient;
 import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
-import com.iexec.blockchain.signer.SignerService;
+import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.adapter.args.TaskContributeArgs;
@@ -27,6 +27,7 @@ import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.eip712.OrderSigner;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -46,7 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -111,7 +112,7 @@ class IntegrationTests {
     private BrokerService brokerService;
 
     @Autowired
-    private SignerService signerService;
+    private ChainConfig chainConfig;
     private BlockchainAdapterApiClient appClient;
 
     @BeforeEach
@@ -127,14 +128,14 @@ class IntegrationTests {
     }
 
     @Test
-    public void shouldBeFinalized() throws Exception {
+    public void shouldBeFinalized() {
         String dealId = triggerDeal(1);
 
         String chainTaskId = appClient.requestInitializeTask(dealId, 0);
         Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
         log.info("Requested task initialize: {}", chainTaskId);
         //should wait since returned taskID is computed, initialize is not mined yet
-        waitStatus(chainTaskId, ACTIVE, POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
+        waitStatus(chainTaskId, ACTIVE, MAX_POLLING_ATTEMPTS);
 
         String someBytes32Payload = TeeUtils.TEE_SCONE_ONLY_TAG; //any would be fine
         String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
@@ -149,7 +150,7 @@ class IntegrationTests {
         String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
         Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
         log.info("Requested task contribute: {}", contributeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.REVEALING, POLLING_INTERVAL_MS, 
+        waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
             MAX_POLLING_ATTEMPTS);
 
         TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
@@ -162,12 +163,12 @@ class IntegrationTests {
         String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
         Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
         log.info("Requested task finalize: {}", finalizeResponseBody);
-        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED, POLLING_INTERVAL_MS, 
+        waitStatus(chainTaskId, ChainTaskStatus.COMPLETED,
             MAX_POLLING_ATTEMPTS);
     }
 
     @Test
-    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock() throws Exception {
+    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock() {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
         String dealId = triggerDeal(taskVolume);
         List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
@@ -184,7 +185,7 @@ class IntegrationTests {
                         try {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
-                            waitStatus(chainTaskId, ACTIVE, POLLING_INTERVAL_MS, 
+                            waitStatus(chainTaskId, ACTIVE,
                                 (taskVolume + 2) * MAX_POLLING_ATTEMPTS);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
@@ -197,7 +198,7 @@ class IntegrationTests {
         txCompletionWatchers.forEach(CompletableFuture::join);
     }
 
-    private String triggerDeal(int taskVolume) throws Exception {
+    private String triggerDeal(int taskVolume) {
         int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
         int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
         String appAddress = iexecHubService.createApp(buildRandomName("app"),
@@ -216,10 +217,12 @@ class IntegrationTests {
                 secondsTimeout, secondsPollingInterval);
         log.info("Created datasetAddress: {}", datasetAddress);
 
-        AppOrder signedAppOrder = signerService.signAppOrder(buildAppOrder(appAddress, taskVolume));
-        WorkerpoolOrder signedWorkerpoolOrder = signerService.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
-        DatasetOrder signedDatasetOrder = signerService.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
-        RequestOrder signedRequestOrder = signerService.signRequestOrder(buildRequestOrder(signedAppOrder,
+        OrderSigner orderSigner = new OrderSigner(
+                chainConfig.getId(), chainConfig.getHubAddress(), credentialsService.getCredentials().getEcKeyPair());
+        AppOrder signedAppOrder = orderSigner.signAppOrder(buildAppOrder(appAddress, taskVolume));
+        WorkerpoolOrder signedWorkerpoolOrder = orderSigner.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
+        DatasetOrder signedDatasetOrder = orderSigner.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
+        RequestOrder signedRequestOrder = orderSigner.signRequestOrder(buildRequestOrder(signedAppOrder,
                 signedWorkerpoolOrder,
                 signedDatasetOrder,
                 credentialsService.getCredentials().getAddress(),
@@ -327,11 +330,11 @@ class IntegrationTests {
      * 
      * @param pollingTimeMs recommended value is block time
      */
-    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int pollingTimeMs, int maxAttempts) {
+    private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int maxAttempts) {
         final AtomicInteger attempts = new AtomicInteger();
         Awaitility.await()
-                .pollInterval(pollingTimeMs, TimeUnit.MILLISECONDS)
-                .timeout((long) maxAttempts * pollingTimeMs, TimeUnit.MILLISECONDS)
+                .pollInterval(POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
+                .timeout((long) maxAttempts * POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .until(() -> {
                             final ChainTaskStatus status = iexecHubService.getChainTask(chainTaskId)
                                     .map(ChainTask::getStatus)
