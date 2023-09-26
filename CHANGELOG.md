@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to Gradle 8.2.1 with up-to-date plugins. (#100)
 - Clean TODOs. (#104)
 - `ChainConfig` instance is immutable and validated. Application will fail to start if chain config parameters violate constraints. (#105)
+- Remove `SignerService` class only used in integration tests. (#107)
 ### Dependency Upgrades
 - Upgrade to `eclipse-temurin` 11.0.20. (#98)
 - Upgrade to Spring Boot 2.7.14. (#99)
