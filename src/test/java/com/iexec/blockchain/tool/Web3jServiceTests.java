@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Web3jServiceTests {
     private final ChainConfig chainConfig = ChainConfig
             .builder()
-            .chainId(134)
+            .id(134)
             .isSidechain(true)
             .nodeAddress("https://bellecour.iex.ec")
             .hubAddress("0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f")

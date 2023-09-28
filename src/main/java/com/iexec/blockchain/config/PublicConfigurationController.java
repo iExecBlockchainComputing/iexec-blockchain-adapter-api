@@ -39,10 +39,10 @@ public class PublicConfigurationController {
      */
     @GetMapping("/chain")
     public ResponseEntity<PublicChainConfig> getPublicChainConfig() {
-        final Integer blockTime = chainConfig.getBlockTime();
+        final int blockTime = chainConfig.getBlockTime();
         final PublicChainConfig publicChainConfig = PublicChainConfig
                 .builder()
-                .chainId(chainConfig.getChainId())
+                .chainId(chainConfig.getId())
                 .sidechain(chainConfig.isSidechain())
                 .chainNodeUrl(chainConfig.getNodeAddress())
                 .iexecHubContractAddress(chainConfig.getHubAddress())

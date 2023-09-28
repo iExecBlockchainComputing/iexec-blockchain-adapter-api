@@ -13,7 +13,6 @@ The iExec Blockchain Adapter API is available as an OCI image on [Docker Hub](ht
 To run properly, the iExec Blockchain Adapter API requires:
 * A blockchain node. iExec smart contracts must be deployed on the blockchain network.
 * A MongoDB instance to persist its data.
-* A broker service to match iExec orders.
 * An Ethereum wallet to interact with smart contracts on the blockchain network.
 
 ## Configuration
