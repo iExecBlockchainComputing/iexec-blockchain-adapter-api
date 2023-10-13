@@ -22,9 +22,7 @@ import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.tool.ChainConfig;
 import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.eip712.OrderSigner;
@@ -57,6 +55,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.Sign;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -128,7 +127,8 @@ class IntegrationTests {
     }
 
     @Test
-    public void shouldBeFinalized() {
+    public void shouldBeFinalized() throws Exception {
+        TransactionReceipt receipt;
         String dealId = triggerDeal(1);
 
         String chainTaskId = appClient.requestInitializeTask(dealId, 0);
@@ -142,21 +142,18 @@ class IntegrationTests {
         String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
         WorkerpoolAuthorization workerpoolAuthorization =
                 mockAuthorization(chainTaskId, enclaveChallenge);
-        TaskContributeArgs contributeArgs = new TaskContributeArgs(
+        receipt =  iexecHubService.contribute(
+                chainTaskId,
                 someBytes32Payload,
                 workerpoolAuthorization.getSignature().getValue(),
                 enclaveChallenge,
                 enclaveSignature);
-        String contributeResponseBody = appClient.requestContributeTask(chainTaskId, contributeArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(contributeResponseBody));
-        log.info("Requested task contribute: {}", contributeResponseBody);
+        log.info("contribute {}", receipt);
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
             MAX_POLLING_ATTEMPTS);
 
-        TaskRevealArgs taskRevealArgs = new TaskRevealArgs(someBytes32Payload);
-        String revealResponseBody = appClient.requestRevealTask(chainTaskId, taskRevealArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(revealResponseBody));
-        log.info("Requested task reveal: {}", revealResponseBody);
+        receipt = iexecHubService.reveal(chainTaskId, someBytes32Payload);
+        log.info("reveal {}", receipt);
 
         waitBeforeFinalizing(chainTaskId);
         TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
@@ -326,10 +323,6 @@ class IntegrationTests {
                 .build();
     }
 
-    /**
-     * 
-     * @param pollingTimeMs recommended value is block time
-     */
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int maxAttempts) {
         final AtomicInteger attempts = new AtomicInteger();
         Awaitility.await()
