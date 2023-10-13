@@ -142,8 +142,12 @@ class IntegrationTests {
         String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
         WorkerpoolAuthorization workerpoolAuthorization =
                 mockAuthorization(chainTaskId, enclaveChallenge);
-        receipt =  iexecHubService.contribute(chainTaskId, someBytes32Payload, enclaveChallenge, enclaveSignature,
-                workerpoolAuthorization.getSignature().getValue());
+        receipt =  iexecHubService.contribute(
+                chainTaskId,
+                someBytes32Payload,
+                workerpoolAuthorization.getSignature().getValue(),
+                enclaveChallenge,
+                enclaveSignature);
         log.info("receipt {}", receipt);
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
             MAX_POLLING_ATTEMPTS);
