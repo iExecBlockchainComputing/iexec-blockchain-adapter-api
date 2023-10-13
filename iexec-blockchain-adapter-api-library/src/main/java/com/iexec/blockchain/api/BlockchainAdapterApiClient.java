@@ -17,9 +17,7 @@
 package com.iexec.blockchain.api;
 
 import com.iexec.common.chain.adapter.CommandStatus;
-import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.common.config.PublicChainConfig;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainTask;
@@ -52,18 +50,6 @@ public interface BlockchainAdapterApiClient {
 
     @RequestLine("GET /tasks/initialize/{chainTaskId}/status")
     CommandStatus getStatusForInitializeTaskRequest(@Param("chainTaskId") String chainTaskId);
-
-    @RequestLine("POST /tasks/contribute/{chainTaskId}")
-    String requestContributeTask(@Param("chainTaskId") String chainTaskId, TaskContributeArgs taskContributeArgs);
-
-    @RequestLine("GET /tasks/contribute/{chainTaskId}/status")
-    CommandStatus getStatusForContributeTaskRequest(@Param("chainTaskId") String chainTaskId);
-
-    @RequestLine("POST /tasks/reveal/{chainTaskId}")
-    String requestRevealTask(@Param("chainTaskId") String chainTaskId, TaskRevealArgs taskRevealArgs);
-
-    @RequestLine("GET /tasks/reveal/{chainTaskId}/status")
-    CommandStatus getStatusForRevealTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     @RequestLine("POST /tasks/finalize/{chainTaskId}")
     String requestFinalizeTask(@Param("chainTaskId") String chainTaskId, TaskFinalizeArgs taskFinalizeArgs);
