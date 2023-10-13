@@ -148,12 +148,12 @@ class IntegrationTests {
                 workerpoolAuthorization.getSignature().getValue(),
                 enclaveChallenge,
                 enclaveSignature);
-        log.info("receipt {}", receipt);
+        log.info("contribute {}", receipt);
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
             MAX_POLLING_ATTEMPTS);
 
         receipt = iexecHubService.reveal(chainTaskId, someBytes32Payload);
-        log.info("receipt {}", receipt);
+        log.info("reveal {}", receipt);
 
         waitBeforeFinalizing(chainTaskId);
         TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
