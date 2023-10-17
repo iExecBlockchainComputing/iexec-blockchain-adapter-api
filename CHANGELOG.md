@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2023
 
+### New Features
+- Send up to 2 blockchain transactions per block.
+  With a big enough latency, the nonce is properly computed in web3j library against the pending block. (#111)
 ### Bug Fixes
 - Remove `contribute` and `reveal` endpoints. (#110)
 

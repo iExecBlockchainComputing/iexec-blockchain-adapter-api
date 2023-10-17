@@ -74,7 +74,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 @ActiveProfiles("itest")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "chain.max-allowed-tx-per-block=2"}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegrationTests {
 
     public static final String USER = "admin";
@@ -183,7 +183,7 @@ class IntegrationTests {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
                             waitStatus(chainTaskId, ACTIVE,
-                                (taskVolume + 2) * MAX_POLLING_ATTEMPTS);
+                                (taskVolume / 2 + 2) * MAX_POLLING_ATTEMPTS);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
                         } catch (Exception e) {

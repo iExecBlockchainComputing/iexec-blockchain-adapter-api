@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 
 import javax.annotation.PostConstruct;
 import javax.validation.*;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -58,6 +59,10 @@ public class ChainConfig {
     float gasPriceMultiplier;
 
     long gasPriceCap;
+
+    @Positive
+    @Max(value = 2)
+    int maxAllowedTxPerBlock;
 
     @PostConstruct
     private void validate() {
