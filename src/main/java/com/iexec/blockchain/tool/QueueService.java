@@ -1,6 +1,7 @@
 package com.iexec.blockchain.tool;
 
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
@@ -23,8 +24,8 @@ public class QueueService {
     private final PriorityBlockingQueue<Runnable> queue = new PriorityBlockingQueue<>();
     private final ThreadPoolExecutor executorService;
 
-    public QueueService() {
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue) {
+    public QueueService(@Value("${chain.max-allowed-tx-per-block}") int threadCount) {
+        executorService = new ThreadPoolExecutor(threadCount, threadCount, 0L, TimeUnit.MILLISECONDS, queue) {
             @Override
             protected <T> RunnableFuture<T> newTaskFor(@NotNull Runnable runnable, T value) {
                 return new TaskWithPriority<>(runnable);

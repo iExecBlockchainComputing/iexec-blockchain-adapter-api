@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class QueueServiceTests {
 
     private static final int TIMEOUT_DURATION = 5;
-    private final QueueService queueService = new QueueService();
+    private final QueueService queueService = new QueueService(1);
 
     // region executeActions
     @Test
