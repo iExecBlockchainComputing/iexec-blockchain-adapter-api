@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
   With a big enough latency, the nonce is properly computed in web3j library against the pending block. (#111)
 ### Bug Fixes
 - Remove `contribute` and `reveal` endpoints. (#110)
+- Fix web security depreciation warning. (#112)
 
 ## [[8.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.2.0) 2023-09-28
 
