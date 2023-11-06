@@ -9,11 +9,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m appuser
+RUN groupadd --system appuser \
+    && useradd -g appuser -s /sbin/nologin -c "Docker image user" appuser
 
 WORKDIR /app
 COPY $jar app.jar
+RUN chown -R appuser:appuser /app
 
 USER appuser
-
 ENTRYPOINT [ "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar" ]
