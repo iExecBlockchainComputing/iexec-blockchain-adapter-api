@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Add and use a non-root user in the dockerfile. (#113)
+- Reindent `build.gradle` file. (#114)
 
 ## [[8.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.2.0) 2023-09-28
 
