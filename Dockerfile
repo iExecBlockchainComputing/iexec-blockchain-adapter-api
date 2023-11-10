@@ -13,8 +13,8 @@ RUN groupadd --system appuser \
     && useradd -g appuser -s /sbin/nologin -c "Docker image user" appuser
 
 WORKDIR /app
-COPY $jar blockchain-adapter-api.jar
+COPY $jar iexec-blockchain-adapter-api.jar
 RUN chown -R appuser:appuser /app
 
 USER appuser
-ENTRYPOINT [ "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "blockchain-adapter-api.jar" ]
+ENTRYPOINT [ "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "iexec-blockchain-adapter-api.jar" ]
