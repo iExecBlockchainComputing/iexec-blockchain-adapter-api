@@ -4,5 +4,5 @@ buildJavaProject(
         integrationTestsEnvVars: ['BROKER_PRIVATE_KEY'],
         shouldPublishJars: true,
         shouldPublishDockerImages: true,
-        dockerfileDir: 'docker',
+        dockerfileDir: '.',
         buildContext: '.')
