@@ -49,7 +49,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -74,8 +74,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 @Testcontainers
 @ActiveProfiles("itest")
-@SpringBootTest(properties = { "chain.max-allowed-tx-per-block=2"}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = {"chain.max-allowed-tx-per-block=2"}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegrationTests {
+
+    private static final String CHAIN_SVC_NAME = "ibaa-chain";
+    private static final int CHAIN_SVC_PORT = 8545;
+    private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
+    private static final int MONGO_SVC_PORT = 13012;
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
@@ -86,44 +91,50 @@ class IntegrationTests {
     public static final int MAX_POLLING_ATTEMPTS = MAX_BLOCK_TO_WAIT * POLLING_PER_BLOCK;
 
     @Container
-    static DockerComposeContainer<?> environment = new DockerComposeContainer<>(new File("docker-compose.yml"))
-            .withExposedService("ibaa-chain", 8545, Wait.forListeningPort())
-            .withExposedService("ibaa-blockchain-adapter-mongo", 13012, Wait.forListeningPort());
+    static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
+            .withPull(true)
+            .withExposedService(CHAIN_SVC_NAME, CHAIN_SVC_PORT, Wait.forListeningPort())
+            .withExposedService(MONGO_SVC_NAME, MONGO_SVC_PORT, Wait.forListeningPort());
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("chain.id", () -> "65535");
         registry.add("chain.hubAddress", () -> "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca");
-        registry.add("chain.nodeAddress", () -> getServiceUrl(environment.getServicePort("ibaa-chain", 8545)));
-        registry.add("spring.data.mongodb.port", () -> environment.getServicePort("ibaa-blockchain-adapter-mongo", 13012));
+        registry.add("chain.nodeAddress", () -> getServiceUrl(
+                environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
+                environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
+        registry.add("sprint.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
+        registry.add("spring.data.mongodb.port", () -> environment.getServicePort(MONGO_SVC_NAME, MONGO_SVC_PORT));
     }
 
     @LocalServerPort
     private int randomServerPort;
 
-    @Autowired
-    private IexecHubService iexecHubService;
-
-    @Autowired
-    private CredentialsService credentialsService;
-
-    @Autowired
-    private BrokerService brokerService;
-
-    @Autowired
-    private ChainConfig chainConfig;
+    private final IexecHubService iexecHubService;
+    private final CredentialsService credentialsService;
+    private final BrokerService brokerService;
+    private final ChainConfig chainConfig;
     private BlockchainAdapterApiClient appClient;
+
+    @Autowired
+    IntegrationTests(IexecHubService iexecHubService, CredentialsService credentialsService,
+                     BrokerService brokerService, ChainConfig chainConfig) {
+        this.iexecHubService = iexecHubService;
+        this.credentialsService = credentialsService;
+        this.brokerService = brokerService;
+        this.chainConfig = chainConfig;
+    }
 
     @BeforeEach
     void setUp(TestInfo testInfo) {
         log.info(">>> {}", testInfo.getDisplayName());
         appClient = BlockchainAdapterApiClientBuilder
-                .getInstanceWithBasicAuth(Logger.Level.FULL, getServiceUrl(randomServerPort), USER, PASSWORD);
+                .getInstanceWithBasicAuth(Logger.Level.FULL, getServiceUrl("localhost", randomServerPort), USER, PASSWORD);
     }
 
-    private static String getServiceUrl(int servicePort) {
-        log.info("service url http://localhost:{}", servicePort);
-        return "http://localhost:" + servicePort;
+    private static String getServiceUrl(String serviceHost, int servicePort) {
+        log.info("service url http://{}:{}", serviceHost, servicePort);
+        return "http://" + serviceHost + ":" + servicePort;
     }
 
     @Test
@@ -142,7 +153,7 @@ class IntegrationTests {
         String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
         WorkerpoolAuthorization workerpoolAuthorization =
                 mockAuthorization(chainTaskId, enclaveChallenge);
-        receipt =  iexecHubService.contribute(
+        receipt = iexecHubService.contribute(
                 chainTaskId,
                 someBytes32Payload,
                 workerpoolAuthorization.getSignature().getValue(),
@@ -150,7 +161,7 @@ class IntegrationTests {
                 enclaveSignature);
         log.info("contribute {}", receipt);
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
-            MAX_POLLING_ATTEMPTS);
+                MAX_POLLING_ATTEMPTS);
 
         receipt = iexecHubService.reveal(chainTaskId, someBytes32Payload);
         log.info("reveal {}", receipt);
@@ -161,7 +172,7 @@ class IntegrationTests {
         Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
         log.info("Requested task finalize: {}", finalizeResponseBody);
         waitStatus(chainTaskId, ChainTaskStatus.COMPLETED,
-            MAX_POLLING_ATTEMPTS);
+                MAX_POLLING_ATTEMPTS);
     }
 
     @Test
@@ -183,7 +194,7 @@ class IntegrationTests {
                             //maximum waiting time equals nb of submitted txs
                             //1 tx/block means N txs / N blocks
                             waitStatus(chainTaskId, ACTIVE,
-                                (taskVolume / 2 + 2) * MAX_POLLING_ATTEMPTS);
+                                    (taskVolume / 2 + 2) * MAX_POLLING_ATTEMPTS);
                             //no need to wait for propagation update in db
                             Assertions.assertTrue(true);
                         } catch (Exception e) {
@@ -206,7 +217,7 @@ class IntegrationTests {
                 secondsTimeout, secondsPollingInterval);
         log.info("Created app: {}", appAddress);
         String workerpool = iexecHubService.createWorkerpool(buildRandomName("pool"),
-            secondsTimeout, secondsPollingInterval);
+                secondsTimeout, secondsPollingInterval);
         log.info("Created workerpool: {}", workerpool);
         String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
                 "https://abc.com/def.jpeg",
@@ -299,7 +310,7 @@ class IntegrationTests {
         boolean isCompatibleVolume =
                 appOrder.getVolume().equals(workerpoolOrder.getVolume())
                         && appOrder.getVolume().equals(datasetOrder.getVolume());
-        if (!isCompatibleVolume){
+        if (!isCompatibleVolume) {
             log.info("Volumes are not compatible");
             return null;
         }
