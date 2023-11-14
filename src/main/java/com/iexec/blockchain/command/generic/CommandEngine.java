@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 package com.iexec.blockchain.command.generic;
 
 
+import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.tool.QueueService;
-import com.iexec.blockchain.tool.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -116,7 +116,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      * @param chainObjectId blockchain object ID
      * @return status
      */
-    public Optional<Status> getStatusForCommand(String chainObjectId) {
+    public Optional<CommandStatus> getStatusForCommand(String chainObjectId) {
         return updaterService.getStatusForCommand(chainObjectId);
     }
 

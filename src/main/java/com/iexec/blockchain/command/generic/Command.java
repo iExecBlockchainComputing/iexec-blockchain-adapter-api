@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.iexec.blockchain.command.generic;
 
-import com.iexec.blockchain.tool.Status;
+import com.iexec.blockchain.api.CommandStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,7 +52,7 @@ public abstract class Command<A extends CommandArgs> {
     @Version
     private Long version;
 
-    private Status status;
+    private CommandStatus status;
     private Instant creationDate;
     private Instant processingDate;
     private Instant finalDate;
