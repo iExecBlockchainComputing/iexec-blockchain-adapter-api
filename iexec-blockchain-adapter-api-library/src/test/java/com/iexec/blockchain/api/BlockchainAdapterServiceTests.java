@@ -16,10 +16,10 @@
 
 package com.iexec.blockchain.api;
 
+import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -33,21 +33,104 @@ import static org.mockito.Mockito.when;
 
 class BlockchainAdapterServiceTests {
 
+    static final String CHAIN_DEAL_ID = "CHAIN_DEAL_ID";
+    static final int TASK_INDEX = 0;
     static final String CHAIN_TASK_ID = "CHAIN_TASK_ID";
+    static final String LINK = "link";
+    static final String CALLBACK = "callback";
     static final int PERIOD = 10;
     static final int MAX_ATTEMPTS = 3;
 
     @Mock
     private BlockchainAdapterApiClient blockchainAdapterClient;
-    @InjectMocks
     private BlockchainAdapterService blockchainAdapterService;
 
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
+        blockchainAdapterService = new BlockchainAdapterService(blockchainAdapterClient, PERIOD, MAX_ATTEMPTS);
     }
 
+    // region initialize
+
+    @Test
+    void requestInitialize() {
+        when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
+                .thenReturn(CHAIN_TASK_ID);
+
+        assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isPresent());
+    }
+
+    @Test
+    void requestInitializeFailedSinceException() {
+        when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
+                .thenThrow(RuntimeException.class);
+
+        assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
+    }
+
+    @Test
+    void requestInitializeFailedSinceNot200() {
+        when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
+                .thenThrow(FeignException.BadRequest.class);
+
+        assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
+    }
+
+    @Test
+    void requestInitializeFailedSinceNoBody() {
+        when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
+                .thenReturn("");
+
+        assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
+    }
+
+    @Test
+    void isInitialized() {
+        when(blockchainAdapterClient.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
+                .thenReturn(CommandStatus.SUCCESS);
+        assertTrue(blockchainAdapterService.isInitialized(CHAIN_TASK_ID));
+    }
+
+    // endregion
+
+    // region finalize
+
+    @Test
+    void requestFinalize() {
+        when(blockchainAdapterClient.requestFinalizeTask(CHAIN_TASK_ID, new TaskFinalizeArgs(LINK, CALLBACK)))
+                .thenReturn(CHAIN_TASK_ID);
+
+        assertTrue(blockchainAdapterService.requestFinalize(CHAIN_TASK_ID, LINK, CALLBACK).isPresent());
+    }
+
+    @Test
+    void requestFinalizeFailedSinceNot200() {
+        when(blockchainAdapterClient.requestFinalizeTask(CHAIN_TASK_ID, new TaskFinalizeArgs(LINK, CALLBACK)))
+                .thenThrow(FeignException.BadRequest.class);
+
+        assertTrue(blockchainAdapterService.requestFinalize(CHAIN_TASK_ID, LINK, CALLBACK).isEmpty());
+    }
+
+    @Test
+    void requestFinalizeFailedSinceNoBody() {
+        when(blockchainAdapterClient.requestFinalizeTask(CHAIN_TASK_ID, new TaskFinalizeArgs(LINK, CALLBACK)))
+                .thenReturn("");
+
+        assertTrue(blockchainAdapterService.requestFinalize(CHAIN_TASK_ID, LINK, CALLBACK).isEmpty());
+    }
+
+    @Test
+    void isFinalized() {
+        when(blockchainAdapterClient.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
+                .thenReturn(CommandStatus.SUCCESS);
+        assertTrue(blockchainAdapterService.isFinalized(CHAIN_TASK_ID));
+    }
+
+    // endregion
+
     // region isCommandCompleted
+
     @Test
     void isCommandCompletedTrueWhenSuccess() {
         when(blockchainAdapterClient.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
@@ -102,5 +185,6 @@ class BlockchainAdapterServiceTests {
         future.cancel(true);
         assertThrows(CancellationException.class, future::get);
     }
+
     // endregion
 }
