@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,7 +58,6 @@ class BlockchainAdapterServiceTests {
     void requestInitialize() {
         when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
                 .thenReturn(CHAIN_TASK_ID);
-
         assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isPresent());
     }
 
@@ -65,7 +65,6 @@ class BlockchainAdapterServiceTests {
     void requestInitializeFailedSinceException() {
         when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
                 .thenThrow(RuntimeException.class);
-
         assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
     }
 
@@ -73,7 +72,6 @@ class BlockchainAdapterServiceTests {
     void requestInitializeFailedSinceNot200() {
         when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
                 .thenThrow(FeignException.BadRequest.class);
-
         assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
     }
 
@@ -81,7 +79,6 @@ class BlockchainAdapterServiceTests {
     void requestInitializeFailedSinceNoBody() {
         when(blockchainAdapterClient.requestInitializeTask(CHAIN_DEAL_ID, TASK_INDEX))
                 .thenReturn("");
-
         assertTrue(blockchainAdapterService.requestInitialize(CHAIN_DEAL_ID, TASK_INDEX).isEmpty());
     }
 
@@ -89,7 +86,7 @@ class BlockchainAdapterServiceTests {
     void isInitialized() {
         when(blockchainAdapterClient.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .thenReturn(CommandStatus.SUCCESS);
-        assertTrue(blockchainAdapterService.isInitialized(CHAIN_TASK_ID));
+        assertEquals(Optional.of(true), blockchainAdapterService.isInitialized(CHAIN_TASK_ID));
     }
 
     // endregion
@@ -108,7 +105,6 @@ class BlockchainAdapterServiceTests {
     void requestFinalizeFailedSinceNot200() {
         when(blockchainAdapterClient.requestFinalizeTask(CHAIN_TASK_ID, new TaskFinalizeArgs(LINK, CALLBACK)))
                 .thenThrow(FeignException.BadRequest.class);
-
         assertTrue(blockchainAdapterService.requestFinalize(CHAIN_TASK_ID, LINK, CALLBACK).isEmpty());
     }
 
@@ -116,7 +112,6 @@ class BlockchainAdapterServiceTests {
     void requestFinalizeFailedSinceNoBody() {
         when(blockchainAdapterClient.requestFinalizeTask(CHAIN_TASK_ID, new TaskFinalizeArgs(LINK, CALLBACK)))
                 .thenReturn("");
-
         assertTrue(blockchainAdapterService.requestFinalize(CHAIN_TASK_ID, LINK, CALLBACK).isEmpty());
     }
 
@@ -124,7 +119,7 @@ class BlockchainAdapterServiceTests {
     void isFinalized() {
         when(blockchainAdapterClient.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .thenReturn(CommandStatus.SUCCESS);
-        assertTrue(blockchainAdapterService.isFinalized(CHAIN_TASK_ID));
+        assertEquals(Optional.of(true), blockchainAdapterService.isFinalized(CHAIN_TASK_ID));
     }
 
     // endregion
@@ -138,9 +133,9 @@ class BlockchainAdapterServiceTests {
                 .thenReturn(CommandStatus.PROCESSING)
                 .thenReturn(CommandStatus.SUCCESS);
 
-        boolean commandCompleted = blockchainAdapterService.isCommandCompleted(
+        Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
                 blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
-        assertTrue(commandCompleted);
+        assertEquals(Optional.of(true), commandCompleted);
     }
 
     @Test
@@ -150,27 +145,27 @@ class BlockchainAdapterServiceTests {
                 .thenReturn(CommandStatus.PROCESSING)
                 .thenReturn(CommandStatus.FAILURE);
 
-        boolean commandCompleted = blockchainAdapterService.isCommandCompleted(
+        Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
                 blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
-        assertFalse(commandCompleted);
+        assertEquals(Optional.of(false), commandCompleted);
     }
 
     @Test
     void isCommandCompletedFalseWhenMaxAttempts() {
         when(blockchainAdapterClient.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .thenReturn(CommandStatus.PROCESSING);
-        boolean commandCompleted = blockchainAdapterService.isCommandCompleted(
+        Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
                 blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
-        assertFalse(commandCompleted);
+        assertEquals(Optional.empty(), commandCompleted);
     }
 
     @Test
     void isCommandCompletedFalseWhenFeignException() {
         when(blockchainAdapterClient.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .thenThrow(FeignException.class);
-        boolean commandCompleted = blockchainAdapterService.isCommandCompleted(
+        Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
                 blockchainAdapterClient::getStatusForFinalizeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
-        assertFalse(commandCompleted);
+        assertEquals(Optional.empty(), commandCompleted);
     }
 
     @Test

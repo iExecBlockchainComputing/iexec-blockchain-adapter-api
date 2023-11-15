@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Send up to 2 blockchain transactions per block.
   With a big enough latency, the nonce is properly computed in web3j library against the pending block. (#111)
-- Add `BlockchainAdapterService` class to implement interactions with REST API. (#117 #118)
+- Add `BlockchainAdapterService` class to implement interactions with REST API. (#117 #118 #119)
 
 ### Bug Fixes
 
