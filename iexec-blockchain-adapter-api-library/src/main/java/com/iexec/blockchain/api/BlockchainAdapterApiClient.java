@@ -16,7 +16,6 @@
 
 package com.iexec.blockchain.api;
 
-import com.iexec.common.chain.adapter.CommandStatus;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.config.PublicChainConfig;
 import com.iexec.common.sdk.broker.BrokerOrder;
@@ -30,6 +29,7 @@ import feign.RequestLine;
  * To create the client, call:
  * <pre>FeignBuilder.createBuilder(feignLogLevel)
  *         .target(BlockchainAdapterApiClient.class, blockchainAdapterUrl)</pre>
+ *
  * @see com.iexec.common.utils.FeignBuilder
  */
 public interface BlockchainAdapterApiClient {

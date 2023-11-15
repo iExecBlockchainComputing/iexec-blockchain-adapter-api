@@ -16,15 +16,11 @@
 
 package com.iexec.blockchain.command.task;
 
-import com.iexec.blockchain.command.task.contribute.TaskContributeService;
+import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
-import com.iexec.blockchain.command.task.reveal.TaskRevealService;
 import com.iexec.blockchain.tool.IexecHubService;
-import com.iexec.blockchain.tool.Status;
-import com.iexec.common.chain.adapter.args.TaskContributeArgs;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.chain.adapter.args.TaskRevealArgs;
 import com.iexec.commons.poco.chain.ChainTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -39,19 +35,13 @@ public class TaskController {
 
     private final IexecHubService iexecHubService;
     private final TaskInitializeService taskInitializeService;
-    private final TaskContributeService taskContributeService;
-    private final TaskRevealService taskRevealService;
     private final TaskFinalizeService taskFinalizeService;
 
     public TaskController(IexecHubService iexecHubService,
                           TaskInitializeService taskInitializeService,
-                          TaskContributeService taskContributeService,
-                          TaskRevealService taskRevealService,
                           TaskFinalizeService taskFinalizeService) {
         this.iexecHubService = iexecHubService;
         this.taskInitializeService = taskInitializeService;
-        this.taskContributeService = taskContributeService;
-        this.taskRevealService = taskRevealService;
         this.taskFinalizeService = taskFinalizeService;
     }
 
@@ -98,7 +88,7 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
-    public ResponseEntity<Status> getStatusForInitializeTaskRequest(
+    public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(
             @PathVariable String chainTaskId) {
         return taskInitializeService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)
@@ -131,7 +121,7 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/finalize/{chainTaskId}/status")
-    public ResponseEntity<Status> getStatusForFinalizeTaskRequest(
+    public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(
             @PathVariable String chainTaskId) {
         return taskFinalizeService.getStatusForCommand(chainTaskId)
                 .map(ResponseEntity::ok)

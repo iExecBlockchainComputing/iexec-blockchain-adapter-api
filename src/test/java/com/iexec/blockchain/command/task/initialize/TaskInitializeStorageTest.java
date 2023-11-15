@@ -16,7 +16,7 @@
 
 package com.iexec.blockchain.command.task.initialize;
 
-import com.iexec.blockchain.tool.Status;
+import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +63,7 @@ class TaskInitializeStorageTest {
         verify(repository, times(1))
                 .save(taskInitializeCaptor.capture());
         TaskInitialize initializeCaptorValue = taskInitializeCaptor.getValue();
-        Assertions.assertEquals(Status.RECEIVED, initializeCaptorValue.getStatus());
+        Assertions.assertEquals(CommandStatus.RECEIVED, initializeCaptorValue.getStatus());
         Assertions.assertEquals(CHAIN_TASK_ID, initializeCaptorValue.getChainObjectId());
         Assertions.assertEquals(args, initializeCaptorValue.getArgs());
         Assertions.assertNotNull(initializeCaptorValue.getCreationDate());
@@ -85,7 +85,7 @@ class TaskInitializeStorageTest {
     @Test
     void shouldSetProcessing() {
         TaskInitialize taskInitialize = new TaskInitialize();
-        taskInitialize.setStatus(Status.RECEIVED);
+        taskInitialize.setStatus(CommandStatus.RECEIVED);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
@@ -97,14 +97,14 @@ class TaskInitializeStorageTest {
         verify(repository, times(1))
                 .save(taskInitializeCaptor.capture());
         TaskInitialize initializeCaptorValue = taskInitializeCaptor.getValue();
-        Assertions.assertEquals(Status.PROCESSING, initializeCaptorValue.getStatus());
+        Assertions.assertEquals(CommandStatus.PROCESSING, initializeCaptorValue.getStatus());
         Assertions.assertNotNull(initializeCaptorValue.getProcessingDate());
     }
 
     @Test
     void shouldNotSetProcessingSinceBadStatus() {
         TaskInitialize taskInitialize = new TaskInitialize();
-        taskInitialize.setStatus(Status.PROCESSING);
+        taskInitialize.setStatus(CommandStatus.PROCESSING);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
@@ -119,7 +119,7 @@ class TaskInitializeStorageTest {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(receipt.getStatus()).thenReturn("0x1");
         TaskInitialize taskInitialize = new TaskInitialize();
-        taskInitialize.setStatus(Status.PROCESSING);
+        taskInitialize.setStatus(CommandStatus.PROCESSING);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
@@ -130,7 +130,7 @@ class TaskInitializeStorageTest {
         verify(repository, times(1))
                 .save(taskInitializeCaptor.capture());
         TaskInitialize initializeCaptorValue = taskInitializeCaptor.getValue();
-        Assertions.assertEquals(Status.SUCCESS, initializeCaptorValue.getStatus());
+        Assertions.assertEquals(CommandStatus.SUCCESS, initializeCaptorValue.getStatus());
         Assertions.assertEquals(receipt, initializeCaptorValue.getTransactionReceipt());
         Assertions.assertNotNull(initializeCaptorValue.getFinalDate());
     }
@@ -140,7 +140,7 @@ class TaskInitializeStorageTest {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(receipt.getStatus()).thenReturn("0x0");
         TaskInitialize taskInitialize = new TaskInitialize();
-        taskInitialize.setStatus(Status.PROCESSING);
+        taskInitialize.setStatus(CommandStatus.PROCESSING);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
@@ -151,7 +151,7 @@ class TaskInitializeStorageTest {
         verify(repository, times(1))
                 .save(taskInitializeCaptor.capture());
         TaskInitialize initializeCaptorValue = taskInitializeCaptor.getValue();
-        Assertions.assertEquals(Status.FAILURE, initializeCaptorValue.getStatus());
+        Assertions.assertEquals(CommandStatus.FAILURE, initializeCaptorValue.getStatus());
         Assertions.assertEquals(receipt, initializeCaptorValue.getTransactionReceipt());
         Assertions.assertNotNull(initializeCaptorValue.getFinalDate());
     }
@@ -160,7 +160,7 @@ class TaskInitializeStorageTest {
     void shouldNotSetFinalSinceBadStatus() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         TaskInitialize taskInitialize = new TaskInitialize();
-        taskInitialize.setStatus(Status.RECEIVED);
+        taskInitialize.setStatus(CommandStatus.RECEIVED);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(taskInitialize));
 
