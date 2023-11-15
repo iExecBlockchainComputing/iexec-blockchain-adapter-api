@@ -64,10 +64,14 @@ public class BlockchainAdapterService {
      * Verify if the initialize task command is completed on-chain.
      *
      * @param chainTaskId ID of the task
-     * @return true if the tx is mined, false if reverted or empty for other
-     * cases (too long since still RECEIVED or PROCESSING, adapter error)
+     * @return an optional which will be:
+     * <ul>
+     * <li>true if the tx is mined
+     * <li>false if reverted
+     * <li>empty for other cases (max attempts reached while still in RECEIVED or PROCESSING state, adapter error)
+     * </ul>
      */
-    public boolean isInitialized(String chainTaskId) {
+    public Optional<Boolean> isInitialized(String chainTaskId) {
         return isCommandCompleted(apiClient::getStatusForInitializeTaskRequest,
                 chainTaskId, period, maxAttempts);
     }
@@ -106,10 +110,14 @@ public class BlockchainAdapterService {
      * Verify if the finalize task command is completed on-chain.
      *
      * @param chainTaskId ID of the task
-     * @return true if the tx is mined, false if reverted or empty for other
-     * cases (too long since still RECEIVED or PROCESSING, adapter error)
+     * @return an optional which will be
+     * <ul>
+     * <li>true if the tx is mined
+     * <li>false if reverted
+     * <li>empty for other cases (max attempts reached while still in RECEIVED or PROCESSING state, adapter error)
+     * </ul>
      */
-    public boolean isFinalized(String chainTaskId) {
+    public Optional<Boolean> isFinalized(String chainTaskId) {
         return isCommandCompleted(apiClient::getStatusForFinalizeTaskRequest,
                 chainTaskId, period, maxAttempts);
     }
@@ -123,17 +131,21 @@ public class BlockchainAdapterService {
      * @param chainTaskId              ID of the task
      * @param period                   period in ms between consecutive checks
      * @param maxAttempts              maximum number of attempts
-     * @return true if the tx is mined, false if reverted or empty for other cases.
-     * (too long since still RECEIVED or PROCESSING, adapter error)
+     * @return an optional which will be:
+     * <ul>
+     * <li>true if the tx is mined
+     * <li>false if reverted
+     * <li>empty for other cases (max attempts reached while still in RECEIVED or PROCESSING state, adapter error)
+     * </ul>
      */
-    boolean isCommandCompleted(
+    Optional<Boolean> isCommandCompleted(
             Function<String, CommandStatus> getCommandStatusFunction,
             String chainTaskId, long period, int maxAttempts) {
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             try {
                 CommandStatus status = getCommandStatusFunction.apply(chainTaskId);
                 if (CommandStatus.SUCCESS == status || CommandStatus.FAILURE == status) {
-                    return CommandStatus.SUCCESS == status;
+                    return Optional.of(CommandStatus.SUCCESS == status);
                 }
                 // RECEIVED, PROCESSING
                 log.warn("Waiting command completion [chainTaskId:{}, status:{}, period:{}ms, attempt:{}, maxAttempts:{}]",
@@ -148,11 +160,11 @@ public class BlockchainAdapterService {
             } catch (InterruptedException e) {
                 log.error("Polling on blockchain command was interrupted", e);
                 Thread.currentThread().interrupt();
-                return false;
+                return Optional.empty();
             }
         }
         log.error("Reached max retry while waiting command completion [chainTaskId:{}, maxAttempts:{}]",
                 chainTaskId, maxAttempts);
-        return false;
+        return Optional.empty();
     }
 }
