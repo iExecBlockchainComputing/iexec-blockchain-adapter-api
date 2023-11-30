@@ -1,5 +1,5 @@
 # Build app container
-FROM eclipse-temurin:11.0.20_8-jre-focal
+FROM eclipse-temurin:11.0.21_9-jre-focal
 
 ARG jar
 
