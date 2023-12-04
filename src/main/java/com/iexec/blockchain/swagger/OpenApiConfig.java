@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,25 @@
 
 package com.iexec.blockchain.swagger;
 
-
-import com.iexec.blockchain.version.VersionService;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfig {
     public static final String SWAGGER_BASIC_AUTH = "basicAuth";
+    public static final String SWAGGER_SECURITY_SCHEME_KEY = "basicScheme";
+    public static final String SWAGGER_SECURITY_SCHEME = "basic";
+    public static final String TITLE = "iExec Blockchain Adapter";
 
-    private final VersionService versionService;
+    private final BuildProperties buildProperties;
 
-    public OpenApiConfig(VersionService versionService) {
-        this.versionService = versionService;
+    public OpenApiConfig(BuildProperties buildProperties) {
+        this.buildProperties = buildProperties;
     }
 
     /*
@@ -43,14 +45,14 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(
                         new Info()
-                                .title("iExec Blockchain Adapter")
-                                .version(versionService.getVersion())
+                                .title(TITLE)
+                                .version(buildProperties.getVersion())
                 )
                 .components(
                         new Components().addSecuritySchemes(
-                                "basicScheme", new SecurityScheme()
+                                SWAGGER_SECURITY_SCHEME_KEY, new SecurityScheme()
                                         .type(SecurityScheme.Type.HTTP)
-                                        .scheme("basic")
+                                        .scheme(SWAGGER_SECURITY_SCHEME)
                                         .in(SecurityScheme.In.HEADER)
                                         .name(SWAGGER_BASIC_AUTH)
                         )
