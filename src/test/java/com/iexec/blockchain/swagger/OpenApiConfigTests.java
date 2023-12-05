@@ -57,9 +57,9 @@ class OpenApiConfigTests {
 
         assertThat(api.getComponents()).isNotNull();
         SecurityScheme securityScheme = api.getComponents().getSecuritySchemes().get(OpenApiConfig.SWAGGER_SECURITY_SCHEME_KEY);
-        assertThat(securityScheme).isNotNull();
-        
+
         assertThat(securityScheme)
+                .isNotNull()
                 .extracting(
                         SecurityScheme::getType,
                         SecurityScheme::getScheme,
