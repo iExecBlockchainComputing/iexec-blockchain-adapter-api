@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.21_9-jre-focal`. (#121)
 - Upgrade to Spring Boot 2.7.17. (#120)
 - Upgrade to Spring Dependency Management Plugin 1.1.4. (#120)
-- Upgrade to Spring Doc Openapi 1.7.0. (#122)
+- Upgrade to Spring Doc OpenAPI 1.7.0. (#122)
 - Upgrade to `jenkins-library` 2.7.4. (#116)
 
 ## [[8.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.2.0) 2023-09-28
