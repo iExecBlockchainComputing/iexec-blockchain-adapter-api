@@ -75,5 +75,6 @@ class VersionControllerTests {
                         id -> id.getTag(VersionController.METRIC_INFO_LABEL_APP_VERSION)
                 )
                 .containsExactly(buildProperties.getName(), buildProperties.getVersion());
+        assertThat(info.value()).isEqualTo(VersionController.METRIC_VALUE);
     }
 }
