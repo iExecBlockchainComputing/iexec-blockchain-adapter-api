@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Reindent `build.gradle` file. (#114)
 - Standardisation of the dockerfile and its location in regard to other java components. (#115)
 - Rename `Status` to `CommandStatus` in library. (#117)
+- Remove `com.iexec.blockchain.command.task.contribute` package. (#124)
 
 ### Dependency Upgrades
 
