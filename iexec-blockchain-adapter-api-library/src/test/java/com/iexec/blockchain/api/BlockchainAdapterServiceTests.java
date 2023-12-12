@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -39,7 +40,7 @@ class BlockchainAdapterServiceTests {
     static final String CHAIN_TASK_ID = "CHAIN_TASK_ID";
     static final String LINK = "link";
     static final String CALLBACK = "callback";
-    static final int PERIOD = 10;
+    static final Duration PERIOD = Duration.ofMillis(10);
     static final int MAX_ATTEMPTS = 3;
 
     @Mock
@@ -134,7 +135,7 @@ class BlockchainAdapterServiceTests {
                 .thenReturn(CommandStatus.SUCCESS);
 
         Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
-                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
+                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, MAX_ATTEMPTS);
         assertEquals(Optional.of(true), commandCompleted);
     }
 
@@ -146,7 +147,7 @@ class BlockchainAdapterServiceTests {
                 .thenReturn(CommandStatus.FAILURE);
 
         Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
-                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
+                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, MAX_ATTEMPTS);
         assertEquals(Optional.of(false), commandCompleted);
     }
 
@@ -155,7 +156,7 @@ class BlockchainAdapterServiceTests {
         when(blockchainAdapterClient.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .thenReturn(CommandStatus.PROCESSING);
         Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
-                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
+                blockchainAdapterClient::getStatusForInitializeTaskRequest, CHAIN_TASK_ID, MAX_ATTEMPTS);
         assertEquals(Optional.empty(), commandCompleted);
     }
 
@@ -164,18 +165,20 @@ class BlockchainAdapterServiceTests {
         when(blockchainAdapterClient.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .thenThrow(FeignException.class);
         Optional<Boolean> commandCompleted = blockchainAdapterService.isCommandCompleted(
-                blockchainAdapterClient::getStatusForFinalizeTaskRequest, CHAIN_TASK_ID, PERIOD, MAX_ATTEMPTS);
+                blockchainAdapterClient::getStatusForFinalizeTaskRequest, CHAIN_TASK_ID, MAX_ATTEMPTS);
         assertEquals(Optional.empty(), commandCompleted);
     }
 
     @Test
     void isCommandCompletedFalseWhenInterrupted() throws InterruptedException {
+        blockchainAdapterService = new BlockchainAdapterService(blockchainAdapterClient, Duration.ofSeconds(5), MAX_ATTEMPTS);
+
         when(blockchainAdapterClient.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .thenReturn(CommandStatus.PROCESSING);
         ExecutorService service = Executors.newSingleThreadExecutor();
         Future<?> future = service.submit(() ->
                 blockchainAdapterService.isCommandCompleted(blockchainAdapterClient::getStatusForFinalizeTaskRequest,
-                        CHAIN_TASK_ID, 5000L, MAX_ATTEMPTS));
+                        CHAIN_TASK_ID, MAX_ATTEMPTS));
         Thread.sleep(1000L);
         future.cancel(true);
         assertThrows(CancellationException.class, future::get);

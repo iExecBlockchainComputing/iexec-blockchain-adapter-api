@@ -20,6 +20,7 @@ import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -27,10 +28,10 @@ import java.util.function.Function;
 public class BlockchainAdapterService {
 
     private final BlockchainAdapterApiClient apiClient;
-    private final long period;
+    private final Duration period;
     private final int maxAttempts;
 
-    public BlockchainAdapterService(BlockchainAdapterApiClient apiClient, long period, int maxAttempts) {
+    public BlockchainAdapterService(BlockchainAdapterApiClient apiClient, Duration period, int maxAttempts) {
         this.apiClient = apiClient;
         this.period = period;
         this.maxAttempts = maxAttempts;
@@ -73,7 +74,7 @@ public class BlockchainAdapterService {
      */
     public Optional<Boolean> isInitialized(String chainTaskId) {
         return isCommandCompleted(apiClient::getStatusForInitializeTaskRequest,
-                chainTaskId, period, maxAttempts);
+                chainTaskId, maxAttempts);
     }
 
     // endregion
@@ -119,7 +120,7 @@ public class BlockchainAdapterService {
      */
     public Optional<Boolean> isFinalized(String chainTaskId) {
         return isCommandCompleted(apiClient::getStatusForFinalizeTaskRequest,
-                chainTaskId, period, maxAttempts);
+                chainTaskId, maxAttempts);
     }
 
     // endregion
@@ -129,7 +130,6 @@ public class BlockchainAdapterService {
      *
      * @param getCommandStatusFunction method for fetching the current command status from the adapter
      * @param chainTaskId              ID of the task
-     * @param period                   period in ms between consecutive checks
      * @param maxAttempts              maximum number of attempts
      * @return an optional which will be:
      * <ul>
@@ -140,7 +140,7 @@ public class BlockchainAdapterService {
      */
     Optional<Boolean> isCommandCompleted(
             Function<String, CommandStatus> getCommandStatusFunction,
-            String chainTaskId, long period, int maxAttempts) {
+            String chainTaskId, int maxAttempts) {
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             try {
                 CommandStatus status = getCommandStatusFunction.apply(chainTaskId);
@@ -156,7 +156,7 @@ public class BlockchainAdapterService {
             }
 
             try {
-                Thread.sleep(period);
+                Thread.sleep(period.toMillis());
             } catch (InterruptedException e) {
                 log.error("Polling on blockchain command was interrupted", e);
                 Thread.currentThread().interrupt();
