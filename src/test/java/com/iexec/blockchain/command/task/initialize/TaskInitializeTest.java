@@ -16,8 +16,8 @@
 
 package com.iexec.blockchain.command.task.initialize;
 
+import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.tool.QueueService;
-import com.iexec.blockchain.tool.Status;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,11 +130,11 @@ class TaskInitializeTest {
     @Test
     void shouldGetStatusForInitializeTaskRequest() {
         TaskInitialize taskInitialize = mock(TaskInitialize.class);
-        when(taskInitialize.getStatus()).thenReturn(Status.PROCESSING);
+        when(taskInitialize.getStatus()).thenReturn(CommandStatus.PROCESSING);
         when(updaterService.getStatusForCommand(CHAIN_TASK_ID))
-                .thenReturn(Optional.of(Status.PROCESSING));
+                .thenReturn(Optional.of(CommandStatus.PROCESSING));
 
-        Assertions.assertEquals(Optional.of(Status.PROCESSING),
+        Assertions.assertEquals(Optional.of(CommandStatus.PROCESSING),
                 taskInitializeService.getStatusForCommand(CHAIN_TASK_ID));
     }
 

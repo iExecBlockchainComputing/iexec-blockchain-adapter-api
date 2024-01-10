@@ -1,22 +1,23 @@
 package com.iexec.blockchain.security;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfigurationAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 /*
                     By default Spring Security protects any incoming POST
                     (or PUT/DELETE/PATCH) request with a valid CSRF token
                     Will eventually activate it later.
-                 */
+                */
                 .csrf().disable()
                 .cors().and()
                 .authorizeRequests()
@@ -33,6 +34,7 @@ public class WebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapte
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
+        return http.build();
     }
 
 }

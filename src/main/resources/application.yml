@@ -20,6 +20,7 @@ chain:
   is-sidechain: ${IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN:true}
   gas-price-multiplier: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be sent with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
   gas-price-cap: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
+  max-allowed-tx-per-block: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MAX_ALLOWED_TX_PER_BLOCK:1} # 1 or 2
 wallet:
   path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
   password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}

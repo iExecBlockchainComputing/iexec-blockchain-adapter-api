@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 package com.iexec.blockchain.command.generic;
 
-
-import com.iexec.blockchain.tool.Status;
+import com.iexec.blockchain.api.CommandStatus;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +50,7 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
         }
 
         C command = this.newCommandInstance();
-        command.setStatus(Status.RECEIVED);
+        command.setStatus(CommandStatus.RECEIVED);
         command.setChainObjectId(chainObjectId);
         command.setArgs(args);
         command.setCreationDate(Instant.now());
@@ -71,12 +70,12 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
                 .filter(command -> command.getStatus() != null)
-                .filter(command -> command.getStatus() == Status.RECEIVED);
+                .filter(command -> command.getStatus() == CommandStatus.RECEIVED);
         if (localCommand.isEmpty()) {
             return false;
         }
         C command = localCommand.get();
-        command.setStatus(Status.PROCESSING);
+        command.setStatus(CommandStatus.PROCESSING);
         command.setProcessingDate(Instant.now());
         commandRepository.save(command);
         return true;
@@ -95,23 +94,23 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
                 .filter(command -> command.getStatus() != null)
-                .filter(command -> command.getStatus() == Status.PROCESSING);
+                .filter(command -> command.getStatus() == CommandStatus.PROCESSING);
         if (localCommand.isEmpty()) {
             return;
         }
         C command = localCommand.get();
 
-        Status status;
+        CommandStatus status;
         if (StringUtils.isNotEmpty(receipt.getStatus())
                 && receipt.getStatus().equals("0x1")) {
-            status = Status.SUCCESS;
+            status = CommandStatus.SUCCESS;
             log.info("Success command with transaction receipt " +
                             "[chainObjectId:{}, command:{}, receipt:{}]",
                     chainObjectId,
                     command.getClass().getSimpleName(),
                     receipt);
         } else {
-            status = Status.FAILURE;
+            status = CommandStatus.FAILURE;
             log.info("Failure after transaction sent [chainObjectId:{}, " +
                             "command:{}, receipt:{}]", chainObjectId,
                     command.getClass().getSimpleName(), receipt);
@@ -128,7 +127,7 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      * @param chainObjectId blockchain object ID on which the blockchain command
      *                      is performed
      */
-    public Optional<Status> getStatusForCommand(String chainObjectId) {
+    public Optional<CommandStatus> getStatusForCommand(String chainObjectId) {
         return commandRepository.findByChainObjectId(chainObjectId)
                 .map(Command::getStatus);
     }

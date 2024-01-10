@@ -26,6 +26,8 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 
@@ -60,6 +62,7 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public TransactionReceipt initializeTask(String chainDealId,
                                              int taskIndex) throws Exception {
+        addLatency();
         return iexecHubContract
                 .initialize(
                         stringToBytes(chainDealId),
@@ -100,8 +103,9 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public TransactionReceipt finalizeTask(String chainTaskId,
-                                       String resultLink,
-                                       String callbackData) throws Exception {
+                                           String resultLink,
+                                           String callbackData) throws Exception {
+        addLatency();
         byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
         byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
@@ -113,6 +117,23 @@ public class IexecHubService extends IexecHubAbstractService {
                         results,
                         resultsCallback)
                 .send();
+    }
+
+    /**
+     * Synchronized sleep to ensure several transactions will never be sent in the same time interval.
+     * <p>
+     * This synchronized sleep is required for nonce computation on pending block.
+     * When a first transaction will be emitted, it will be emitted and registered on the pending block.
+     * After a latency, a second transaction can be sent on the pending block and the nonce will be computed successfully.
+     * With a correct nonce, it becomes possible to perform several transactions from the same wallet in the same block.
+     *
+     * @throws InterruptedException if the calling thread is interrupted
+     */
+    private synchronized void addLatency() throws InterruptedException {
+        final long deadline = Instant.now().plus(1L, ChronoUnit.SECONDS).toEpochMilli();
+        while (Instant.now().toEpochMilli() < deadline) {
+            wait(deadline - Instant.now().toEpochMilli());
+        }
     }
 
     public boolean hasEnoughGas() {
