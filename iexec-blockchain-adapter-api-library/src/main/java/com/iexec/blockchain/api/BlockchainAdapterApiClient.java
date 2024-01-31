@@ -19,7 +19,6 @@ package com.iexec.blockchain.api;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.config.PublicChainConfig;
 import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.commons.poco.chain.ChainTask;
 import feign.Param;
 import feign.RequestLine;
 
@@ -40,9 +39,6 @@ public interface BlockchainAdapterApiClient {
 
     @RequestLine("GET /metrics")
     String getMetrics();
-
-    @RequestLine("GET /tasks/{chainTaskId}")
-    ChainTask getTask(@Param("chainTaskId") String chainTaskId);
 
     @RequestLine("POST /tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
     String requestInitializeTask(@Param("chainDealId") String chainDealId,

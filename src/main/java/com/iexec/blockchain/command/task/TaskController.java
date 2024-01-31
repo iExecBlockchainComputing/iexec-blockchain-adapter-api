@@ -21,7 +21,6 @@ import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.commons.poco.chain.ChainTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
@@ -43,21 +42,6 @@ public class TaskController {
         this.iexecHubService = iexecHubService;
         this.taskInitializeService = taskInitializeService;
         this.taskFinalizeService = taskFinalizeService;
-    }
-
-    /**
-     * Read task metadata on the blockchain.
-     *
-     * @param chainTaskId blockchain ID of the task
-     * @return task metadata
-     */
-    @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
-    @GetMapping("/{chainTaskId}")
-    public ResponseEntity<ChainTask> getTask(
-            @PathVariable String chainTaskId) {
-        return iexecHubService.getChainTask(chainTaskId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
