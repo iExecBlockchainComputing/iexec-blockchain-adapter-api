@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.iexec.blockchain.command.task;
 import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
-import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,14 +31,10 @@ import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 @RequestMapping("/tasks")
 public class TaskController {
 
-    private final IexecHubService iexecHubService;
     private final TaskInitializeService taskInitializeService;
     private final TaskFinalizeService taskFinalizeService;
 
-    public TaskController(IexecHubService iexecHubService,
-                          TaskInitializeService taskInitializeService,
-                          TaskFinalizeService taskFinalizeService) {
-        this.iexecHubService = iexecHubService;
+    public TaskController(TaskInitializeService taskInitializeService, TaskFinalizeService taskFinalizeService) {
         this.taskInitializeService = taskInitializeService;
         this.taskFinalizeService = taskFinalizeService;
     }
