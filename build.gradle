@@ -74,6 +74,7 @@ dependencies {
     // iexec
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
+    implementation project(':iexec-blockchain-adapter-api-library')
 
     // feign
     implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
@@ -82,13 +83,11 @@ dependencies {
     // observability
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
-    // integration tests
-    implementation project(':iexec-blockchain-adapter-api-library')
-
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation 'org.awaitility:awaitility'
 
+    // integration tests
     itestImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 }
 
@@ -104,11 +103,6 @@ tasks.named("bootJar") {
 }
 
 tasks.register("itest", Test) {
-    doFirst {
-        exec {
-            commandLine 'docker', 'compose', 'pull', '-q'
-        }
-    }
     group 'Verification'
     description 'Runs the integration tests.'
     setTestClassesDirs(sourceSets.itest.output)
