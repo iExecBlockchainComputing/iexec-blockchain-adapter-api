@@ -18,7 +18,6 @@ package com.iexec.blockchain.api;
 
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.config.PublicChainConfig;
-import com.iexec.common.sdk.broker.BrokerOrder;
 import feign.Param;
 import feign.RequestLine;
 
@@ -32,10 +31,6 @@ import feign.RequestLine;
  * @see com.iexec.common.utils.FeignBuilder
  */
 public interface BlockchainAdapterApiClient {
-
-    // region authenticated APIs
-    @RequestLine("POST /broker/orders/match")
-    String matchOrders(BrokerOrder brokerOrder);
 
     @RequestLine("GET /metrics")
     String getMetrics();
