@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
 /**
- * Call /v1/tasks endpoints in {@code TaskControllerV1}
+ * @deprecated Call /v1/tasks endpoints in {@code TaskControllerV1}
  */
 @Deprecated(forRemoval = true)
 @RestController
@@ -46,6 +46,7 @@ public class TaskController extends TaskControllerV1 {
      * @param taskIndex   index of the task int the bag
      * @return blockchain task ID if successful
      */
+    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/initialize")
     public ResponseEntity<String> requestInitializeTask(
@@ -60,6 +61,7 @@ public class TaskController extends TaskControllerV1 {
      * @param chainTaskId blockchain ID of the task
      * @return status
      */
+    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
     public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(
@@ -74,6 +76,7 @@ public class TaskController extends TaskControllerV1 {
      * @param args        input arguments for `finalize task`
      * @return blockchain task ID if successful
      */
+    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/finalize/{chainTaskId}")
     public ResponseEntity<String> requestFinalizeTask(
@@ -88,6 +91,7 @@ public class TaskController extends TaskControllerV1 {
      * @param chainTaskId blockchain ID of the task
      * @return status
      */
+    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/finalize/{chainTaskId}/status")
     public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(
