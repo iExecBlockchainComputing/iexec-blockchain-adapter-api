@@ -34,7 +34,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-class TaskControllerTests {
+class TaskControllerV1Tests {
 
     private static final String CHAIN_DEAL_ID = "0x1";
     private static final int TASK_INDEX = 0;
@@ -45,7 +45,7 @@ class TaskControllerTests {
     @Mock
     private TaskFinalizeService taskFinalizeService;
     @InjectMocks
-    private TaskController taskController;
+    private TaskControllerV1 taskController;
 
     @BeforeEach
     void init() {

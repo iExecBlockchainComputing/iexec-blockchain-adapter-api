@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,16 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
+/**
+ * Call /v1/tasks endpoints in {@code TaskControllerV1}
+ */
+@Deprecated(forRemoval = true)
 @RestController
-@RequestMapping("/v1/tasks")
-public class TaskController {
-
-    private final TaskInitializeService taskInitializeService;
-    private final TaskFinalizeService taskFinalizeService;
+@RequestMapping("/tasks")
+public class TaskController extends TaskControllerV1 {
 
     public TaskController(TaskInitializeService taskInitializeService, TaskFinalizeService taskFinalizeService) {
-        this.taskInitializeService = taskInitializeService;
-        this.taskFinalizeService = taskFinalizeService;
+        super(taskInitializeService, taskFinalizeService);
     }
 
     /**
@@ -48,13 +48,10 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/initialize")
-    public ResponseEntity<String> requestInitializeTask(@RequestParam String chainDealId,
-                                                        @RequestParam int taskIndex) {
-        String chainTaskId = taskInitializeService.start(chainDealId, taskIndex);
-        if (!chainTaskId.isEmpty()) {
-            return ResponseEntity.ok(chainTaskId);
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<String> requestInitializeTask(
+            @RequestParam String chainDealId,
+            @RequestParam int taskIndex) {
+        return super.requestInitializeTask(chainDealId, taskIndex);
     }
 
     /**
@@ -65,10 +62,9 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
-    public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(@PathVariable String chainTaskId) {
-        return taskInitializeService.getStatusForCommand(chainTaskId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(
+            @PathVariable String chainTaskId) {
+        return super.getStatusForInitializeTaskRequest(chainTaskId);
     }
 
     /**
@@ -80,12 +76,10 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/finalize/{chainTaskId}")
-    public ResponseEntity<String> requestFinalizeTask(@PathVariable String chainTaskId,
-                                                      @RequestBody TaskFinalizeArgs args) {
-        if (!taskFinalizeService.start(chainTaskId, args).isEmpty()) {
-            return ResponseEntity.ok(chainTaskId);
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<String> requestFinalizeTask(
+            @PathVariable String chainTaskId,
+            @RequestBody TaskFinalizeArgs args) {
+        return super.requestFinalizeTask(chainTaskId, args);
     }
 
     /**
@@ -96,10 +90,9 @@ public class TaskController {
      */
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/finalize/{chainTaskId}/status")
-    public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(@PathVariable String chainTaskId) {
-        return taskFinalizeService.getStatusForCommand(chainTaskId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(
+            @PathVariable String chainTaskId) {
+        return super.getStatusForFinalizeTaskRequest(chainTaskId);
     }
 
 }
