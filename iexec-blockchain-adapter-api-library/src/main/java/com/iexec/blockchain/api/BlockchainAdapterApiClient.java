@@ -35,17 +35,17 @@ public interface BlockchainAdapterApiClient {
     @RequestLine("GET /metrics")
     String getMetrics();
 
-    @RequestLine("POST /tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
+    @RequestLine("POST /v1/tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
     String requestInitializeTask(@Param("chainDealId") String chainDealId,
                                  @Param("taskIndex") int taskIndex);
 
-    @RequestLine("GET /tasks/initialize/{chainTaskId}/status")
+    @RequestLine("GET /v1/tasks/initialize/{chainTaskId}/status")
     CommandStatus getStatusForInitializeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
-    @RequestLine("POST /tasks/finalize/{chainTaskId}")
+    @RequestLine("POST /v1/tasks/finalize/{chainTaskId}")
     String requestFinalizeTask(@Param("chainTaskId") String chainTaskId, TaskFinalizeArgs taskFinalizeArgs);
 
-    @RequestLine("GET /tasks/finalize/{chainTaskId}/status")
+    @RequestLine("GET /v1/tasks/finalize/{chainTaskId}/status")
     CommandStatus getStatusForFinalizeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     // endregion
