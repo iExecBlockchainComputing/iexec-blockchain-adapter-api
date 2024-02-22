@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ class TaskInitializeStorageTest {
     @Test
     void shouldSetFinalSuccess() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(receipt.getStatus()).thenReturn("0x1");
+        when(receipt.isStatusOK()).thenReturn(true);
         TaskInitialize taskInitialize = new TaskInitialize();
         taskInitialize.setStatus(CommandStatus.PROCESSING);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))
@@ -138,7 +138,7 @@ class TaskInitializeStorageTest {
     @Test
     void shouldSetFinalFailure() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(receipt.getStatus()).thenReturn("0x0");
+        when(receipt.isStatusOK()).thenReturn(false);
         TaskInitialize taskInitialize = new TaskInitialize();
         taskInitialize.setStatus(CommandStatus.PROCESSING);
         when(repository.findByChainObjectId(CHAIN_TASK_ID))

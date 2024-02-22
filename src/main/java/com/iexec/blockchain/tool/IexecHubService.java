@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package com.iexec.blockchain.tool;
 
-import com.iexec.common.utils.EthAddress;
 import com.iexec.common.worker.result.ResultUtils;
-import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.chain.ChainDeal;
+import com.iexec.commons.poco.chain.ChainTask;
+import com.iexec.commons.poco.chain.ChainTaskStatus;
+import com.iexec.commons.poco.chain.IexecHubAbstractService;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -46,18 +48,9 @@ public class IexecHubService extends IexecHubAbstractService {
         );
     }
 
-    public static boolean isSignature(String hexString) {
-        return !StringUtils.isEmpty(hexString) &&
-                BytesUtils.stringToBytes(hexString).length == 65; // 32 + 32 + 1
-    }
-
     public static boolean isByte32(String hexString) {
         return !StringUtils.isEmpty(hexString) &&
                 BytesUtils.stringToBytes(hexString).length == 32;
-    }
-
-    public static boolean isAddress(String hexString) {
-        return EthAddress.validate(hexString);
     }
 
     public TransactionReceipt initializeTask(String chainDealId,
@@ -198,24 +191,6 @@ public class IexecHubService extends IexecHubAbstractService {
         long maxNbOfPeriods = getMaxNbOfPeriodsForConsensus();
         maxNbOfPeriods = (maxNbOfPeriods == -1) ? 10 : maxNbOfPeriods;
         return new Date(startTime + maxTime * maxNbOfPeriods);
-    }
-
-    public boolean hasEnoughStakeToContribute(String chainDealId, String workerWallet) {
-        Optional<ChainAccount> optionalChainAccount = getChainAccount(workerWallet);
-        Optional<ChainDeal> optionalChainDeal = getChainDeal(chainDealId);
-        if (optionalChainAccount.isEmpty() || optionalChainDeal.isEmpty()) {
-            return false;
-        }
-        return optionalChainAccount.get().getDeposit() >= optionalChainDeal.get().getWorkerStake().longValue();
-    }
-
-    public boolean isContributionUnsetToContribute(String chainTaskId, String workerWallet) {
-        Optional<ChainContribution> optionalContribution =
-                getChainContribution(chainTaskId, workerWallet);
-        if (optionalContribution.isEmpty()) return false;
-
-        ChainContribution chainContribution = optionalContribution.get();
-        return chainContribution.getStatus().equals(ChainContributionStatus.UNSET);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.iexec.blockchain.command.generic;
 import com.iexec.blockchain.api.CommandStatus;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Instant;
@@ -69,7 +68,6 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
     public boolean updateToProcessing(String chainObjectId) {
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
-                .filter(command -> command.getStatus() != null)
                 .filter(command -> command.getStatus() == CommandStatus.RECEIVED);
         if (localCommand.isEmpty()) {
             return false;
@@ -93,7 +91,6 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
                               @NonNull TransactionReceipt receipt) {
         Optional<C> localCommand = commandRepository
                 .findByChainObjectId(chainObjectId)
-                .filter(command -> command.getStatus() != null)
                 .filter(command -> command.getStatus() == CommandStatus.PROCESSING);
         if (localCommand.isEmpty()) {
             return;
@@ -101,19 +98,14 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
         C command = localCommand.get();
 
         CommandStatus status;
-        if (StringUtils.isNotEmpty(receipt.getStatus())
-                && receipt.getStatus().equals("0x1")) {
+        if (receipt.isStatusOK()) {
             status = CommandStatus.SUCCESS;
-            log.info("Success command with transaction receipt " +
-                            "[chainObjectId:{}, command:{}, receipt:{}]",
-                    chainObjectId,
-                    command.getClass().getSimpleName(),
-                    receipt);
+            log.info("Success command with transaction receipt [chainObjectId:{}, command:{}, receipt:{}]",
+                    chainObjectId, command.getClass().getSimpleName(), receipt);
         } else {
             status = CommandStatus.FAILURE;
-            log.info("Failure after transaction sent [chainObjectId:{}, " +
-                            "command:{}, receipt:{}]", chainObjectId,
-                    command.getClass().getSimpleName(), receipt);
+            log.info("Failure after transaction sent [chainObjectId:{}, command:{}, receipt:{}]",
+                    chainObjectId, command.getClass().getSimpleName(), receipt);
         }
         command.setStatus(status);
         command.setTransactionReceipt(receipt);

@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 - Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo** methods. (#130)
 - Remove `/broker/orders/match` endpoint, `matchOrders` must be done through the **Market API**. (#131)
+- Remove dead code in `IexecHubService` and `CommandStorage`. (#133)
 
 ## [[8.3.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.3.0) 2024-01-10
 
