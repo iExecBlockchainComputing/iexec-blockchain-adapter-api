@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import java.util.Optional;
 
 @Slf4j
 public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs> {
+
+    private static final int MAX_ATTEMPTS = 5;
 
     private final CommandBlockchain<A> blockchainService;
     private final CommandStorage<C, A> updaterService;
@@ -88,24 +90,24 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
                     chainObjectId, args);
             return;
         }
+        int attempt = 0;
         log.info("Processing command [chainObjectId:{}, commandArgs:{}]",
                 chainObjectId, args);
-        TransactionReceipt receipt;
-        try {
-            receipt = blockchainService.sendBlockchainCommand(args);
-        } catch (Exception e) {
-            log.error("Something wrong happened while triggering blockchain " +
-                            "command [chainObjectId:{}, commandArgs:{}]",
-                    chainObjectId, args, e);
-            //TODO Update to proper status: PROCESSING_FAILED or FAILURE
-            return;
+        TransactionReceipt receipt = null;
+        while (attempt < MAX_ATTEMPTS && receipt == null) {
+            attempt++;
+            try {
+                receipt = blockchainService.sendBlockchainCommand(args);
+            } catch (Exception e) {
+                log.error("Something wrong happened while triggering command [chainObjectId:{}, commandArgs:{}, attempt:{}]",
+                        chainObjectId, args, attempt, e);
+            }
         }
         if (receipt == null) {
             log.error("Triggering blockchain command failed " +
                             "(received null receipt after blockchain send) " +
-                            "[chainObjectId:{}, commandArgs:{}]",
-                    chainObjectId, args);
-            return;
+                            "[chainObjectId:{}, commandArgs:{}, attempt:{}]",
+                    chainObjectId, args, attempt);
         }
         updaterService.updateToFinal(chainObjectId, receipt);
     }
