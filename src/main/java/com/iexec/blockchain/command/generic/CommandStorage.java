@@ -17,7 +17,6 @@
 package com.iexec.blockchain.command.generic;
 
 import com.iexec.blockchain.api.CommandStatus;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -88,26 +87,25 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      * @param receipt       blockchain receipt
      */
     public void updateToFinal(String chainObjectId,
-                              @NonNull TransactionReceipt receipt) {
-        Optional<C> localCommand = commandRepository
+                              TransactionReceipt receipt) {
+        final C command = commandRepository
                 .findByChainObjectId(chainObjectId)
-                .filter(command -> command.getStatus() == CommandStatus.PROCESSING);
-        if (localCommand.isEmpty()) {
+                .filter(cmd -> cmd.getStatus() == CommandStatus.PROCESSING)
+                .orElse(null);
+        if (command == null) {
+            log.error("No entry was found in database, could not update to final state");
             return;
         }
-        C command = localCommand.get();
 
-        CommandStatus status;
-        if (receipt.isStatusOK()) {
-            status = CommandStatus.SUCCESS;
+        if (receipt != null && receipt.isStatusOK()) {
+            command.setStatus(CommandStatus.SUCCESS);
             log.info("Success command with transaction receipt [chainObjectId:{}, command:{}, receipt:{}]",
                     chainObjectId, command.getClass().getSimpleName(), receipt);
         } else {
-            status = CommandStatus.FAILURE;
+            command.setStatus(CommandStatus.FAILURE);
             log.info("Failure after transaction sent [chainObjectId:{}, command:{}, receipt:{}]",
                     chainObjectId, command.getClass().getSimpleName(), receipt);
         }
-        command.setStatus(status);
         command.setTransactionReceipt(receipt);
         command.setFinalDate(Instant.now());
         commandRepository.save(command);
