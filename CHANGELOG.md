@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Label REST API with `v1` version. (#132)
 
+### Bug Fixes
+
+- Set command status to `FAILURE` after all attempts failed. (#134)
+
 ### Quality
 
 - Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo** methods. (#130)
