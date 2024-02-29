@@ -18,8 +18,6 @@ package com.iexec.blockchain.api;
 
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.config.PublicChainConfig;
-import com.iexec.common.sdk.broker.BrokerOrder;
-import com.iexec.commons.poco.chain.ChainTask;
 import feign.Param;
 import feign.RequestLine;
 
@@ -34,27 +32,20 @@ import feign.RequestLine;
  */
 public interface BlockchainAdapterApiClient {
 
-    // region authenticated APIs
-    @RequestLine("POST /broker/orders/match")
-    String matchOrders(BrokerOrder brokerOrder);
-
     @RequestLine("GET /metrics")
     String getMetrics();
 
-    @RequestLine("GET /tasks/{chainTaskId}")
-    ChainTask getTask(@Param("chainTaskId") String chainTaskId);
-
-    @RequestLine("POST /tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
+    @RequestLine("POST /v1/tasks/initialize?chainDealId={chainDealId}&taskIndex={taskIndex}")
     String requestInitializeTask(@Param("chainDealId") String chainDealId,
                                  @Param("taskIndex") int taskIndex);
 
-    @RequestLine("GET /tasks/initialize/{chainTaskId}/status")
+    @RequestLine("GET /v1/tasks/initialize/{chainTaskId}/status")
     CommandStatus getStatusForInitializeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
-    @RequestLine("POST /tasks/finalize/{chainTaskId}")
+    @RequestLine("POST /v1/tasks/finalize/{chainTaskId}")
     String requestFinalizeTask(@Param("chainTaskId") String chainTaskId, TaskFinalizeArgs taskFinalizeArgs);
 
-    @RequestLine("GET /tasks/finalize/{chainTaskId}/status")
+    @RequestLine("GET /v1/tasks/finalize/{chainTaskId}/status")
     CommandStatus getStatusForFinalizeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     // endregion

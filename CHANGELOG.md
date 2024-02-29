@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
+
+### New Features
+
+- Label REST API with `v1` version. (#132)
+
+### Bug Fixes
+
+- Add retry mechanism and set command status to `FAILURE` after all attempts failed. (#134)
+
+### Quality
+
+- Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo** methods. (#130)
+- Remove `/broker/orders/match` endpoint, `matchOrders` must be done through the **Market API**. (#131)
+- Remove dead code in `IexecHubService` and `CommandStorage`. (#133)
+
+### Dependency Upgrades
+
+- Upgrade to `iexec-common` 8.4.0. (#135)
+
 ## [[8.3.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.3.0) 2024-01-10
 
 ### New Features

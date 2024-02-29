@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ class TaskInitializeTest {
                 .thenReturn(null);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService, times(0))
+        verify(updaterService)
                 .updateToFinal(CHAIN_TASK_ID, null);
     }
 
