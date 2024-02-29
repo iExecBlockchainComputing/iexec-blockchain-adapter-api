@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- Set command status to `FAILURE` after all attempts failed. (#134)
+- Add retry mechanism and set command status to `FAILURE` after all attempts failed. (#134)
 
 ### Quality
 
