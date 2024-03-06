@@ -29,6 +29,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.when;
 class TaskFinalizeBlockchainServiceTests {
 
     private static final String CHAIN_TASK_ID = "chainTaskId";
+    private static final long TIME_INTERVAL_IN_MS = 100L;
 
     @Mock
     private IexecHubService iexecHubService;
@@ -76,6 +78,47 @@ class TaskFinalizeBlockchainServiceTests {
         when(iexecHubService.getChainTask(CHAIN_TASK_ID)).thenReturn(Optional.of(chainTask));
         assertThat(taskFinalizeBlockchainService.canSendBlockchainCommand(args)).isFalse();
         assertThat(output.getOut()).contains("after final deadline");
+    }
+
+    @Test
+    void canNotSendCommandWhenNotEnoughReveals(CapturedOutput output) {
+        TaskFinalizeArgs args = new TaskFinalizeArgs(CHAIN_TASK_ID, "resultLink", "callbackData");
+        ChainTask chainTask = ChainTask.builder()
+                .status(ChainTaskStatus.REVEALING)
+                .revealCounter(1)
+                .winnerCounter(2)
+                .revealDeadline(Instant.now().plus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .finalDeadline(Instant.now().plus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .build();
+        when(iexecHubService.getChainTask(CHAIN_TASK_ID)).thenReturn(Optional.of(chainTask));
+        assertThat(taskFinalizeBlockchainService.canSendBlockchainCommand(args)).isFalse();
+        assertThat(output.getOut()).contains("not enough revealers");
+    }
+
+    @Test
+    void canSendCommandWhenRevealDeadlineReached() {
+        TaskFinalizeArgs args = new TaskFinalizeArgs(CHAIN_TASK_ID, "resultLink", "callbackData");
+        ChainTask chainTask = ChainTask.builder()
+                .status(ChainTaskStatus.REVEALING)
+                .revealDeadline(Instant.now().minus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .finalDeadline(Instant.now().plus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .build();
+        when(iexecHubService.getChainTask(CHAIN_TASK_ID)).thenReturn(Optional.of(chainTask));
+        assertThat(taskFinalizeBlockchainService.canSendBlockchainCommand(args)).isTrue();
+    }
+
+    @Test
+    void canSendBlockchainCommandWhenAllWinnersRevealed() {
+        TaskFinalizeArgs args = new TaskFinalizeArgs(CHAIN_TASK_ID, "resultLink", "callbackData");
+        ChainTask chainTask = ChainTask.builder()
+                .status(ChainTaskStatus.REVEALING)
+                .revealCounter(1)
+                .winnerCounter(1)
+                .revealDeadline(Instant.now().plus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .finalDeadline(Instant.now().plus(TIME_INTERVAL_IN_MS, ChronoUnit.MILLIS).toEpochMilli())
+                .build();
+        when(iexecHubService.getChainTask(CHAIN_TASK_ID)).thenReturn(Optional.of(chainTask));
+        assertThat(taskFinalizeBlockchainService.canSendBlockchainCommand(args)).isTrue();
     }
 
 }

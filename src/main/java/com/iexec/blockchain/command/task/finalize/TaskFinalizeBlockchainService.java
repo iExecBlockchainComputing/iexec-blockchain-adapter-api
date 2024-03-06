@@ -57,9 +57,8 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
             logError(chainTaskId, args, "after final deadline");
             return false;
         }
-        boolean hasEnoughRevealers =
-                chainTask.getRevealCounter() == chainTask.getWinnerCounter() ||
-                        (chainTask.getRevealCounter() > 0 && chainTask.getRevealDeadline() <= now);
+        boolean hasEnoughRevealers = chainTask.getRevealCounter() == chainTask.getWinnerCounter()
+                || (chainTask.getRevealCounter() > 0 && chainTask.getRevealDeadline() <= now);
         if (!hasEnoughRevealers) {
             logError(chainTaskId, args, "not enough revealers");
             return false;
