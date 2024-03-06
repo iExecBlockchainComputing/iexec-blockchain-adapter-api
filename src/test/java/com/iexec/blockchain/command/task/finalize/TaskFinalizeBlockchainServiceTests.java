@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.time.Instant;
 import java.util.Optional;
 
-import static com.iexec.common.utils.DateTimeUtils.now;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +69,10 @@ class TaskFinalizeBlockchainServiceTests {
     @Test
     void canNotSendCommandWhenTaskFinalDeadlineReached(CapturedOutput output) {
         TaskFinalizeArgs args = new TaskFinalizeArgs(CHAIN_TASK_ID, "resultLink", "callbackData");
-        ChainTask chainTask = ChainTask.builder().status(ChainTaskStatus.REVEALING).finalDeadline(now()).build();
+        ChainTask chainTask = ChainTask.builder()
+                .status(ChainTaskStatus.REVEALING)
+                .finalDeadline(Instant.now().toEpochMilli())
+                .build();
         when(iexecHubService.getChainTask(CHAIN_TASK_ID)).thenReturn(Optional.of(chainTask));
         assertThat(taskFinalizeBlockchainService.canSendBlockchainCommand(args)).isFalse();
         assertThat(output.getOut()).contains("after final deadline");
