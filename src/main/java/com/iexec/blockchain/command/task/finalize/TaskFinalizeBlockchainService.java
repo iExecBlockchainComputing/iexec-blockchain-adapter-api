@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import java.util.Optional;
-
-import static com.iexec.common.utils.DateTimeUtils.now;
+import java.time.Instant;
 
 @Slf4j
 @Service
@@ -41,26 +39,23 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
 
     @Override
     public boolean canSendBlockchainCommand(TaskFinalizeArgs args) {
-        String chainTaskId = args.getChainTaskId();
-
-        Optional<ChainTask> optional = iexecHubService.getChainTask(chainTaskId);
-        if (optional.isEmpty()) {
+        final String chainTaskId = args.getChainTaskId();
+        final ChainTask chainTask = iexecHubService.getChainTask(chainTaskId).orElse(null);
+        if (chainTask == null) {
             logError(chainTaskId, args, "blockchain read");
             return false;
         }
-        ChainTask chainTask = optional.get();
         if (chainTask.getStatus() != ChainTaskStatus.REVEALING) {
             logError(chainTaskId, args, "task is not revealing");
             return false;
         }
-        if (now() >= chainTask.getFinalDeadline()) {
+        final long now = Instant.now().toEpochMilli();
+        if (now >= chainTask.getFinalDeadline()) {
             logError(chainTaskId, args, "after final deadline");
             return false;
         }
-        boolean hasEnoughRevealers =
-                chainTask.getRevealCounter() == chainTask.getWinnerCounter()
-                        || (chainTask.getRevealCounter() > 0
-                        && chainTask.getRevealDeadline() <= now());
+        final boolean hasEnoughRevealers = chainTask.getRevealCounter() == chainTask.getWinnerCounter()
+                || (chainTask.getRevealCounter() > 0 && chainTask.getRevealDeadline() <= now);
         if (!hasEnoughRevealers) {
             logError(chainTaskId, args, "not enough revealers");
             return false;

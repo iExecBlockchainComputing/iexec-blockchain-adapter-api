@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2024
 
+### Quality
+
+- Use `Instant` instead of `DateTimeUtils`. (#138)
+
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
 
 ### New Features
