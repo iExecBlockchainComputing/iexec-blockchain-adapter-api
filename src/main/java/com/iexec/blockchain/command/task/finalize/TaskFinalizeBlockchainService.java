@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Instant;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -40,14 +39,12 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
 
     @Override
     public boolean canSendBlockchainCommand(TaskFinalizeArgs args) {
-        String chainTaskId = args.getChainTaskId();
-
-        Optional<ChainTask> optional = iexecHubService.getChainTask(chainTaskId);
-        if (optional.isEmpty()) {
+        final String chainTaskId = args.getChainTaskId();
+        final ChainTask chainTask = iexecHubService.getChainTask(chainTaskId).orElse(null);
+        if (chainTask == null) {
             logError(chainTaskId, args, "blockchain read");
             return false;
         }
-        ChainTask chainTask = optional.get();
         if (chainTask.getStatus() != ChainTaskStatus.REVEALING) {
             logError(chainTaskId, args, "task is not revealing");
             return false;
@@ -57,7 +54,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
             logError(chainTaskId, args, "after final deadline");
             return false;
         }
-        boolean hasEnoughRevealers = chainTask.getRevealCounter() == chainTask.getWinnerCounter()
+        final boolean hasEnoughRevealers = chainTask.getRevealCounter() == chainTask.getWinnerCounter()
                 || (chainTask.getRevealCounter() > 0 && chainTask.getRevealDeadline() <= now);
         if (!hasEnoughRevealers) {
             logError(chainTaskId, args, "not enough revealers");
