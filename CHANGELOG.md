@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Quality
 
 - Use `Instant` instead of `DateTimeUtils`. (#138)
+- Configure Gradle JVM Test Suite Plugin. (#139)
 
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
 
