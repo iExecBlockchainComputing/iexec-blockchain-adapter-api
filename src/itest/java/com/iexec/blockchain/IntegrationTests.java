@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.iexec.blockchain.api.BlockchainAdapterApiClient;
 import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.tool.ChainConfig;
-import com.iexec.blockchain.tool.CredentialsService;
 import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
@@ -54,7 +53,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
-import org.web3j.crypto.Sign;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.io.File;
@@ -111,16 +109,16 @@ class IntegrationTests {
     private int randomServerPort;
 
     private final IexecHubService iexecHubService;
-    private final CredentialsService credentialsService;
+    private final SignerService signerService;
     private final BrokerService brokerService;
     private final ChainConfig chainConfig;
     private BlockchainAdapterApiClient appClient;
 
     @Autowired
-    IntegrationTests(IexecHubService iexecHubService, CredentialsService credentialsService,
+    IntegrationTests(IexecHubService iexecHubService, SignerService signerService,
                      BrokerService brokerService, ChainConfig chainConfig) {
         this.iexecHubService = iexecHubService;
-        this.credentialsService = credentialsService;
+        this.signerService = signerService;
         this.brokerService = brokerService;
         this.chainConfig = chainConfig;
     }
@@ -138,7 +136,7 @@ class IntegrationTests {
     }
 
     @Test
-    public void shouldBeFinalized() throws Exception {
+    void shouldBeFinalized() throws Exception {
         TransactionReceipt receipt;
         String dealId = triggerDeal(1);
 
@@ -176,7 +174,7 @@ class IntegrationTests {
     }
 
     @Test
-    public void shouldBurstTransactionsWithAverageOfOneTxPerBlock() {
+    void shouldBurstTransactionsWithAverageOfOneTxPerBlock() {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
         String dealId = triggerDeal(taskVolume);
         List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
@@ -226,14 +224,14 @@ class IntegrationTests {
         log.info("Created datasetAddress: {}", datasetAddress);
 
         OrderSigner orderSigner = new OrderSigner(
-                chainConfig.getId(), chainConfig.getHubAddress(), credentialsService.getCredentials().getEcKeyPair());
+                chainConfig.getId(), chainConfig.getHubAddress(), signerService.getCredentials().getEcKeyPair());
         AppOrder signedAppOrder = orderSigner.signAppOrder(buildAppOrder(appAddress, taskVolume));
         WorkerpoolOrder signedWorkerpoolOrder = orderSigner.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
         DatasetOrder signedDatasetOrder = orderSigner.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
         RequestOrder signedRequestOrder = orderSigner.signRequestOrder(buildRequestOrder(signedAppOrder,
                 signedWorkerpoolOrder,
                 signedDatasetOrder,
-                credentialsService.getCredentials().getAddress(),
+                signerService.getAddress(),
                 DealParams.builder()
                         .iexecArgs("abc")
                         .iexecResultStorageProvider("ipfs")
@@ -377,20 +375,19 @@ class IntegrationTests {
 
     public WorkerpoolAuthorization mockAuthorization(String chainTaskId,
                                                      String enclaveChallenge) {
-        String workerWallet = credentialsService.getCredentials().getAddress();
-        String hash = HashUtils.concatenateAndHash(
+        final String workerWallet = signerService.getAddress();
+        final String hash = HashUtils.concatenateAndHash(
                 workerWallet,
                 chainTaskId,
                 enclaveChallenge);
 
-        Sign.SignatureData sign = Sign.signPrefixedMessage(BytesUtils.stringToBytes(hash),
-                credentialsService.getCredentials().getEcKeyPair());
+        final Signature signature = signerService.signMessageHash(hash);
 
         return WorkerpoolAuthorization.builder()
                 .workerWallet(workerWallet)
                 .chainTaskId(chainTaskId)
                 .enclaveChallenge(enclaveChallenge)
-                .signature(new Signature(sign))
+                .signature(signature)
                 .build();
     }
 
