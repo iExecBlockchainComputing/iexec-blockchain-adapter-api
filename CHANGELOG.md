@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2024
 
+### New Features
+
+- Replace `CredentialsService` with `SignerService`. (#143)
+
 ### Quality
 
 - Use `Instant` instead of `DateTimeUtils`. (#138)

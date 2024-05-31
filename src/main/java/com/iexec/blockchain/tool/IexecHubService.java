@@ -17,10 +17,7 @@
 package com.iexec.blockchain.tool;
 
 import com.iexec.common.worker.result.ResultUtils;
-import com.iexec.commons.poco.chain.ChainDeal;
-import com.iexec.commons.poco.chain.ChainTask;
-import com.iexec.commons.poco.chain.ChainTaskStatus;
-import com.iexec.commons.poco.chain.IexecHubAbstractService;
+import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -38,11 +35,11 @@ import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 
-    public IexecHubService(CredentialsService credentialsService,
+    public IexecHubService(SignerService signerService,
                            Web3jService web3jService,
                            ChainConfig chainConfig) {
         super(
-                credentialsService.getCredentials(),
+                signerService.getCredentials(),
                 web3jService,
                 chainConfig.getHubAddress()
         );
