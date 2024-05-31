@@ -139,7 +139,8 @@ public class IexecHubService extends IexecHubAbstractService {
      */
     public boolean isTaskInUnsetStatusOnChain(String chainTaskId) {
         final Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        return chainTask.isEmpty() || chainTask.get().getStatus() == ChainTaskStatus.UNSET;
+        return chainTask.isEmpty()
+                || ChainTaskStatus.UNSET.equals(chainTask.get().getStatus());
     }
 
     /**
