@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - Replace `CredentialsService` with `SignerService`. (#143)
+- Allow up to 4 blockchain transactions at the same time. (#144)
 
 ### Quality
 

@@ -61,7 +61,7 @@ public class ChainConfig {
     long gasPriceCap;
 
     @Positive
-    @Max(value = 2)
+    @Max(value = 4)
     int maxAllowedTxPerBlock;
 
     @PostConstruct
