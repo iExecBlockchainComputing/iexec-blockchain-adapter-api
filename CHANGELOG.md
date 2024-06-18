@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
+
+### New Features
+
+- Replace `CredentialsService` with `SignerService`. (#143)
+- Allow up to 4 blockchain transactions at the same time. (#144)
+
+### Quality
+
+- Use `Instant` instead of `DateTimeUtils`. (#138)
+- Configure Gradle JVM Test Suite Plugin. (#139)
+
+### Dependency Upgrades
+
+- Upgrade to Gradle 8.7. (#140)
+- Upgrade to `eclipse-temurin:11.0.22_7-jre-focal`. (#141)
+- Upgrade to Spring Boot 2.7.18. (#142)
+- Upgrade to `iexec-commons-poco` 4.1.0. (#145)
+- Upgrade to `iexce-common` 8.5.0. (#145)
+
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
 
 ### New Features

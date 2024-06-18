@@ -16,6 +16,7 @@
 
 package com.iexec.blockchain.tool;
 
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +40,7 @@ class IexecHubServiceTests {
             .hubAddress("0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca")
             .build();
     @Mock
-    private CredentialsService credentialsService;
+    private SignerService signerService;
     @Mock
     private IexecHubContract iexecHubContract;
     @Mock
@@ -52,8 +53,8 @@ class IexecHubServiceTests {
     void init() {
         MockitoAnnotations.openMocks(this);
         Credentials credentials = createEthereumCredentials();
-        when(credentialsService.getCredentials()).thenReturn(credentials);
-        iexecHubService = new IexecHubService(credentialsService, web3jService, chainConfig);
+        when(signerService.getCredentials()).thenReturn(credentials);
+        iexecHubService = new IexecHubService(signerService, web3jService, chainConfig);
         ReflectionTestUtils.setField(iexecHubService, "iexecHubContract", iexecHubContract);
     }
 
