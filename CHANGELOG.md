@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2024
+
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
 
 ### New Features
@@ -20,7 +22,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.22_7-jre-focal`. (#141)
 - Upgrade to Spring Boot 2.7.18. (#142)
 - Upgrade to `iexec-commons-poco` 4.1.0. (#145)
-- Upgrade to `iexce-common` 8.5.0. (#145)
+- Upgrade to `iexec-common` 8.5.0. (#145)
 
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
 
