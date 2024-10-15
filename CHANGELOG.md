@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `jenkins-library` 2.7.4. (#116)
 - Upgrade to `iexec-commons-poco` 3.2.0. (#127)
 - Upgrade to `iexec-common` 8.3.1. (#127)
+- Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#148)
 
 ## [[8.2.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.2.0) 2023-09-28
 
