@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Dependency Upgrades
 
 - Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#149)
-- Upgrade to `Gradle 8.10.2`. (#150)
+- Upgrade to Gradle 8.10.2. (#150)
 
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
 
