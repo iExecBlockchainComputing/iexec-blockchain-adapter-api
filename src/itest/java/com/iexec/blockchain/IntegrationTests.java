@@ -97,7 +97,7 @@ class IntegrationTests {
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("chain.id", () -> "65535");
-        registry.add("chain.hubAddress", () -> "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca");
+        registry.add("chain.hubAddress", () -> "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7");
         registry.add("chain.nodeAddress", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
