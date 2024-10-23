@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2024
 
-### New Features
+### Quality
 
 - Use poco-chain with poco v5.5.0 and voucher v1.0.0 in tests (#152)
 
