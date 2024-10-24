@@ -16,24 +16,29 @@
 
 package com.iexec.blockchain.tool;
 
-import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.commons.poco.chain.*;
+import com.iexec.commons.poco.encoding.PoCoDataEncoder;
 import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.utils.HashUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 
 @Service
 public class IexecHubService extends IexecHubAbstractService {
+
+    private final ChainConfig chainConfig;
+    private final SignerService signerService;
+    private final Web3jService web3jService;
 
     public IexecHubService(SignerService signerService,
                            Web3jService web3jService,
@@ -43,6 +48,9 @@ public class IexecHubService extends IexecHubAbstractService {
                 web3jService,
                 chainConfig.getHubAddress()
         );
+        this.chainConfig = chainConfig;
+        this.signerService = signerService;
+        this.web3jService = web3jService;
     }
 
     public static boolean isByte32(String hexString) {
@@ -51,62 +59,43 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public TransactionReceipt initializeTask(String chainDealId,
-                                             int taskIndex) throws Exception {
-        addLatency();
-        return iexecHubContract
-                .initialize(
-                        stringToBytes(chainDealId),
-                        BigInteger.valueOf(taskIndex))
-                .send();
+                                             int taskIndex) throws IOException {
+        final String txData = PoCoDataEncoder.encodeInitialize(chainDealId, taskIndex);
+        final String txHash = submit(txData);
+        return waitTxMined(txHash);
     }
 
     public TransactionReceipt contribute(String chainTaskId,
                                          String resultDigest,
                                          String workerpoolSignature,
                                          String enclaveChallenge,
-                                         String enclaveSignature) throws Exception {
-        String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
-        String resultSeal =
-                ResultUtils.computeResultSeal(credentials.getAddress(),
-                        chainTaskId,
-                        resultDigest);
-
-        return iexecHubContract
-                .contribute(
-                        stringToBytes(chainTaskId),
-                        stringToBytes(resultHash),
-                        stringToBytes(resultSeal),
-                        enclaveChallenge,
-                        stringToBytes(enclaveSignature),
-                        stringToBytes(workerpoolSignature))
-                .send();
+                                         String enclaveSignature) throws IOException {
+        final String resultHash = HashUtils.concatenateAndHash(chainTaskId, resultDigest);
+        final String resultSeal = HashUtils.concatenateAndHash(credentials.getAddress(), chainTaskId, resultDigest);
+        final String txData = PoCoDataEncoder.encodeContribute(
+                chainTaskId, resultHash, resultSeal, enclaveChallenge, enclaveSignature, workerpoolSignature);
+        final String txHash = submit(txData);
+        return waitTxMined(txHash);
     }
 
 
     public TransactionReceipt reveal(String chainTaskId,
-                                     String resultDigest) throws Exception {
-        return iexecHubContract
-                .reveal(
-                        stringToBytes(chainTaskId),
-                        stringToBytes(resultDigest))
-                .send();
+                                     String resultDigest) throws IOException {
+        final String txData = PoCoDataEncoder.encodeReveal(chainTaskId, resultDigest);
+        final String txHash = submit(txData);
+        return waitTxMined(txHash);
     }
 
     public TransactionReceipt finalizeTask(String chainTaskId,
                                            String resultLink,
-                                           String callbackData) throws Exception {
-        addLatency();
-        byte[] results = StringUtils.isNotEmpty(resultLink) ?
+                                           String callbackData) throws IOException {
+        final byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
+        final byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?
                 stringToBytes(callbackData) : new byte[0];
-
-        return iexecHubContract
-                .finalize(
-                        stringToBytes(chainTaskId),
-                        results,
-                        resultsCallback)
-                .send();
+        final String txData = PoCoDataEncoder.encodeFinalize(chainTaskId, results, resultsCallback);
+        final String txHash = submit(txData);
+        return waitTxMined(txHash);
     }
 
     /**
@@ -116,14 +105,24 @@ public class IexecHubService extends IexecHubAbstractService {
      * When a first transaction will be emitted, it will be emitted and registered on the pending block.
      * After a latency, a second transaction can be sent on the pending block and the nonce will be computed successfully.
      * With a correct nonce, it becomes possible to perform several transactions from the same wallet in the same block.
-     *
-     * @throws InterruptedException if the calling thread is interrupted
      */
-    private synchronized void addLatency() throws InterruptedException {
-        final long deadline = Instant.now().plus(1L, ChronoUnit.SECONDS).toEpochMilli();
-        while (Instant.now().toEpochMilli() < deadline) {
-            wait(deadline - Instant.now().toEpochMilli());
+    private synchronized String submit(String txData) throws IOException {
+        final BigInteger nonce = signerService.getNonce();
+        return signerService.signAndSendTransaction(
+                nonce, web3jService.getUserGasPrice(), chainConfig.getHubAddress(), txData);
+    }
+
+    private TransactionReceipt waitTxMined(final String txHash) {
+        int attempt = 0;
+        try {
+            while (web3jService.getTransactionReceipt(txHash) == null && attempt < 3 * chainConfig.getBlockTime()) {
+                TimeUnit.SECONDS.sleep(1L);
+                attempt++;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
+        return web3jService.getTransactionReceipt(txHash);
     }
 
     public boolean hasEnoughGas() {
