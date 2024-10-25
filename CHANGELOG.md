@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Quality
 
-- Use poco-chain with poco v5.5.0 and voucher v1.0.0 in tests (#152)
+- Use poco-chain with poco v5.5.0 and voucher v1.0.0 in tests. (#152)
 
 ### Dependency Upgrades
 
