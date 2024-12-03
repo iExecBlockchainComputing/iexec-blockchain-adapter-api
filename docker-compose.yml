@@ -6,6 +6,6 @@ services:
       - "8545"
 
   ibaa-blockchain-adapter-mongo:
-    image: library/mongo:4.4
-    entrypoint: "/bin/bash"
-    command: -c "mongod --bind_ip_all --port 13012"
+    image: library/mongo:7.0.15-jammy
+    expose:
+      - "27017"

@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#149)
 - Upgrade to Gradle 8.10.2. (#150)
 - Upgrade to `testcontainers` 1.20.4. (#153)
+- Upgrade to `mongo:7.0.15-jammy`. (#154)
 
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
 
@@ -46,7 +47,8 @@ All notable changes to this project will be documented in this file.
 
 ### Quality
 
-- Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo** methods. (#130)
+- Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo
+  ** methods. (#130)
 - Remove `/broker/orders/match` endpoint, `matchOrders` must be done through the **Market API**. (#131)
 - Remove dead code in `IexecHubService` and `CommandStorage`. (#133)
 
