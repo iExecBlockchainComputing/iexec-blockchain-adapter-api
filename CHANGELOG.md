@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#149)
 - Upgrade to Gradle 8.10.2. (#150)
 - Upgrade to `testcontainers` 1.20.4. (#153)
+- Upgrade to `mongo:7.0.15-jammy`. (#154)
 
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
 

@@ -78,7 +78,7 @@ class IntegrationTests {
     private static final String CHAIN_SVC_NAME = "ibaa-chain";
     private static final int CHAIN_SVC_PORT = 8545;
     private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
-    private static final int MONGO_SVC_PORT = 13012;
+    private static final int MONGO_SVC_PORT = 27017;
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
