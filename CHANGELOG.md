@@ -47,8 +47,7 @@ All notable changes to this project will be documented in this file.
 
 ### Quality
 
-- Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo
-  ** methods. (#130)
+- Remove `/tasks/{chainTaskId}` endpoint, the adapter must only call `initialize` and `finalize` **PoCo** methods. (#130)
 - Remove `/broker/orders/match` endpoint, `matchOrders` must be done through the **Market API**. (#131)
 - Remove dead code in `IexecHubService` and `CommandStorage`. (#133)
 
