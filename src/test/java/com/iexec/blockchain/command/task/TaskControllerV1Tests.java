@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
@@ -34,6 +36,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TaskControllerV1Tests {
 
     private static final String CHAIN_DEAL_ID = "0x1";
@@ -46,11 +49,6 @@ class TaskControllerV1Tests {
     private TaskFinalizeService taskFinalizeService;
     @InjectMocks
     private TaskControllerV1 taskController;
-
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     // region requestInitializeTask
     @Test
@@ -88,14 +86,14 @@ class TaskControllerV1Tests {
     // region requestFinalizeTask
     @Test
     void shouldNotifyFinalizeCommandSubmissionFailure() {
-        when(taskFinalizeService.start(CHAIN_TASK_ID, TaskFinalizeArgs.builder().build())).thenReturn("");
+        when(taskFinalizeService.start(CHAIN_TASK_ID, null, null)).thenReturn("");
         assertThat(taskController.requestFinalizeTask(CHAIN_TASK_ID, TaskFinalizeArgs.builder().build()))
                 .isEqualTo(ResponseEntity.badRequest().build());
     }
 
     @Test
     void shouldNotifyFinalizeCommandSubmissionSuccess() {
-        when(taskFinalizeService.start(CHAIN_TASK_ID, TaskFinalizeArgs.builder().build())).thenReturn(CHAIN_TASK_ID);
+        when(taskFinalizeService.start(CHAIN_TASK_ID, null, null)).thenReturn(CHAIN_TASK_ID);
         assertThat(taskController.requestFinalizeTask(CHAIN_TASK_ID, TaskFinalizeArgs.builder().build()))
                 .isEqualTo(ResponseEntity.ok(CHAIN_TASK_ID));
     }

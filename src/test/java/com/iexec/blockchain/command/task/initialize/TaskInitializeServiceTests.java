@@ -19,7 +19,6 @@ package com.iexec.blockchain.command.task.initialize;
 import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.chain.QueueService;
 import com.iexec.commons.poco.chain.ChainUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,10 +28,11 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TaskInitializeTest {
+class TaskInitializeServiceTests {
 
     public static final String CHAIN_DEAL_ID =
             "0x000000000000000000000000000000000000000000000000000000000000dea1";
@@ -49,58 +49,56 @@ class TaskInitializeTest {
     @Mock
     private QueueService queueService;
 
+    private final TaskInitializeArgs args = new TaskInitializeArgs(CHAIN_TASK_ID, CHAIN_DEAL_ID, TASK_INDEX);
+
+    // region start
     @Test
     void shouldInitializeTask() {
-        TaskInitializeArgs args = getArgs();
         when(blockchainCheckerService.canSendBlockchainCommand(args)).thenReturn(true);
         when(updaterService.updateToReceived(args)).thenReturn(true);
 
-        String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
+        final String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
-        Assertions.assertEquals(CHAIN_TASK_ID, chainTaskId);
-        verify(queueService).addExecutionToQueue(any(), eq(false));
+        assertThat(chainTaskId).isEqualTo(CHAIN_TASK_ID);
+        verify(queueService).addExecutionToQueue(any(Runnable.class), eq(false));
     }
 
     @Test
     void shouldNotInitializeTaskSinceCannotOnChain() {
-        TaskInitializeArgs args = getArgs();
         when(blockchainCheckerService.canSendBlockchainCommand(args)).thenReturn(false);
 
-        String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
+        final String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
-        Assertions.assertTrue(chainTaskId.isEmpty());
+        assertThat(chainTaskId).isEmpty();
         verifyNoInteractions(queueService);
     }
 
     @Test
     void shouldNotInitializeTaskSinceCannotUpdate() {
-        TaskInitializeArgs args = getArgs();
         when(blockchainCheckerService.canSendBlockchainCommand(args)).thenReturn(true);
         when(updaterService.updateToReceived(args)).thenReturn(false);
 
-        String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
+        final String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
-        Assertions.assertTrue(chainTaskId.isEmpty());
-        verify(queueService, never()).addExecutionToQueue(any(), anyBoolean());
+        assertThat(chainTaskId).isEmpty();
+        verifyNoInteractions(queueService);
     }
+    // endregion
 
+    // region triggerBlockchainCommand
     @Test
     void triggerInitializeTask() throws Exception {
-        TransactionReceipt receipt = mock(TransactionReceipt.class);
-        TaskInitializeArgs args = getArgs();
+        final TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
-        when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(receipt);
+        when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService, times(1))
-                .updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, receipt);
     }
 
     @Test
     void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
-        TransactionReceipt receipt = mock(TransactionReceipt.class);
-        TaskInitializeArgs args = getArgs();
+        final TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
 
         taskInitializeService.triggerBlockchainCommand(args);
@@ -110,36 +108,26 @@ class TaskInitializeTest {
 
     @Test
     void shouldNotTriggerInitializeTaskSinceReceiptIsNull() throws Exception {
-        TaskInitializeArgs args = getArgs();
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
-        when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(null);
+        when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(null);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService)
-                .updateToFinal(CHAIN_TASK_ID, null);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, null);
     }
+    // endregion
 
+    // region getStatusForCommand
     @Test
     void shouldGetStatusForInitializeTaskRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID))
-                .thenReturn(Optional.of(CommandStatus.PROCESSING));
-
-        Assertions.assertEquals(Optional.of(CommandStatus.PROCESSING),
-                taskInitializeService.getStatusForCommand(CHAIN_TASK_ID));
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(CommandStatus.PROCESSING));
+        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).contains(CommandStatus.PROCESSING);
     }
 
     @Test
     void shouldNotGetStatusForInitializeTaskRequestSinceNoRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID))
-                .thenReturn(Optional.empty());
-
-        Assertions.assertEquals(Optional.empty(),
-                taskInitializeService.getStatusForCommand(CHAIN_TASK_ID));
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
+        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).isEmpty();
     }
-
-    private TaskInitializeArgs getArgs() {
-        return new TaskInitializeArgs(CHAIN_TASK_ID, CHAIN_DEAL_ID, TASK_INDEX);
-    }
+    // endregion
 
 }

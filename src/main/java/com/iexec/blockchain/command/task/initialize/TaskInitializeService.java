@@ -27,13 +27,13 @@ import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskInitializeArgs> {
 
     public TaskInitializeService(
-            TaskInitializeBlockchainService blockchainService,
-            TaskInitializeStorageService updaterService,
-            QueueService queueService) {
+            final TaskInitializeBlockchainService blockchainService,
+            final TaskInitializeStorageService updaterService,
+            final QueueService queueService) {
         super(blockchainService, updaterService, queueService);
     }
 
-    public String start(String chainDealId, int taskIndex) {
+    public String start(final String chainDealId, final int taskIndex) {
         if (!isByte32(chainDealId) || taskIndex < 0) {
             return "";
         }

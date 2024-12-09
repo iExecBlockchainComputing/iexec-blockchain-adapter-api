@@ -28,21 +28,20 @@ import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinalizeArgs> {
 
     public TaskFinalizeService(
-            TaskFinalizeBlockchainService blockchainService,
-            TaskFinalizeStorageService storageService,
-            QueueService queueService) {
+            final TaskFinalizeBlockchainService blockchainService,
+            final TaskFinalizeStorageService storageService,
+            final QueueService queueService) {
         super(blockchainService, storageService, queueService);
     }
 
-    public String start(String chainTaskId,
-                        com.iexec.common.chain.adapter.args.TaskFinalizeArgs args) {
-        if (!isByte32(chainTaskId)
-                || args == null) {
-            log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
+    public String start(final String chainTaskId, final String resultLink, final String callbackData) {
+        if (!isByte32(chainTaskId) || resultLink == null || callbackData == null) {
+            log.error("At least one bad args [chainTaskId:{}, resultLink:{}, callbackData:{}]",
+                    chainTaskId, resultLink, callbackData);
             return "";
         }
         return startBlockchainCommand(
-                new TaskFinalizeArgs(chainTaskId, args.getResultLink(), args.getCallbackData()),
+                new TaskFinalizeArgs(chainTaskId, resultLink, callbackData),
                 true);
     }
 
