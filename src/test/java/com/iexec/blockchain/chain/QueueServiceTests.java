@@ -32,8 +32,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @Slf4j
 class QueueServiceTests {
@@ -230,14 +230,16 @@ class QueueServiceTests {
 
     //region TaskWithPriority
     @Test
-    void compareTaskWithPriorityAgainstNul() {
+    void compareTaskWithPriorityAgainstNull() {
         QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
         }, false);
         QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {
         }, true);
-        assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
+        QueueService.TaskWithPriority<Runnable> lowPriorityTask = new QueueService.TaskWithPriority<>(lowPriorityAction);
+        QueueService.TaskWithPriority<Runnable> highPriorityTask = new QueueService.TaskWithPriority<>(highPriorityAction);
+        assertThatThrownBy(() -> lowPriorityTask.compareTo(null))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> highPriorityAction.compareTo(null))
+        assertThatThrownBy(() -> highPriorityTask.compareTo(null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -247,7 +249,7 @@ class QueueServiceTests {
         }, false);
         QueueService.TaskWithPriority<Runnable> task1 = new QueueService.TaskWithPriority<>(lowPriorityAction);
         QueueService.TaskWithPriority<Runnable> task2 = new QueueService.TaskWithPriority<>(lowPriorityAction);
-        assertThat(task1.compareTo(task2)).isZero();
+        assertThat(task1).isEqualByComparingTo(task2);
     }
     //endregion
 }
