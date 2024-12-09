@@ -181,12 +181,14 @@ class QueueServiceTests {
     // endregion
 
     //region BlockchainAction
+    private void blockchainAction() {
+        // a blockchain action
+    }
+
     @Test
     void compareBlockchainActionAgainstNull() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
-        }, false);
-        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {
-        }, true);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(this::blockchainAction, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(this::blockchainAction, true);
         assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> highPriorityAction.compareTo(null))
@@ -197,14 +199,10 @@ class QueueServiceTests {
     void validateBlockchainActionComparisons() {
         final int hasHigherPriority = -1;
         final int hasLowerPriority = 1;
-        QueueService.BlockchainAction action1 = new QueueService.BlockchainAction(() -> {
-        }, false);
-        QueueService.BlockchainAction action2 = new QueueService.BlockchainAction(() -> {
-        }, false);
-        QueueService.BlockchainAction action3 = new QueueService.BlockchainAction(() -> {
-        }, true);
-        QueueService.BlockchainAction action4 = new QueueService.BlockchainAction(() -> {
-        }, true);
+        QueueService.BlockchainAction action1 = new QueueService.BlockchainAction(this::blockchainAction, false);
+        QueueService.BlockchainAction action2 = new QueueService.BlockchainAction(this::blockchainAction, false);
+        QueueService.BlockchainAction action3 = new QueueService.BlockchainAction(this::blockchainAction, true);
+        QueueService.BlockchainAction action4 = new QueueService.BlockchainAction(this::blockchainAction, true);
         //check action1
         assertThat(action1).isEqualByComparingTo(action1);
         assertThat(action1.compareTo(action2)).isEqualTo(hasHigherPriority);
@@ -231,10 +229,8 @@ class QueueServiceTests {
     //region TaskWithPriority
     @Test
     void compareTaskWithPriorityAgainstNull() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
-        }, false);
-        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {
-        }, true);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(this::blockchainAction, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(this::blockchainAction, true);
         QueueService.TaskWithPriority<Runnable> lowPriorityTask = new QueueService.TaskWithPriority<>(lowPriorityAction);
         QueueService.TaskWithPriority<Runnable> highPriorityTask = new QueueService.TaskWithPriority<>(highPriorityAction);
         assertThatThrownBy(() -> lowPriorityTask.compareTo(null))
@@ -245,8 +241,7 @@ class QueueServiceTests {
 
     @Test
     void validateTaskWithPriorityComparisons() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
-        }, false);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(this::blockchainAction, false);
         QueueService.TaskWithPriority<Runnable> task1 = new QueueService.TaskWithPriority<>(lowPriorityAction);
         QueueService.TaskWithPriority<Runnable> task2 = new QueueService.TaskWithPriority<>(lowPriorityAction);
         assertThat(task1).isEqualByComparingTo(task2);
