@@ -16,9 +16,8 @@
 
 package com.iexec.blockchain.command.task.finalize;
 
-
+import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.blockchain.command.generic.CommandBlockchain;
-import com.iexec.blockchain.tool.IexecHubService;
 import com.iexec.commons.poco.chain.ChainTask;
 import com.iexec.commons.poco.chain.ChainTaskStatus;
 import lombok.extern.slf4j.Slf4j;

@@ -16,9 +16,8 @@
 
 package com.iexec.blockchain.command.generic;
 
-
 import com.iexec.blockchain.api.CommandStatus;
-import com.iexec.blockchain.tool.QueueService;
+import com.iexec.blockchain.chain.QueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.chain;
 
 import com.iexec.commons.poco.chain.Web3jAbstractService;
 import org.springframework.stereotype.Service;

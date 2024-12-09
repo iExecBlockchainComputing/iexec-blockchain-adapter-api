@@ -1,4 +1,20 @@
-package com.iexec.blockchain.tool;
+/*
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.iexec.blockchain.chain;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,9 +31,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 class ChainConfigTest {
-    private final static int DEFAULT_CHAIN_ID = 1;
-    private final static String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
-    private final static String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
+    private static final int DEFAULT_CHAIN_ID = 1;
+    private static final String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
+    private static final String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
     private static final int DEFAULT_BLOCK_TIME = 1;
 
     private void validate(ChainConfig chainConfig) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -32,7 +48,7 @@ class ChainConfigTest {
                 Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 1, 1),
                 Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", 10, 2),
                 Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 42, 2),
-                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 100,1)
+                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 100, 1)
         );
     }
 

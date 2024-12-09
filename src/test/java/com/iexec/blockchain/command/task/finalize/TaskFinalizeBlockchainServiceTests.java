@@ -16,15 +16,14 @@
 
 package com.iexec.blockchain.command.task.finalize;
 
-import com.iexec.blockchain.tool.IexecHubService;
+import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.commons.poco.chain.ChainTask;
 import com.iexec.commons.poco.chain.ChainTaskStatus;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
@@ -35,6 +34,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 @ExtendWith(OutputCaptureExtension.class)
 class TaskFinalizeBlockchainServiceTests {
 
@@ -45,11 +45,6 @@ class TaskFinalizeBlockchainServiceTests {
     private IexecHubService iexecHubService;
     @InjectMocks
     private TaskFinalizeBlockchainService taskFinalizeBlockchainService;
-
-    @BeforeEach
-    public void init() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void canNotSendCommandWhenNoTask(CapturedOutput output) {
