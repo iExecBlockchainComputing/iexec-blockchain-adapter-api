@@ -1,4 +1,20 @@
-package com.iexec.blockchain.tool;
+/*
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.iexec.blockchain.chain;
 
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
@@ -167,8 +183,10 @@ class QueueServiceTests {
     //region BlockchainAction
     @Test
     void compareBlockchainActionAgainstNull() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
-        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {}, true);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
+        }, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {
+        }, true);
         assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> highPriorityAction.compareTo(null))
@@ -179,10 +197,14 @@ class QueueServiceTests {
     void validateBlockchainActionComparisons() {
         final int hasHigherPriority = -1;
         final int hasLowerPriority = 1;
-        QueueService.BlockchainAction action1 = new QueueService.BlockchainAction(() -> {}, false);
-        QueueService.BlockchainAction action2 = new QueueService.BlockchainAction(() -> {}, false);
-        QueueService.BlockchainAction action3 = new QueueService.BlockchainAction(() -> {}, true);
-        QueueService.BlockchainAction action4 = new QueueService.BlockchainAction(() -> {}, true);
+        QueueService.BlockchainAction action1 = new QueueService.BlockchainAction(() -> {
+        }, false);
+        QueueService.BlockchainAction action2 = new QueueService.BlockchainAction(() -> {
+        }, false);
+        QueueService.BlockchainAction action3 = new QueueService.BlockchainAction(() -> {
+        }, true);
+        QueueService.BlockchainAction action4 = new QueueService.BlockchainAction(() -> {
+        }, true);
         //check action1
         assertThat(action1).isEqualByComparingTo(action1);
         assertThat(action1.compareTo(action2)).isEqualTo(hasHigherPriority);
@@ -209,8 +231,10 @@ class QueueServiceTests {
     //region TaskWithPriority
     @Test
     void compareTaskWithPriorityAgainstNul() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
-        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {}, true);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
+        }, false);
+        QueueService.BlockchainAction highPriorityAction = new QueueService.BlockchainAction(() -> {
+        }, true);
         assertThatThrownBy(() -> lowPriorityAction.compareTo(null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> highPriorityAction.compareTo(null))
@@ -219,7 +243,8 @@ class QueueServiceTests {
 
     @Test
     void validateTaskWithPriorityComparisons() {
-        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {}, false);
+        QueueService.BlockchainAction lowPriorityAction = new QueueService.BlockchainAction(() -> {
+        }, false);
         QueueService.TaskWithPriority<Runnable> task1 = new QueueService.TaskWithPriority<>(lowPriorityAction);
         QueueService.TaskWithPriority<Runnable> task2 = new QueueService.TaskWithPriority<>(lowPriorityAction);
         assertThat(task1.compareTo(task2)).isZero();

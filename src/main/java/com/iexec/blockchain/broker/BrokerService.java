@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.iexec.blockchain.broker;
 
-import com.iexec.blockchain.tool.IexecHubService;
+import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
 import com.iexec.commons.poco.order.AppOrder;
@@ -65,7 +65,7 @@ public class BrokerService {
 
         checkRequestOrder(requestOrder);
         checkAssetOrder(requestOrder.getApp(), appOrder.getApp(), appOrder.getAppprice(), "App");
-        checkAssetOrder(requestOrder.getWorkerpool(), workerpoolOrder.getWorkerpool(), workerpoolOrder.getWorkerpoolprice(),"Workerpool");
+        checkAssetOrder(requestOrder.getWorkerpool(), workerpoolOrder.getWorkerpool(), workerpoolOrder.getWorkerpoolprice(), "Workerpool");
         if (withDataset(requestOrder.getDataset())) {
             Objects.requireNonNull(datasetOrder, "Dataset order cannot be null");
             checkAssetOrder(requestOrder.getDataset(), datasetOrder.getDataset(), datasetOrder.getDatasetprice(), "Dataset");
@@ -82,7 +82,7 @@ public class BrokerService {
     }
 
     void checkAssetOrder(String requestOrderAddress, String assetAddress, BigInteger assetPrice, String assetType) {
-        Objects.requireNonNull(requestOrderAddress,  assetType + " address cannot be null in request order");
+        Objects.requireNonNull(requestOrderAddress, assetType + " address cannot be null in request order");
         Objects.requireNonNull(assetAddress, assetType + " address cannot be null");
         Objects.requireNonNull(assetPrice, assetType + " price cannot be null");
         if (!requestOrderAddress.equalsIgnoreCase(assetAddress)) {
@@ -208,7 +208,7 @@ public class BrokerService {
      * @param datasetAddress Dataset address to check
      * @return true if a dataset is part of the request, false otherwise.
      */
-     boolean withDataset(String datasetAddress) {
+    boolean withDataset(String datasetAddress) {
         return StringUtils.isNotEmpty(datasetAddress) && !datasetAddress.equals(BytesUtils.EMPTY_ADDRESS);
     }
 

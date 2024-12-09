@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package com.iexec.blockchain.broker;
 
-import com.iexec.blockchain.tool.IexecHubService;
+import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.web3j.crypto.Credentials;
@@ -51,11 +51,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 @ExtendWith(OutputCaptureExtension.class)
 class BrokerServiceTests {
 
     @Mock
     private IexecHubService iexecHubService;
+    @InjectMocks
     private BrokerService brokerService;
 
     @Mock
@@ -63,12 +65,6 @@ class BrokerServiceTests {
 
     private static final ChainAccount deposit = ChainAccount.builder().deposit(100L).build();
     private static final ChainAccount emptyDeposit = ChainAccount.builder().deposit(0L).build();
-
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-        brokerService = new BrokerService(iexecHubService);
-    }
 
     AppOrder generateAppOrder() {
         return AppOrder.builder()
@@ -156,7 +152,7 @@ class BrokerServiceTests {
         try {
             ECKeyPair ecKeypair = Keys.createEcKeyPair();
             return Credentials.create(ecKeypair).getAddress();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Cannot generate ethereum address", e);
         }
     }
@@ -428,7 +424,7 @@ class BrokerServiceTests {
         when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
         when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
         when(remoteCall.send()).thenThrow(IOException.class);
-        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
 
@@ -443,7 +439,7 @@ class BrokerServiceTests {
         when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
         when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
         when(remoteCall.send()).thenThrow(IOException.class);
-        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
 
@@ -469,7 +465,7 @@ class BrokerServiceTests {
         receipt.setStatus("1");
         receipt.setLogs(List.of(web3Log));
         when(remoteCall.send()).thenReturn(receipt);
-        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder,workerpoolOrder, requestOrder))
+        assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isNotEmpty()
                 .contains(dealId);
     }

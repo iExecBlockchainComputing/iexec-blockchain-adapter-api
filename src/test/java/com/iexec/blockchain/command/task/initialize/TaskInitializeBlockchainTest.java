@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 
 package com.iexec.blockchain.command.task.initialize;
 
-import com.iexec.blockchain.tool.IexecHubService;
+import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TaskInitializeBlockchainTest {
 
     public static final String CHAIN_DEAL_ID =
@@ -39,11 +40,6 @@ class TaskInitializeBlockchainTest {
     private TaskInitializeBlockchainService checkerService;
     @Mock
     private IexecHubService iexecHubService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void canSendBlockchainCommand() {
@@ -63,10 +59,6 @@ class TaskInitializeBlockchainTest {
         TaskInitializeArgs args = getArgs();
         when(iexecHubService.hasEnoughGas())
                 .thenReturn(false);
-        when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
-                .thenReturn(true);
-        when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
-                .thenReturn(true);
 
         Assertions.assertFalse(checkerService.canSendBlockchainCommand(args));
     }
@@ -78,8 +70,6 @@ class TaskInitializeBlockchainTest {
                 .thenReturn(true);
         when(iexecHubService.isTaskInUnsetStatusOnChain(CHAIN_TASK_ID))
                 .thenReturn(false);
-        when(iexecHubService.isBeforeContributionDeadline(CHAIN_DEAL_ID))
-                .thenReturn(true);
 
         Assertions.assertFalse(checkerService.canSendBlockchainCommand(args));
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.chain;
 
 import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.commons.poco.chain.*;

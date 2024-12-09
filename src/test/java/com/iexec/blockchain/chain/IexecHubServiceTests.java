@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.chain;
 
 import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -34,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class IexecHubServiceTests {
     private final ChainConfig chainConfig = ChainConfig
             .builder()
@@ -51,7 +53,6 @@ class IexecHubServiceTests {
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.openMocks(this);
         Credentials credentials = createEthereumCredentials();
         when(signerService.getCredentials()).thenReturn(credentials);
         iexecHubService = new IexecHubService(signerService, web3jService, chainConfig);

@@ -17,20 +17,21 @@
 package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.api.CommandStatus;
-import com.iexec.blockchain.tool.QueueService;
+import com.iexec.blockchain.chain.QueueService;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TaskInitializeTest {
 
     public static final String CHAIN_DEAL_ID =
@@ -48,11 +49,6 @@ class TaskInitializeTest {
     @Mock
     private QueueService queueService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
     void shouldInitializeTask() {
         TaskInitializeArgs args = getArgs();
@@ -62,19 +58,18 @@ class TaskInitializeTest {
         String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
         Assertions.assertEquals(CHAIN_TASK_ID, chainTaskId);
-        verify(queueService, times(1)).addExecutionToQueue(any(), eq(false));
+        verify(queueService).addExecutionToQueue(any(), eq(false));
     }
 
     @Test
     void shouldNotInitializeTaskSinceCannotOnChain() {
         TaskInitializeArgs args = getArgs();
         when(blockchainCheckerService.canSendBlockchainCommand(args)).thenReturn(false);
-        when(updaterService.updateToReceived(args)).thenReturn(true);
 
         String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
         Assertions.assertTrue(chainTaskId.isEmpty());
-        verify(queueService, times(0)).addExecutionToQueue(any(), anyBoolean());
+        verifyNoInteractions(queueService);
     }
 
     @Test
@@ -86,7 +81,7 @@ class TaskInitializeTest {
         String chainTaskId = taskInitializeService.start(CHAIN_DEAL_ID, TASK_INDEX);
 
         Assertions.assertTrue(chainTaskId.isEmpty());
-        verify(queueService, times(0)).addExecutionToQueue(any(), anyBoolean());
+        verify(queueService, never()).addExecutionToQueue(any(), anyBoolean());
     }
 
     @Test
@@ -103,16 +98,14 @@ class TaskInitializeTest {
     }
 
     @Test
-    void shouldNotTriggerInitializeTaskSinceCannotUpdate() throws Exception {
+    void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
         TransactionReceipt receipt = mock(TransactionReceipt.class);
         TaskInitializeArgs args = getArgs();
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
-        when(blockchainCheckerService.sendBlockchainCommand(args))
-                .thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService, times(0))
-                .updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, receipt);
+        verifyNoInteractions(blockchainCheckerService);
     }
 
     @Test
@@ -129,8 +122,6 @@ class TaskInitializeTest {
 
     @Test
     void shouldGetStatusForInitializeTaskRequest() {
-        TaskInitialize taskInitialize = mock(TaskInitialize.class);
-        when(taskInitialize.getStatus()).thenReturn(CommandStatus.PROCESSING);
         when(updaterService.getStatusForCommand(CHAIN_TASK_ID))
                 .thenReturn(Optional.of(CommandStatus.PROCESSING));
 

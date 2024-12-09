@@ -19,18 +19,19 @@ package com.iexec.blockchain.command.task.initialize;
 import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TaskInitializeStorageTest {
 
     public static final String CHAIN_DEAL_ID =
@@ -43,11 +44,6 @@ class TaskInitializeStorageTest {
     private TaskInitializeStorageService updaterService;
     @Mock
     private TaskInitializeRepository repository;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void shouldSetReceived() {

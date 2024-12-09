@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package com.iexec.blockchain.command.task.initialize;
 
-
+import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
-import com.iexec.blockchain.tool.QueueService;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.springframework.stereotype.Service;
 
-import static com.iexec.blockchain.tool.IexecHubService.isByte32;
+import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
 @Service
 public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskInitializeArgs> {
@@ -39,9 +38,8 @@ public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskIni
             return "";
         }
         String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
-        return startBlockchainCommand(new TaskInitializeArgs(chainTaskId,
-                chainDealId,
-                taskIndex),
+        return startBlockchainCommand(
+                new TaskInitializeArgs(chainTaskId, chainDealId, taskIndex),
                 false);
     }
 
