@@ -16,7 +16,7 @@
 
 package com.iexec.blockchain.chain;
 
-import com.iexec.commons.poco.chain.SignerService;
+import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +31,14 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class IexecHubServiceTests {
@@ -56,7 +60,7 @@ class IexecHubServiceTests {
     void init() {
         final Credentials credentials = createEthereumCredentials();
         when(signerService.getCredentials()).thenReturn(credentials);
-        iexecHubService = new IexecHubService(signerService, web3jService, chainConfig);
+        iexecHubService = spy(new IexecHubService(signerService, web3jService, chainConfig));
         ReflectionTestUtils.setField(iexecHubService, "iexecHubContract", iexecHubContract);
     }
 
@@ -121,6 +125,44 @@ class IexecHubServiceTests {
         when(remoteFunctionCall.send()).thenThrow(Exception.class);
         assertThatThrownBy(() -> iexecHubService.finalizeTask("chainTaskId", "resultLink", "callbackData"))
                 .isInstanceOf(Exception.class);
+    }
+
+    // endregion
+
+    // region isTaskInUnsetStatusOnChain
+
+    @Test
+    void shouldBeUnsetWhenNoTask() {
+        assertThat(iexecHubService.isTaskInUnsetStatusOnChain("chainTaskId"))
+                .isTrue();
+    }
+
+    @Test
+    void shouldNotBeUnset() {
+        doReturn(Optional.of(ChainTask.builder().status(ChainTaskStatus.ACTIVE).build()))
+                .when(iexecHubService).getChainTask("chainTaskId");
+        assertThat(iexecHubService.isTaskInUnsetStatusOnChain("chainTaskId"))
+                .isFalse();
+    }
+
+    // endregion
+
+    // region isBeforeContributionDeadline
+
+    @Test
+    void shouldNotBeBeforeContributionDeadline() {
+        assertThat(iexecHubService.isBeforeContributionDeadline("dealId"))
+                .isFalse();
+    }
+
+    @Test
+    void shouldBeBeforeContributionDeadline() {
+        final BigInteger startTime = BigInteger.valueOf(Instant.now().getEpochSecond());
+        final ChainCategory category = ChainCategory.builder().id(0).maxExecutionTime(1000L).build();
+        doReturn(Optional.of(ChainDeal.builder().chainCategory(category).startTime(startTime).build()))
+                .when(iexecHubService).getChainDeal("dealId");
+        assertThat(iexecHubService.isBeforeContributionDeadline("dealId"))
+                .isTrue();
     }
 
     // endregion

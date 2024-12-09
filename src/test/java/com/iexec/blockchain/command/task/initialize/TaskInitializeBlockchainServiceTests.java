@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskInitializeBlockchainTest {
+class TaskInitializeBlockchainServiceTests {
 
     public static final String CHAIN_DEAL_ID =
             "0x000000000000000000000000000000000000000000000000000000000000dea1";
