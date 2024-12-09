@@ -32,6 +32,7 @@ import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +54,7 @@ class IexecHubServiceTests {
 
     @BeforeEach
     void init() {
-        Credentials credentials = createEthereumCredentials();
+        final Credentials credentials = createEthereumCredentials();
         when(signerService.getCredentials()).thenReturn(credentials);
         iexecHubService = new IexecHubService(signerService, web3jService, chainConfig);
         ReflectionTestUtils.setField(iexecHubService, "iexecHubContract", iexecHubContract);
@@ -61,8 +62,19 @@ class IexecHubServiceTests {
 
     @SneakyThrows
     private Credentials createEthereumCredentials() {
-        ECKeyPair ecKeyPair = Keys.createEcKeyPair();
+        final ECKeyPair ecKeyPair = Keys.createEcKeyPair();
         return Credentials.create(ecKeyPair);
+    }
+
+    // region initializeTask
+
+    @Test
+    void shouldInitializeTask() throws Exception {
+        final TransactionReceipt receipt = new TransactionReceipt();
+        when(iexecHubContract.initialize(any(), any())).thenReturn(remoteFunctionCall);
+        when(remoteFunctionCall.send()).thenReturn(receipt);
+        assertThat(iexecHubService.initializeTask("chainTaskId", 0))
+                .isEqualTo(receipt);
     }
 
     @Test
@@ -72,6 +84,8 @@ class IexecHubServiceTests {
         assertThatThrownBy(() -> iexecHubService.initializeTask("chainTaskId", 0))
                 .isInstanceOf(Exception.class);
     }
+
+    // endregion
 
     @Test
     void shouldNotContribute() throws Exception {
@@ -90,6 +104,17 @@ class IexecHubServiceTests {
                 .isInstanceOf(Exception.class);
     }
 
+    // region finalizeTask
+
+    @Test
+    void shouldFinalizeTask() throws Exception {
+        final TransactionReceipt receipt = new TransactionReceipt();
+        when(iexecHubContract.finalize(any(), any(), any())).thenReturn(remoteFunctionCall);
+        when(remoteFunctionCall.send()).thenReturn(receipt);
+        assertThat(iexecHubService.finalizeTask("chainTaskId", "resultLink", "callbackData"))
+                .isEqualTo(receipt);
+    }
+
     @Test
     void shouldNotFinalizeTask() throws Exception {
         when(iexecHubContract.finalize(any(), any(), any())).thenReturn(remoteFunctionCall);
@@ -97,4 +122,6 @@ class IexecHubServiceTests {
         assertThatThrownBy(() -> iexecHubService.finalizeTask("chainTaskId", "resultLink", "callbackData"))
                 .isInstanceOf(Exception.class);
     }
+
+    // endregion
 }

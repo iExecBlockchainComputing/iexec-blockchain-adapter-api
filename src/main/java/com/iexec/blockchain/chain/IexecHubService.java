@@ -28,16 +28,15 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Optional;
 
 import static com.iexec.commons.poco.utils.BytesUtils.stringToBytes;
 
 @Service
 public class IexecHubService extends IexecHubAbstractService {
 
-    public IexecHubService(SignerService signerService,
-                           Web3jService web3jService,
-                           ChainConfig chainConfig) {
+    public IexecHubService(final SignerService signerService,
+                           final Web3jService web3jService,
+                           final ChainConfig chainConfig) {
         super(
                 signerService.getCredentials(),
                 web3jService,
@@ -45,13 +44,13 @@ public class IexecHubService extends IexecHubAbstractService {
         );
     }
 
-    public static boolean isByte32(String hexString) {
+    public static boolean isByte32(final String hexString) {
         return !StringUtils.isEmpty(hexString) &&
                 BytesUtils.stringToBytes(hexString).length == 32;
     }
 
-    public TransactionReceipt initializeTask(String chainDealId,
-                                             int taskIndex) throws Exception {
+    public TransactionReceipt initializeTask(final String chainDealId,
+                                             final int taskIndex) throws Exception {
         addLatency();
         return iexecHubContract
                 .initialize(
@@ -60,13 +59,13 @@ public class IexecHubService extends IexecHubAbstractService {
                 .send();
     }
 
-    public TransactionReceipt contribute(String chainTaskId,
-                                         String resultDigest,
-                                         String workerpoolSignature,
-                                         String enclaveChallenge,
-                                         String enclaveSignature) throws Exception {
-        String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
-        String resultSeal =
+    public TransactionReceipt contribute(final String chainTaskId,
+                                         final String resultDigest,
+                                         final String workerpoolSignature,
+                                         final String enclaveChallenge,
+                                         final String enclaveSignature) throws Exception {
+        final String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
+        final String resultSeal =
                 ResultUtils.computeResultSeal(credentials.getAddress(),
                         chainTaskId,
                         resultDigest);
@@ -83,8 +82,8 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
 
-    public TransactionReceipt reveal(String chainTaskId,
-                                     String resultDigest) throws Exception {
+    public TransactionReceipt reveal(final String chainTaskId,
+                                     final String resultDigest) throws Exception {
         return iexecHubContract
                 .reveal(
                         stringToBytes(chainTaskId),
@@ -92,9 +91,9 @@ public class IexecHubService extends IexecHubAbstractService {
                 .send();
     }
 
-    public TransactionReceipt finalizeTask(String chainTaskId,
-                                           String resultLink,
-                                           String callbackData) throws Exception {
+    public TransactionReceipt finalizeTask(final String chainTaskId,
+                                           final String resultLink,
+                                           final String callbackData) throws Exception {
         addLatency();
         byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
@@ -131,16 +130,14 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     /**
-     * Check if the task is defined onchain and
-     * has the status {@link ChainTaskStatus#UNSET}.
+     * Check if the task is defined on-chain and has the {@link ChainTaskStatus#UNSET} status.
      *
      * @param chainTaskId blockchain ID of the task
      * @return true if the task is found with the status UNSET, false otherwise.
      */
-    public boolean isTaskInUnsetStatusOnChain(String chainTaskId) {
-        final Optional<ChainTask> chainTask = getChainTask(chainTaskId);
-        return chainTask.isEmpty()
-                || ChainTaskStatus.UNSET.equals(chainTask.get().getStatus());
+    public boolean isTaskInUnsetStatusOnChain(final String chainTaskId) {
+        final ChainTask chainTask = getChainTask(chainTaskId).orElse(null);
+        return chainTask == null || chainTask.getStatus() == ChainTaskStatus.UNSET;
     }
 
     /**
@@ -150,7 +147,7 @@ public class IexecHubService extends IexecHubAbstractService {
      * @param chainDealId blockchain ID of the deal
      * @return true if deadline is not reached, false otherwise.
      */
-    public boolean isBeforeContributionDeadline(String chainDealId) {
+    public boolean isBeforeContributionDeadline(final String chainDealId) {
         return getChainDeal(chainDealId)
                 .map(this::isBeforeContributionDeadline)
                 .orElse(false);
@@ -163,14 +160,15 @@ public class IexecHubService extends IexecHubAbstractService {
      * @param chainDeal blockchain ID of the deal
      * @return true if deadline is not reached, false otherwise.
      */
-    private boolean isBeforeContributionDeadline(ChainDeal chainDeal) {
+    private boolean isBeforeContributionDeadline(final ChainDeal chainDeal) {
         return getContributionDeadline(chainDeal)
                 .after(new Date());
     }
 
     /**
-     * <p> Get deal's contribution deadline date. The deadline
-     * is calculated as follow:
+     * Get deal's contribution deadline date.
+     * <p>
+     * The deadline is calculated as follows:
      * start + maxCategoryTime * maxNbOfPeriods.
      *
      * <ul>
@@ -182,7 +180,7 @@ public class IexecHubService extends IexecHubAbstractService {
      * @param chainDeal blockchain ID of the deal
      * @return contribution deadline
      */
-    public Date getContributionDeadline(ChainDeal chainDeal) {
+    private Date getContributionDeadline(final ChainDeal chainDeal) {
         long startTime = chainDeal.getStartTime().longValue() * 1000;
         long maxTime = chainDeal.getChainCategory().getMaxExecutionTime();
         long maxNbOfPeriods = getMaxNbOfPeriodsForConsensus();
