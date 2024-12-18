@@ -37,7 +37,7 @@ public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskIni
         if (!isByte32(chainDealId) || taskIndex < 0) {
             return "";
         }
-        String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
+        final String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
         return startBlockchainCommand(
                 new TaskInitializeArgs(chainTaskId, chainDealId, taskIndex),
                 false);
