@@ -21,12 +21,16 @@ import com.iexec.blockchain.chain.QueueService;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -61,6 +65,19 @@ class TaskInitializeServiceTests {
 
         assertThat(chainTaskId).isEqualTo(CHAIN_TASK_ID);
         verify(queueService).addExecutionToQueue(any(Runnable.class), eq(false));
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideTaskInitializeBadParameters")
+    void shouldNotInitializeTaskWithBadParameters(final String chainDealId, final int taskIndex) {
+        assertThat(taskInitializeService.start(chainDealId, taskIndex)).isEmpty();
+    }
+
+    private static Stream<Arguments> provideTaskInitializeBadParameters() {
+        return Stream.of(
+                Arguments.of("not-a-deal", 0),
+                Arguments.of(CHAIN_DEAL_ID, -1)
+        );
     }
 
     @Test

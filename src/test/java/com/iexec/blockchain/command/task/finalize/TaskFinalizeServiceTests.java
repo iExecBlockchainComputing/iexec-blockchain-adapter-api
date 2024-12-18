@@ -20,12 +20,16 @@ import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.chain.QueueService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.utils.BytesUtils.EMPTY_ADDRESS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -61,6 +65,20 @@ class TaskFinalizeServiceTests {
         verify(queueService).addExecutionToQueue(any(Runnable.class), eq(true));
     }
 
+    @ParameterizedTest
+    @MethodSource("provideTaskFinalizeBadParameters")
+    void shouldNotFinalizeTaskWithBadParameters(final String chainTaskId, final String resultLink, final String callbackData) {
+        assertThat(taskFinalizeService.start(chainTaskId, resultLink, callbackData)).isEmpty();
+    }
+
+    private static Stream<Arguments> provideTaskFinalizeBadParameters() {
+        return Stream.of(
+                Arguments.of("not-a-task", RESULT_LINK, EMPTY_ADDRESS),
+                Arguments.of(CHAIN_TASK_ID, null, EMPTY_ADDRESS),
+                Arguments.of(CHAIN_TASK_ID, RESULT_LINK, null)
+        );
+    }
+
     @Test
     void shouldNotFinalizeTaskSinceCannotOnChain() {
         when(blockchainService.canSendBlockchainCommand(args)).thenReturn(false);
@@ -72,7 +90,7 @@ class TaskFinalizeServiceTests {
     }
 
     @Test
-    void shouldNotInitializeTaskSinceCannotUpdate() {
+    void shouldNotFinalizeTaskSinceCannotUpdate() {
         when(blockchainService.canSendBlockchainCommand(args)).thenReturn(true);
         when(updaterService.updateToReceived(args)).thenReturn(false);
 
@@ -85,7 +103,7 @@ class TaskFinalizeServiceTests {
 
     // region triggerBlockchainCommand
     @Test
-    void triggerInitializeTask() throws Exception {
+    void triggerFinalizeTask() throws Exception {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
         when(blockchainService.sendBlockchainCommand(args)).thenReturn(receipt);
@@ -95,7 +113,7 @@ class TaskFinalizeServiceTests {
     }
 
     @Test
-    void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
+    void shouldNotTriggerFinalizeTaskSinceCannotUpdate() {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
 
@@ -105,7 +123,7 @@ class TaskFinalizeServiceTests {
     }
 
     @Test
-    void shouldNotTriggerInitializeTaskSinceReceiptIsNull() throws Exception {
+    void shouldNotTriggerFinalizeTaskSinceReceiptIsNull() throws Exception {
         when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
         when(blockchainService.sendBlockchainCommand(args)).thenReturn(null);
 
@@ -116,13 +134,13 @@ class TaskFinalizeServiceTests {
 
     // region getStatusForCommand
     @Test
-    void shouldGetStatusForInitializeTaskRequest() {
+    void shouldGetStatusForFinalizeTaskRequest() {
         when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(CommandStatus.PROCESSING));
         assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).contains(CommandStatus.PROCESSING);
     }
 
     @Test
-    void shouldNotGetStatusForInitializeTaskRequestSinceNoRequest() {
+    void shouldNotGetStatusForFinalizeTaskRequestSinceNoRequest() {
         when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
         assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).isEmpty();
     }
