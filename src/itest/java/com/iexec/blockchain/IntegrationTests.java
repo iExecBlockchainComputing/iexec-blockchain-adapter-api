@@ -36,8 +36,6 @@ import com.iexec.commons.poco.utils.HashUtils;
 import feign.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,6 +66,7 @@ import java.util.stream.IntStream;
 import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.commons.poco.chain.ChainTaskStatus.UNSET;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @Testcontainers
@@ -90,9 +89,9 @@ class IntegrationTests {
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
-            .withPull(true)
             .withExposedService(CHAIN_SVC_NAME, CHAIN_SVC_PORT, Wait.forListeningPort())
-            .withExposedService(MONGO_SVC_NAME, MONGO_SVC_PORT, Wait.forListeningPort());
+            .withExposedService(MONGO_SVC_NAME, MONGO_SVC_PORT, Wait.forListeningPort())
+            .withPull(true);
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
@@ -138,18 +137,18 @@ class IntegrationTests {
     @Test
     void shouldBeFinalized() throws Exception {
         TransactionReceipt receipt;
-        String dealId = triggerDeal(1);
+        final String dealId = triggerDeal(1);
 
-        String chainTaskId = appClient.requestInitializeTask(dealId, 0);
-        Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
+        final String chainTaskId = appClient.requestInitializeTask(dealId, 0);
+        assertThat(chainTaskId).isNotEmpty();
         log.info("Requested task initialize: {}", chainTaskId);
         //should wait since returned taskID is computed, initialize is not mined yet
         waitStatus(chainTaskId, ACTIVE, MAX_POLLING_ATTEMPTS);
 
-        String someBytes32Payload = TeeUtils.TEE_SCONE_ONLY_TAG; //any would be fine
-        String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
-        String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
-        WorkerpoolAuthorization workerpoolAuthorization =
+        final String someBytes32Payload = TeeUtils.TEE_SCONE_ONLY_TAG; //any would be fine
+        final String enclaveChallenge = BytesUtils.EMPTY_ADDRESS;
+        final String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
+        final WorkerpoolAuthorization workerpoolAuthorization =
                 mockAuthorization(chainTaskId, enclaveChallenge);
         receipt = iexecHubService.contribute(
                 chainTaskId,
@@ -165,9 +164,9 @@ class IntegrationTests {
         log.info("reveal {}", receipt);
 
         waitBeforeFinalizing(chainTaskId);
-        TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs();
-        String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
-        Assertions.assertTrue(StringUtils.isNotEmpty(finalizeResponseBody));
+        final TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs("", "");
+        final String finalizeResponseBody = appClient.requestFinalizeTask(chainTaskId, taskFinalizeArgs);
+        assertThat(finalizeResponseBody).isNotEmpty();
         log.info("Requested task finalize: {}", finalizeResponseBody);
         waitStatus(chainTaskId, ChainTaskStatus.COMPLETED,
                 MAX_POLLING_ATTEMPTS);
@@ -176,14 +175,14 @@ class IntegrationTests {
     @Test
     void shouldBurstTransactionsWithAverageOfOneTxPerBlock() {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
-        String dealId = triggerDeal(taskVolume);
-        List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
+        final String dealId = triggerDeal(taskVolume);
+        final List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
 
         IntStream.range(0, taskVolume)
                 .forEach(taskIndex -> {
                     //burst transactions (fast sequence) (send "initialize" tx examples for simplicity)
                     String chainTaskId = appClient.requestInitializeTask(dealId, taskIndex);
-                    Assertions.assertTrue(StringUtils.isNotEmpty(chainTaskId));
+                    assertThat(chainTaskId).isNotEmpty();
                     log.info("Requested task initialize [index:{}, chainTaskId:{}]",
                             taskIndex, chainTaskId);
                     //wait tx completion outside
@@ -205,30 +204,30 @@ class IntegrationTests {
     }
 
     private String triggerDeal(int taskVolume) {
-        int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
-        int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
-        String appAddress = iexecHubService.createApp(buildRandomName("app"),
+        final int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
+        final int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
+        final String appAddress = iexecHubService.createApp(buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
                 "DOCKER",
                 BytesUtils.EMPTY_HEX_STRING_32,
                 "",
                 secondsTimeout, secondsPollingInterval);
         log.info("Created app: {}", appAddress);
-        String workerpool = iexecHubService.createWorkerpool(buildRandomName("pool"),
+        final String workerpool = iexecHubService.createWorkerpool(buildRandomName("pool"),
                 secondsTimeout, secondsPollingInterval);
         log.info("Created workerpool: {}", workerpool);
-        String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
+        final String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
                 "https://abc.com/def.jpeg",
                 BytesUtils.EMPTY_HEX_STRING_32,
                 secondsTimeout, secondsPollingInterval);
         log.info("Created datasetAddress: {}", datasetAddress);
 
-        OrderSigner orderSigner = new OrderSigner(
+        final OrderSigner orderSigner = new OrderSigner(
                 chainConfig.getId(), chainConfig.getHubAddress(), signerService.getCredentials().getEcKeyPair());
-        AppOrder signedAppOrder = orderSigner.signAppOrder(buildAppOrder(appAddress, taskVolume));
-        WorkerpoolOrder signedWorkerpoolOrder = orderSigner.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
-        DatasetOrder signedDatasetOrder = orderSigner.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
-        RequestOrder signedRequestOrder = orderSigner.signRequestOrder(buildRequestOrder(signedAppOrder,
+        final AppOrder signedAppOrder = orderSigner.signAppOrder(buildAppOrder(appAddress, taskVolume));
+        final WorkerpoolOrder signedWorkerpoolOrder = orderSigner.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
+        final DatasetOrder signedDatasetOrder = orderSigner.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
+        final RequestOrder signedRequestOrder = orderSigner.signRequestOrder(buildRequestOrder(signedAppOrder,
                 signedWorkerpoolOrder,
                 signedDatasetOrder,
                 signerService.getAddress(),
@@ -237,18 +236,18 @@ class IntegrationTests {
                         .iexecResultStorageProvider("ipfs")
                         .iexecResultStorageProxy("https://v6.result.goerli.iex.ec")
                         .build()));
-        BrokerOrder brokerOrder = BrokerOrder.builder()
+        final BrokerOrder brokerOrder = BrokerOrder.builder()
                 .appOrder(signedAppOrder)
                 .workerpoolOrder(signedWorkerpoolOrder)
                 .requestOrder(signedRequestOrder)
                 .datasetOrder(signedDatasetOrder)
                 .build();
 
-        String dealId = brokerService.matchOrders(brokerOrder);
-        Assertions.assertTrue(StringUtils.isNotEmpty(dealId));
+        final String dealId = brokerService.matchOrders(brokerOrder);
+        assertThat(dealId).isNotEmpty();
         log.info("Created deal: {}", dealId);
         // no need to wait since broker is synchronous, just checking deal existence
-        Optional<ChainDeal> chainDeal = iexecHubService.getChainDeal(dealId);
+        final Optional<ChainDeal> chainDeal = iexecHubService.getChainDeal(dealId);
         assertThat(chainDeal).isPresent();
         return dealId;
     }
@@ -334,7 +333,7 @@ class IntegrationTests {
 
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int maxAttempts) {
         final AtomicInteger attempts = new AtomicInteger();
-        Awaitility.await()
+        await()
                 .pollInterval(POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .timeout((long) maxAttempts * POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .until(() -> {
@@ -358,7 +357,7 @@ class IntegrationTests {
         log.info("{} {}", POLLING_INTERVAL_MS, MAX_POLLING_ATTEMPTS);
 
         final AtomicInteger attempts = new AtomicInteger();
-        Awaitility.await()
+        await()
                 .pollInterval(POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .timeout((long) MAX_POLLING_ATTEMPTS * POLLING_INTERVAL_MS, TimeUnit.MILLISECONDS)
                 .until(() -> {
