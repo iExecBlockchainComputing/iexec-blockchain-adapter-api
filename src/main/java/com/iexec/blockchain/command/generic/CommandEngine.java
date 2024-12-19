@@ -50,26 +50,21 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      * @return blockchain object ID if successful
      */
     public String startBlockchainCommand(A args, boolean isPriority) {
-        String chainObjectId = args.getChainObjectId();
+        final String chainObjectId = args.getChainObjectId();
+        final String messageDetails = String.format("[chainObjectId:%s, commandArgs:%s]", chainObjectId, args);
         if (!blockchainService.canSendBlockchainCommand(args)) {
-            log.error("Starting blockchain command failed (failing on-chain" +
-                            " checks) [chainObjectId:{}, commandArgs:{}]",
-                    chainObjectId, args);
+            log.error("Starting blockchain command failed (failing on-chain checks) {}", messageDetails);
             return "";
         }
 
         if (!updaterService.updateToReceived(args)) {
-            log.error("Starting blockchain command failed (failing update " +
-                            "to received) [chainObjectId:{}, commandArgs:{}]",
-                    chainObjectId, args);
+            log.error("Starting blockchain command failed (failing update to received) {}", messageDetails);
             return "";
         }
-        log.info("Received command [chainObjectId:{}, commandArgs:{}]",
-                chainObjectId, args);
+        log.info("Received command {}", messageDetails);
 
-        Runnable runnable = () -> triggerBlockchainCommand(args);
+        final Runnable runnable = () -> triggerBlockchainCommand(args);
         queueService.addExecutionToQueue(runnable, isPriority);
-
 
         return chainObjectId;
     }

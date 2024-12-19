@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Use poco-chain with poco v5.5.0 and voucher v1.0.0 in tests. (#152)
 - Rename `tool` package to `chain` package. (#155)
+- Add tests on `TaskFinalizeService` to fix quality threshold regression. (#156)
 
 ### Dependency Upgrades
 
