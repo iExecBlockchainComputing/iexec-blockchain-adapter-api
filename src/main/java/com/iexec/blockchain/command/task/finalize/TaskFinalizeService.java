@@ -35,9 +35,9 @@ public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinaliz
     }
 
     public String start(final String chainTaskId, final String resultLink, final String callbackData) {
-        if (!isByte32(chainTaskId) || resultLink == null || callbackData == null) {
-            log.error("At least one bad args [chainTaskId:{}, resultLink:{}, callbackData:{}]",
-                    chainTaskId, resultLink, callbackData);
+        // callbackData can be null at the moment
+        if (!isByte32(chainTaskId) || resultLink == null) {
+            log.error("At least one bad args [chainTaskId:{}, resultLink:{}]", chainTaskId, resultLink);
             return "";
         }
         return startBlockchainCommand(

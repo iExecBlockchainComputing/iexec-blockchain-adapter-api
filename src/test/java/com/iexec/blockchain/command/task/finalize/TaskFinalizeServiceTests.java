@@ -67,15 +67,14 @@ class TaskFinalizeServiceTests {
 
     @ParameterizedTest
     @MethodSource("provideTaskFinalizeBadParameters")
-    void shouldNotFinalizeTaskWithBadParameters(final String chainTaskId, final String resultLink, final String callbackData) {
-        assertThat(taskFinalizeService.start(chainTaskId, resultLink, callbackData)).isEmpty();
+    void shouldNotFinalizeTaskWithBadParameters(final String chainTaskId, final String resultLink) {
+        assertThat(taskFinalizeService.start(chainTaskId, resultLink, EMPTY_ADDRESS)).isEmpty();
     }
 
     private static Stream<Arguments> provideTaskFinalizeBadParameters() {
         return Stream.of(
-                Arguments.of("not-a-task", RESULT_LINK, EMPTY_ADDRESS),
-                Arguments.of(CHAIN_TASK_ID, null, EMPTY_ADDRESS),
-                Arguments.of(CHAIN_TASK_ID, RESULT_LINK, null)
+                Arguments.of("not-a-task", RESULT_LINK),
+                Arguments.of(CHAIN_TASK_ID, null)
         );
     }
 
