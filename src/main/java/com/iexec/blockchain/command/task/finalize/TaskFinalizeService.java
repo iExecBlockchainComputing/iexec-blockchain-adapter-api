@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,32 @@
 
 package com.iexec.blockchain.command.task.finalize;
 
-
+import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
-import com.iexec.blockchain.tool.QueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.iexec.blockchain.tool.IexecHubService.isByte32;
+import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
 @Slf4j
 @Service
 public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinalizeArgs> {
 
     public TaskFinalizeService(
-            TaskFinalizeBlockchainService blockchainService,
-            TaskFinalizeStorageService storageService,
-            QueueService queueService) {
+            final TaskFinalizeBlockchainService blockchainService,
+            final TaskFinalizeStorageService storageService,
+            final QueueService queueService) {
         super(blockchainService, storageService, queueService);
     }
 
-    public String start(String chainTaskId,
-                        com.iexec.common.chain.adapter.args.TaskFinalizeArgs args) {
-        if (!isByte32(chainTaskId)
-                || args == null) {
-            log.error("At least one bad args [chainTaskId:{}, args:{}]", chainTaskId, args);
+    public String start(final String chainTaskId, final String resultLink, final String callbackData) {
+        // callbackData can be null at the moment
+        if (!isByte32(chainTaskId) || resultLink == null) {
+            log.error("At least one bad args [chainTaskId:{}, resultLink:{}]", chainTaskId, resultLink);
             return "";
         }
-        return startBlockchainCommand(new TaskFinalizeArgs(chainTaskId,
-                args.getResultLink(),
-                args.getCallbackData()),
+        return startBlockchainCommand(
+                new TaskFinalizeArgs(chainTaskId, resultLink, callbackData),
                 true);
     }
 

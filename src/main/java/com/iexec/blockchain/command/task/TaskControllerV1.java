@@ -82,7 +82,7 @@ public class TaskControllerV1 {
     @PostMapping("/finalize/{chainTaskId}")
     public ResponseEntity<String> requestFinalizeTask(@PathVariable String chainTaskId,
                                                       @RequestBody TaskFinalizeArgs args) {
-        if (!taskFinalizeService.start(chainTaskId, args).isEmpty()) {
+        if (!taskFinalizeService.start(chainTaskId, args.getResultLink(), args.getCallbackData()).isEmpty()) {
             return ResponseEntity.ok(chainTaskId);
         }
         return ResponseEntity.badRequest().build();

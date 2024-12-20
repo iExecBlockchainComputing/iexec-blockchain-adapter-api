@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[8.6.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.6.0) 2024-12-20
+
+### Bug Fixes
+
+- Allow null callback data when finalizing a task. (#158)
+
+### Quality
+
+- Use poco-chain with poco v5.5.0 and voucher v1.0.0 in tests. (#152)
+- Rename `tool` package to `chain` package. (#155)
+- Add tests on `TaskFinalizeService` to fix quality threshold regression. (#156 #157)
+
+### Dependency Upgrades
+
+- Upgrade to `eclipse-temurin:11.0.24_8-jre-focal`. (#149)
+- Upgrade to Gradle 8.10.2. (#150)
+- Upgrade to `testcontainers` 1.20.4. (#153)
+- Upgrade to `mongo:7.0.15-jammy`. (#154)
+- Upgrade to `iexec-commons-poco` 4.2.0. (#159)
+- Upgrade to `iexec-common` 8.6.0. (#159)
+
 ## [[8.5.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.5.0) 2024-06-18
 
 ### New Features
@@ -20,7 +41,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade to `eclipse-temurin:11.0.22_7-jre-focal`. (#141)
 - Upgrade to Spring Boot 2.7.18. (#142)
 - Upgrade to `iexec-commons-poco` 4.1.0. (#145)
-- Upgrade to `iexce-common` 8.5.0. (#145)
+- Upgrade to `iexec-common` 8.5.0. (#145)
 
 ## [[8.4.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.4.0) 2024-02-29
 

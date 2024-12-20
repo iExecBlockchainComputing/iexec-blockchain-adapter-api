@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.iexec.blockchain.tool;
+package com.iexec.blockchain.chain;
 
-import com.iexec.commons.poco.chain.SignerService;
+import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.contract.generated.IexecHubContract;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.ECKeyPair;
@@ -30,10 +31,16 @@ import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class IexecHubServiceTests {
     private final ChainConfig chainConfig = ChainConfig
             .builder()
@@ -51,17 +58,27 @@ class IexecHubServiceTests {
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.openMocks(this);
-        Credentials credentials = createEthereumCredentials();
+        final Credentials credentials = createEthereumCredentials();
         when(signerService.getCredentials()).thenReturn(credentials);
-        iexecHubService = new IexecHubService(signerService, web3jService, chainConfig);
+        iexecHubService = spy(new IexecHubService(signerService, web3jService, chainConfig));
         ReflectionTestUtils.setField(iexecHubService, "iexecHubContract", iexecHubContract);
     }
 
     @SneakyThrows
     private Credentials createEthereumCredentials() {
-        ECKeyPair ecKeyPair = Keys.createEcKeyPair();
+        final ECKeyPair ecKeyPair = Keys.createEcKeyPair();
         return Credentials.create(ecKeyPair);
+    }
+
+    // region initializeTask
+
+    @Test
+    void shouldInitializeTask() throws Exception {
+        final TransactionReceipt receipt = new TransactionReceipt();
+        when(iexecHubContract.initialize(any(), any())).thenReturn(remoteFunctionCall);
+        when(remoteFunctionCall.send()).thenReturn(receipt);
+        assertThat(iexecHubService.initializeTask("chainTaskId", 0))
+                .isEqualTo(receipt);
     }
 
     @Test
@@ -71,6 +88,8 @@ class IexecHubServiceTests {
         assertThatThrownBy(() -> iexecHubService.initializeTask("chainTaskId", 0))
                 .isInstanceOf(Exception.class);
     }
+
+    // endregion
 
     @Test
     void shouldNotContribute() throws Exception {
@@ -89,6 +108,17 @@ class IexecHubServiceTests {
                 .isInstanceOf(Exception.class);
     }
 
+    // region finalizeTask
+
+    @Test
+    void shouldFinalizeTask() throws Exception {
+        final TransactionReceipt receipt = new TransactionReceipt();
+        when(iexecHubContract.finalize(any(), any(), any())).thenReturn(remoteFunctionCall);
+        when(remoteFunctionCall.send()).thenReturn(receipt);
+        assertThat(iexecHubService.finalizeTask("chainTaskId", "resultLink", "callbackData"))
+                .isEqualTo(receipt);
+    }
+
     @Test
     void shouldNotFinalizeTask() throws Exception {
         when(iexecHubContract.finalize(any(), any(), any())).thenReturn(remoteFunctionCall);
@@ -96,4 +126,44 @@ class IexecHubServiceTests {
         assertThatThrownBy(() -> iexecHubService.finalizeTask("chainTaskId", "resultLink", "callbackData"))
                 .isInstanceOf(Exception.class);
     }
+
+    // endregion
+
+    // region isTaskInUnsetStatusOnChain
+
+    @Test
+    void shouldBeUnsetWhenNoTask() {
+        assertThat(iexecHubService.isTaskInUnsetStatusOnChain("chainTaskId"))
+                .isTrue();
+    }
+
+    @Test
+    void shouldNotBeUnset() {
+        doReturn(Optional.of(ChainTask.builder().status(ChainTaskStatus.ACTIVE).build()))
+                .when(iexecHubService).getChainTask("chainTaskId");
+        assertThat(iexecHubService.isTaskInUnsetStatusOnChain("chainTaskId"))
+                .isFalse();
+    }
+
+    // endregion
+
+    // region isBeforeContributionDeadline
+
+    @Test
+    void shouldNotBeBeforeContributionDeadline() {
+        assertThat(iexecHubService.isBeforeContributionDeadline("dealId"))
+                .isFalse();
+    }
+
+    @Test
+    void shouldBeBeforeContributionDeadline() {
+        final BigInteger startTime = BigInteger.valueOf(Instant.now().getEpochSecond());
+        final ChainCategory category = ChainCategory.builder().id(0).maxExecutionTime(1000L).build();
+        doReturn(Optional.of(ChainDeal.builder().chainCategory(category).startTime(startTime).build()))
+                .when(iexecHubService).getChainDeal("dealId");
+        assertThat(iexecHubService.isBeforeContributionDeadline("dealId"))
+                .isTrue();
+    }
+
+    // endregion
 }
