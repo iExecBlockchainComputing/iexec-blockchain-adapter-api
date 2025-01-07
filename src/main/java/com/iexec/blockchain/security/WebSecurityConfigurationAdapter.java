@@ -18,21 +18,21 @@ public class WebSecurityConfigurationAdapter {
                     (or PUT/DELETE/PATCH) request with a valid CSRF token
                     Will eventually activate it later.
                 */
-                .csrf().disable()
-                .cors().and()
-                .authorizeRequests()
-                .mvcMatchers(
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**"
-                ).anonymous() // Anonymous swagger access
-                .mvcMatchers(
-                        "/actuator/health",
-                        "/actuator/prometheus",
-                        "/config/chain"
-                ).permitAll()
-                .anyRequest().authenticated()
-                .and()
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.and())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).anonymous() // Anonymous swagger access
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/prometheus",
+                                "/config/chain"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .httpBasic();
         return http.build();
     }
