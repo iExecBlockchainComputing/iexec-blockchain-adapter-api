@@ -10,7 +10,6 @@ plugins {
 
 ext {
     openFeignVersion = '11.10'
-    testContainersVersion = '1.20.4'
 }
 
 if (!project.hasProperty('gitBranch')) {
@@ -70,6 +69,8 @@ dependencies {
 
     // integration tests
     implementation project(':iexec-blockchain-adapter-api-library')
+
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 springBoot {
@@ -107,7 +108,7 @@ testing {
                 implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
                 implementation 'org.apache.commons:commons-lang3'
                 implementation 'org.hibernate.validator:hibernate-validator'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+                implementation "org.testcontainers:junit-jupiter"
             }
         }
     }
