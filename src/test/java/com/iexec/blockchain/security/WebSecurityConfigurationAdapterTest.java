@@ -1,7 +1,8 @@
 package com.iexec.blockchain.security;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,37 +14,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class WebSecurityConfigurationAdapterTest {
+@ExtendWith(MockitoExtension.class)
+class WebSecurityConfigurationAdapterTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    public void setUp() {
-        // Any setup before each test can be done here
-    }
-
     @Test
-    public void testSwaggerUiAccess() throws Exception {
+    void testSwaggerUiAccess() throws Exception {
         mockMvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void testConfigChainAccess() throws Exception {
+    void testConfigChainAccess() throws Exception {
         mockMvc.perform(get("/config/chain"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void testProtectedEndpointWithoutAuthentication() throws Exception {
+    void testProtectedEndpointWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/protected-endpoint"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(username = "user", roles = "USER")
-    public void testProtectedEndpointWithAuthentication() throws Exception {
+    void testProtectedEndpointWithAuthentication() throws Exception {
         mockMvc.perform(get("/metrics"))
                 .andExpect(status().isOk());
     }
