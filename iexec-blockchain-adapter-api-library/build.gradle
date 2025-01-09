@@ -24,7 +24,6 @@ testing {
         test {
             useJUnitJupiter()
             dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter'
                 implementation 'org.mockito:mockito-junit-jupiter'
             }
         }
