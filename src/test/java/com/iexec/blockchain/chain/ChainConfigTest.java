@@ -94,7 +94,7 @@ class ChainConfigTest {
 
         log.info("{}", chainConfig);
         assertThatThrownBy(() -> validate(chainConfig))
-                .getRootCause()
+                .rootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("Chain id should be positive")
         ;
@@ -123,7 +123,7 @@ class ChainConfigTest {
 
         log.info("{}", chainConfig);
         assertThatThrownBy(() -> validate(chainConfig))
-                .getRootCause()
+                .rootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("nodeAddress")
         ;
@@ -150,7 +150,7 @@ class ChainConfigTest {
 
         log.info("{}", chainConfig);
         assertThatThrownBy(() -> validate(chainConfig))
-                .getRootCause()
+                .rootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("blockTime")
         ;
@@ -180,7 +180,7 @@ class ChainConfigTest {
 
         log.info("{}", chainConfig);
         assertThatThrownBy(() -> validate(chainConfig))
-                .getRootCause()
+                .rootCause()
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasMessageContaining("hubAddress")
         ;

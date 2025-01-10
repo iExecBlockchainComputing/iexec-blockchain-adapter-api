@@ -9,7 +9,6 @@ plugins {
 }
 
 ext {
-    openFeignVersion = '11.10'
     testContainersVersion = '1.20.4'
 }
 
@@ -61,10 +60,6 @@ dependencies {
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
 
-    // feign
-    implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
-    implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
-
     // observability
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
@@ -96,11 +91,6 @@ testing {
             useJUnitJupiter()
         }
         itest(JvmTestSuite) {
-            sources {
-                java {
-                    srcDirs = ['src/itest/java']
-                }
-            }
             dependencies {
                 implementation project()
                 implementation project(':iexec-blockchain-adapter-api-library')

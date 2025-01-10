@@ -9,7 +9,7 @@ dependencies {
     implementation platform('org.springframework.boot:spring-boot-dependencies:3.0.13')
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-lang3'
 }
 
 java {
