@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -161,7 +160,7 @@ class QueueServiceTests {
         final List<Integer> expectedExecutionOrder = IntStream
                 .range(0, totalTasksNumber)
                 .boxed()
-                .collect(Collectors.toList());
+                .toList();
         assertThat(executionOrder).isEqualTo(expectedExecutionOrder);
 
         // After each task execution, one less task should be in the queue.
@@ -169,7 +168,7 @@ class QueueServiceTests {
         final List<Integer> expectedRemainingTasksInQueue = IntStream
                 .range(0, totalTasksNumber)
                 .mapToObj(i -> totalTasksNumber - i - 1)
-                .collect(Collectors.toList());
+                .toList();
         assertThat(remainingTasksInQueue).isEqualTo(expectedRemainingTasksInQueue);
     }
 
