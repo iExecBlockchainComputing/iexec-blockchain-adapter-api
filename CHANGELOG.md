@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [[NEXT]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/vNEXT) 2025
 
+### Quality
+
+- Use no more `iexec-commons-poco` deprecated code in integration tests. (#163)
+
 ### Dependency Upgrades
 
 - Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#162)
