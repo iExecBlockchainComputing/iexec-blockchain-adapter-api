@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Breaking API changes
 
-- Remove unversioned REST endpoints which are deprecated. (#164)
+- Remove unversioned /tasks REST endpoints which are deprecated. (#164)
 
 ### Dependency Upgrades
 
