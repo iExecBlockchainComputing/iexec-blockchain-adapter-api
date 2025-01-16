@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Use no more `iexec-commons-poco` deprecated code in integration tests. (#163)
 
+### Breaking API changes
+
+- Remove unversioned /tasks REST endpoints which are deprecated. (#164)
+
 ### Dependency Upgrades
 
 - Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#162)

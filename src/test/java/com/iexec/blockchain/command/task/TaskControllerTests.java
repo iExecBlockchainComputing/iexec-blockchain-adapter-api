@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskControllerV1Tests {
+class TaskControllerTests {
 
     private static final String CHAIN_DEAL_ID = "0x1";
     private static final int TASK_INDEX = 0;
@@ -46,7 +46,7 @@ class TaskControllerV1Tests {
     @Mock
     private TaskFinalizeService taskFinalizeService;
     @InjectMocks
-    private TaskControllerV1 taskController;
+    private TaskController taskController;
 
     // region requestInitializeTask
     @Test
