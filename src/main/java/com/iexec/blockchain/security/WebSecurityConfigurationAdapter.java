@@ -28,8 +28,7 @@ public class WebSecurityConfigurationAdapter {
                         ).anonymous() // Anonymous swagger access
                         .requestMatchers(
                                 "/actuator/health",
-                                "/actuator/prometheus",
-                                "/config/chain"
+                                "/actuator/prometheus"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

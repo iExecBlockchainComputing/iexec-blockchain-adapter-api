@@ -17,7 +17,6 @@
 package com.iexec.blockchain.api;
 
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.config.PublicChainConfig;
 import feign.Param;
 import feign.RequestLine;
 
@@ -49,12 +48,5 @@ public interface BlockchainAdapterApiClient {
     CommandStatus getStatusForFinalizeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     // endregion
-
-    // region unauthenticated APIs
-
-    @RequestLine("GET /config/chain")
-    PublicChainConfig getPublicChainConfig();
-
-    //endregion
 
 }
