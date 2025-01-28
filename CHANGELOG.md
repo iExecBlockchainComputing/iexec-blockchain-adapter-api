@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Breaking API changes
 
 - Remove unversioned /tasks REST endpoints which are deprecated. (#164)
+- Remove exposed public chain configuration, the blockchain adapter is not a configuration service. (#165)
 
 ### Dependency Upgrades
 

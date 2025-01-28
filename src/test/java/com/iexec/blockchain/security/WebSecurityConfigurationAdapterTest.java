@@ -40,12 +40,6 @@ class WebSecurityConfigurationAdapterTest {
     }
 
     @Test
-    void testConfigChainAccess() throws Exception {
-        mockMvc.perform(get("/config/chain"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
     void testProtectedEndpointWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/protected-endpoint"))
                 .andExpect(status().isUnauthorized());

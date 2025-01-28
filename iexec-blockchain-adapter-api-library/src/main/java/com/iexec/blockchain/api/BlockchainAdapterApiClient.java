@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.iexec.blockchain.api;
 
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.config.PublicChainConfig;
 import feign.Param;
 import feign.RequestLine;
 
@@ -49,12 +48,5 @@ public interface BlockchainAdapterApiClient {
     CommandStatus getStatusForFinalizeTaskRequest(@Param("chainTaskId") String chainTaskId);
 
     // endregion
-
-    // region unauthenticated APIs
-
-    @RequestLine("GET /config/chain")
-    PublicChainConfig getPublicChainConfig();
-
-    //endregion
 
 }
