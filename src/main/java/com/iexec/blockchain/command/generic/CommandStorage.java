@@ -33,6 +33,7 @@ import java.util.Optional;
 @Service
 public class CommandStorage {
 
+    private static String STATUS_FIELD_NAME = "status";
     private final MongoTemplate mongoTemplate;
 
     public CommandStorage(final MongoTemplate mongoTemplate) {
@@ -74,7 +75,7 @@ public class CommandStorage {
     public boolean updateToProcessing(final String chainObjectId, final CommandName commandName) {
         final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.RECEIVED);
         final Update update = new Update();
-        update.set("status", CommandStatus.PROCESSING);
+        update.set(STATUS_FIELD_NAME, CommandStatus.PROCESSING);
         update.set("processingDate", Instant.now());
         final UpdateResult result = mongoTemplate.updateFirst(Query.query(criteria), update, Command.class);
         return result.getModifiedCount() != 0;
@@ -96,7 +97,7 @@ public class CommandStorage {
                 chainObjectId, commandName.name(), finalStatus, receipt);
         final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.PROCESSING);
         final Update update = new Update();
-        update.set("status", finalStatus);
+        update.set(STATUS_FIELD_NAME, finalStatus);
         update.set("transactionReceipt", receipt);
         update.set("finalDate", Instant.now());
         final UpdateResult result = mongoTemplate.updateFirst(Query.query(criteria), update, Command.class);
@@ -114,7 +115,7 @@ public class CommandStorage {
     private Criteria createUpdateCriteria(final String chainObjectId, final CommandName command, final CommandStatus status) {
         return Criteria.where("chainObjectId").is(chainObjectId)
                 .and("commandName").is(command)
-                .and("status").is(status);
+                .and(STATUS_FIELD_NAME).is(status);
     }
 
     /**
