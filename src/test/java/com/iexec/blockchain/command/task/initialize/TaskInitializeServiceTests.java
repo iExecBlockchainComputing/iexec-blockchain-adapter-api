@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.chain.QueueService;
+import com.iexec.blockchain.command.generic.CommandName;
+import com.iexec.blockchain.command.generic.CommandStorage;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +51,7 @@ class TaskInitializeServiceTests {
     @Mock
     private TaskInitializeBlockchainService blockchainCheckerService;
     @Mock
-    private TaskInitializeStorageService updaterService;
+    private CommandStorage updaterService;
     @Mock
     private QueueService queueService;
 
@@ -106,30 +108,30 @@ class TaskInitializeServiceTests {
     @Test
     void triggerInitializeTask() throws Exception {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt);
     }
 
     @Test
     void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(false);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt);
         verifyNoInteractions(blockchainCheckerService);
     }
 
     @Test
     void shouldNotTriggerInitializeTaskSinceReceiptIsNull() throws Exception {
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(null);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, null);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, null);
     }
     // endregion
 

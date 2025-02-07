@@ -19,6 +19,8 @@ package com.iexec.blockchain.command.generic;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface CommandArgs {
+    @JsonIgnore
+    CommandName getCommandName();
 
     @JsonIgnore
     String getChainObjectId();

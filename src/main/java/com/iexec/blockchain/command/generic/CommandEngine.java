@@ -24,17 +24,17 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import java.util.Optional;
 
 @Slf4j
-public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs> {
+public abstract class CommandEngine<A extends CommandArgs> {
 
     private static final int MAX_ATTEMPTS = 5;
 
     private final CommandBlockchain<A> blockchainService;
-    private final CommandStorage<C, A> updaterService;
+    private final CommandStorage updaterService;
     private final QueueService queueService;
 
     protected CommandEngine(
             CommandBlockchain<A> blockchainService,
-            CommandStorage<C, A> updaterService,
+            CommandStorage updaterService,
             QueueService queueService
     ) {
         this.blockchainService = blockchainService;
@@ -78,7 +78,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      */
     public void triggerBlockchainCommand(A args) {
         String chainObjectId = args.getChainObjectId();
-        if (!updaterService.updateToProcessing(chainObjectId)) {
+        if (!updaterService.updateToProcessing(chainObjectId, args.getCommandName())) {
             log.error("Triggering blockchain command failed (failing update" +
                             " to processing) [chainObjectId:{}, commandArgs:{}]",
                     chainObjectId, args);
@@ -103,7 +103,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
                             "[chainObjectId:{}, commandArgs:{}, attempt:{}]",
                     chainObjectId, args, attempt);
         }
-        updaterService.updateToFinal(chainObjectId, receipt);
+        updaterService.updateToFinal(chainObjectId, args.getCommandName(), receipt);
     }
 
     /**
