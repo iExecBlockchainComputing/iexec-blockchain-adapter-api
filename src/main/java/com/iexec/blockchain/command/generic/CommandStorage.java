@@ -33,7 +33,7 @@ import java.util.Optional;
 @Service
 public class CommandStorage {
 
-    private static String STATUS_FIELD_NAME = "status";
+    private static final String STATUS_FIELD_NAME = "status";
     private final MongoTemplate mongoTemplate;
 
     public CommandStorage(final MongoTemplate mongoTemplate) {
