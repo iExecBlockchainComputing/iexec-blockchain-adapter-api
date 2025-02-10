@@ -109,7 +109,7 @@ public abstract class CommandEngine<A extends CommandArgs> {
     /**
      * Get current status for the async blockchain command.
      *
-     * @param chainObjectId blockchain object ID
+     * @param chainObjectId on-chain object ID
      * @param commandName   command applied to the on-chain object
      * @return status
      */
