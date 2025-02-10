@@ -108,13 +108,13 @@ public class CommandStorage {
      * Creates a criteria, the rule to lookup for a specific entry in the Mongo collection.
      *
      * @param chainObjectId On-chain ID of the object to look for in collection
-     * @param command       Name of the command applied to the on-chain object
+     * @param commandName   Name of the command applied to the on-chain object
      * @param status        Currently expected status for the on-chain object
      * @return A {@code Criteria} instance to use in {@code MongoTemplate} operations
      */
-    private Criteria createUpdateCriteria(final String chainObjectId, final CommandName command, final CommandStatus status) {
+    private Criteria createUpdateCriteria(final String chainObjectId, final CommandName commandName, final CommandStatus status) {
         return Criteria.where("chainObjectId").is(chainObjectId)
-                .and("commandName").is(command)
+                .and("commandName").is(commandName)
                 .and(STATUS_FIELD_NAME).is(status);
     }
 
@@ -124,8 +124,9 @@ public class CommandStorage {
      * @param chainObjectId blockchain object ID on which the blockchain command
      *                      is performed
      */
-    public Optional<CommandStatus> getStatusForCommand(final String chainObjectId) {
-        final Criteria criteria = Criteria.where("chainObjectId").is(chainObjectId);
+    public Optional<CommandStatus> getStatusForCommand(final String chainObjectId, final CommandName commandName) {
+        final Criteria criteria = Criteria.where("chainObjectId").is(chainObjectId)
+                .and("commandName").is(commandName);
         final Command command = mongoTemplate.findOne(Query.query(criteria), Command.class);
         return Optional.ofNullable(command)
                 .map(Command::getStatus);

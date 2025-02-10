@@ -138,14 +138,14 @@ class TaskInitializeServiceTests {
     // region getStatusForCommand
     @Test
     void shouldGetStatusForInitializeTaskRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(CommandStatus.PROCESSING));
-        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).contains(CommandStatus.PROCESSING);
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.of(CommandStatus.PROCESSING));
+        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).contains(CommandStatus.PROCESSING);
     }
 
     @Test
     void shouldNotGetStatusForInitializeTaskRequestSinceNoRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
-        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).isEmpty();
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.empty());
+        assertThat(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).isEmpty();
     }
     // endregion
 

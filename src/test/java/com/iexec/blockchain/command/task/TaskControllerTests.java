@@ -17,6 +17,7 @@
 package com.iexec.blockchain.command.task;
 
 import com.iexec.blockchain.api.CommandStatus;
+import com.iexec.blockchain.command.generic.CommandName;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
@@ -68,14 +69,14 @@ class TaskControllerTests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class)
     void shouldReturnInitializeCommandStatusWhenAvailable(CommandStatus status) {
-        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(status));
+        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.of(status));
         assertThat(taskController.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.ok(status));
     }
 
     @Test
     void shouldNotReturnInitializeCommandStatusWhenEmpty() {
-        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
+        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.empty());
         assertThat(taskController.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.notFound().build());
     }
@@ -101,14 +102,14 @@ class TaskControllerTests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class)
     void shouldReturnFinalizeCommandStatusWhenAvailable(CommandStatus status) {
-        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(status));
+        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.of(status));
         assertThat(taskController.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.ok(status));
     }
 
     @Test
     void shouldNotReturnFinalizeCommandStatusWhenEmpty() {
-        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
+        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.empty());
         assertThat(taskController.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.notFound().build());
     }

@@ -136,14 +136,14 @@ class TaskFinalizeServiceTests {
     // region getStatusForCommand
     @Test
     void shouldGetStatusForFinalizeTaskRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(CommandStatus.PROCESSING));
-        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).contains(CommandStatus.PROCESSING);
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.of(CommandStatus.PROCESSING));
+        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).contains(CommandStatus.PROCESSING);
     }
 
     @Test
     void shouldNotGetStatusForFinalizeTaskRequestSinceNoRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
-        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).isEmpty();
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.empty());
+        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).isEmpty();
     }
     // endregion
 

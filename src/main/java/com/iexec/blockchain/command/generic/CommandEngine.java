@@ -49,7 +49,7 @@ public abstract class CommandEngine<A extends CommandArgs> {
      * @param args input arguments for the blockchain command
      * @return blockchain object ID if successful
      */
-    public String startBlockchainCommand(A args, boolean isPriority) {
+    public String startBlockchainCommand(final A args, final boolean isPriority) {
         final String chainObjectId = args.getChainObjectId();
         final String messageDetails = String.format("[chainObjectId:%s, commandArgs:%s]", chainObjectId, args);
         if (!blockchainService.canSendBlockchainCommand(args)) {
@@ -76,7 +76,7 @@ public abstract class CommandEngine<A extends CommandArgs> {
      *
      * @param args input arguments for the blockchain command
      */
-    public void triggerBlockchainCommand(A args) {
+    public void triggerBlockchainCommand(final A args) {
         String chainObjectId = args.getChainObjectId();
         if (!updaterService.updateToProcessing(chainObjectId, args.getCommandName())) {
             log.error("Triggering blockchain command failed (failing update" +
@@ -110,10 +110,11 @@ public abstract class CommandEngine<A extends CommandArgs> {
      * Get current status for the async blockchain command.
      *
      * @param chainObjectId blockchain object ID
+     * @param commandName   command applied to the on-chain object
      * @return status
      */
-    public Optional<CommandStatus> getStatusForCommand(String chainObjectId) {
-        return updaterService.getStatusForCommand(chainObjectId);
+    public Optional<CommandStatus> getStatusForCommand(final String chainObjectId, final CommandName commandName) {
+        return updaterService.getStatusForCommand(chainObjectId, commandName);
     }
 
 }

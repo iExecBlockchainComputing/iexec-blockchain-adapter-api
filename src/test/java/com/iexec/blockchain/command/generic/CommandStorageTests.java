@@ -69,7 +69,7 @@ class CommandStorageTests {
     void shouldSetReceived() {
         final TaskInitializeArgs args = getArgs();
         Assertions.assertTrue(updaterService.updateToReceived(args));
-        final CommandStatus status = updaterService.getStatusForCommand(args.getChainObjectId()).orElseThrow();
+        final CommandStatus status = updaterService.getStatusForCommand(args.getChainObjectId(), CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.RECEIVED, status);
     }
 
@@ -85,7 +85,7 @@ class CommandStorageTests {
         final TaskInitializeArgs args = getArgs();
         Assertions.assertTrue(updaterService.updateToReceived(args));
         Assertions.assertTrue(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE));
-        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID).orElseThrow();
+        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.PROCESSING, status);
     }
 
@@ -105,7 +105,7 @@ class CommandStorageTests {
         mongoTemplate.insert(command);
 
         Assertions.assertTrue(updaterService.updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt));
-        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID).orElseThrow();
+        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.SUCCESS, status);
     }
 
@@ -117,7 +117,7 @@ class CommandStorageTests {
         mongoTemplate.insert(command);
 
         Assertions.assertTrue(updaterService.updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt));
-        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID).orElseThrow();
+        final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.FAILURE, status);
     }
 
