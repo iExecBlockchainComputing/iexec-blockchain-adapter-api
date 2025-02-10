@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,27 @@
 package com.iexec.blockchain.command.generic;
 
 import com.iexec.blockchain.api.CommandStatus;
+import com.mongodb.client.result.UpdateResult;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.time.Instant;
 import java.util.Optional;
 
 @Slf4j
-public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs>
-        implements CommandFactory<C> {
+@Service
+public class CommandStorage {
 
-    private final CommandRepository<C> commandRepository;
+    private static final String STATUS_FIELD_NAME = "status";
+    private final MongoTemplate mongoTemplate;
 
-    protected CommandStorage(CommandRepository<C> commandRepository) {
-        this.commandRepository = commandRepository;
+    public CommandStorage(final MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
     }
 
     /**
@@ -40,21 +47,22 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      * @param args input arguments for the blockchain command
      * @return true on successful update
      */
-    public boolean updateToReceived(A args) {
-        String chainObjectId = args.getChainObjectId();
-
-        if (commandRepository.findByChainObjectId(chainObjectId).isPresent()) {
-            return false;
-        }
-
-        C command = this.newCommandInstance();
+    public boolean updateToReceived(final CommandArgs args) {
+        final Command command = new Command();
         command.setStatus(CommandStatus.RECEIVED);
-        command.setChainObjectId(chainObjectId);
+        command.setChainObjectId(args.getChainObjectId());
+        command.setCommandName(args.getCommandName());
         command.setArgs(args);
         command.setCreationDate(Instant.now());
 
-        commandRepository.save(command);
-        return true;
+        try {
+            mongoTemplate.insert(command);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to submit command to queue [chainObjectId:{}, args:{}]",
+                    args.getChainObjectId(), args, e);
+            return false;
+        }
     }
 
     /**
@@ -64,18 +72,13 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      *                      is performed
      * @return true on successful update
      */
-    public boolean updateToProcessing(String chainObjectId) {
-        Optional<C> localCommand = commandRepository
-                .findByChainObjectId(chainObjectId)
-                .filter(command -> command.getStatus() == CommandStatus.RECEIVED);
-        if (localCommand.isEmpty()) {
-            return false;
-        }
-        C command = localCommand.get();
-        command.setStatus(CommandStatus.PROCESSING);
-        command.setProcessingDate(Instant.now());
-        commandRepository.save(command);
-        return true;
+    public boolean updateToProcessing(final String chainObjectId, final CommandName commandName) {
+        final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.RECEIVED);
+        final Update update = new Update();
+        update.set(STATUS_FIELD_NAME, CommandStatus.PROCESSING);
+        update.set("processingDate", Instant.now());
+        final UpdateResult result = mongoTemplate.updateFirst(Query.query(criteria), update, Command.class);
+        return result.getModifiedCount() != 0;
     }
 
     /**
@@ -86,29 +89,33 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      *                      is performed
      * @param receipt       blockchain receipt
      */
-    public void updateToFinal(String chainObjectId,
-                              TransactionReceipt receipt) {
-        final C command = commandRepository
-                .findByChainObjectId(chainObjectId)
-                .filter(cmd -> cmd.getStatus() == CommandStatus.PROCESSING)
-                .orElse(null);
-        if (command == null) {
-            log.error("No entry was found in database, could not update to final state");
-            return;
-        }
+    public boolean updateToFinal(final String chainObjectId,
+                                 final CommandName commandName,
+                                 final TransactionReceipt receipt) {
+        final CommandStatus finalStatus = receipt != null && receipt.isStatusOK() ? CommandStatus.SUCCESS : CommandStatus.FAILURE;
+        log.info("Command final status with transaction receipt [chainObjectId]:{}, command:{}, status:{}, receipt:{}]",
+                chainObjectId, commandName.name(), finalStatus, receipt);
+        final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.PROCESSING);
+        final Update update = new Update();
+        update.set(STATUS_FIELD_NAME, finalStatus);
+        update.set("transactionReceipt", receipt);
+        update.set("finalDate", Instant.now());
+        final UpdateResult result = mongoTemplate.updateFirst(Query.query(criteria), update, Command.class);
+        return result.getModifiedCount() != 0;
+    }
 
-        if (receipt != null && receipt.isStatusOK()) {
-            command.setStatus(CommandStatus.SUCCESS);
-            log.info("Success command with transaction receipt [chainObjectId:{}, command:{}, receipt:{}]",
-                    chainObjectId, command.getClass().getSimpleName(), receipt);
-        } else {
-            command.setStatus(CommandStatus.FAILURE);
-            log.info("Failure after transaction sent [chainObjectId:{}, command:{}, receipt:{}]",
-                    chainObjectId, command.getClass().getSimpleName(), receipt);
-        }
-        command.setTransactionReceipt(receipt);
-        command.setFinalDate(Instant.now());
-        commandRepository.save(command);
+    /**
+     * Creates a criteria, the rule to lookup for a specific entry in the Mongo collection.
+     *
+     * @param chainObjectId On-chain ID of the object to look for in collection
+     * @param commandName   Name of the command applied to the on-chain object
+     * @param status        Currently expected status for the on-chain object
+     * @return A {@code Criteria} instance to use in {@code MongoTemplate} operations
+     */
+    private Criteria createUpdateCriteria(final String chainObjectId, final CommandName commandName, final CommandStatus status) {
+        return Criteria.where("chainObjectId").is(chainObjectId)
+                .and("commandName").is(commandName)
+                .and(STATUS_FIELD_NAME).is(status);
     }
 
     /**
@@ -117,8 +124,11 @@ public abstract class CommandStorage<C extends Command<A>, A extends CommandArgs
      * @param chainObjectId blockchain object ID on which the blockchain command
      *                      is performed
      */
-    public Optional<CommandStatus> getStatusForCommand(String chainObjectId) {
-        return commandRepository.findByChainObjectId(chainObjectId)
+    public Optional<CommandStatus> getStatusForCommand(final String chainObjectId, final CommandName commandName) {
+        final Criteria criteria = Criteria.where("chainObjectId").is(chainObjectId)
+                .and("commandName").is(commandName);
+        final Command command = mongoTemplate.findOne(Query.query(criteria), Command.class);
+        return Optional.ofNullable(command)
                 .map(Command::getStatus);
     }
 

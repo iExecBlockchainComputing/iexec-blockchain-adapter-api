@@ -11,6 +11,7 @@ spring:
       database: iexec-blockchain-adapter-api
       host: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_HOST:localhost}
       port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:13012}
+      auto-index-creation: true
 
 chain:
   id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:134}

@@ -85,10 +85,14 @@ testing {
                 implementation 'org.awaitility:awaitility'
                 implementation 'org.springframework.boot:spring-boot-starter-test'
                 implementation 'org.springframework.security:spring-security-test'
+                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
             }
         }
         test {
             useJUnitJupiter()
+            dependencies {
+                implementation "org.testcontainers:mongodb:$testContainersVersion"
+            }
         }
         itest(JvmTestSuite) {
             dependencies {
@@ -98,11 +102,23 @@ testing {
                 implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
                 implementation 'org.apache.commons:commons-lang3'
                 implementation 'org.hibernate.validator:hibernate-validator'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
             }
         }
     }
 }
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+    systemProperty "mongo.image", "mongo:7.0.15-jammy"
+}
+
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
 publishing {
     publications {
@@ -121,18 +137,6 @@ publishing {
         }
     }
 }
-
-tasks.withType(Test).configureEach {
-    finalizedBy jacocoTestReport
-}
-
-// sonarqube code coverage requires jacoco XML report
-jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
-tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
 ext.jarPathForOCI = relativePath(tasks.bootJar.outputs.files.singleFile)
 ext.gitShortCommit = 'git rev-parse --short=8 HEAD'.execute().text.trim()

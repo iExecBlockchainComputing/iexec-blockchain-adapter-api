@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.iexec.blockchain.command.task.finalize;
 
 import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.chain.QueueService;
+import com.iexec.blockchain.command.generic.CommandName;
+import com.iexec.blockchain.command.generic.CommandStorage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,7 +51,7 @@ class TaskFinalizeServiceTests {
     @Mock
     private TaskFinalizeBlockchainService blockchainService;
     @Mock
-    private TaskFinalizeStorageService updaterService;
+    private CommandStorage updaterService;
     @Mock
     private QueueService queueService;
 
@@ -104,44 +106,44 @@ class TaskFinalizeServiceTests {
     @Test
     void triggerFinalizeTask() throws Exception {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(true);
         when(blockchainService.sendBlockchainCommand(args)).thenReturn(receipt);
 
         taskFinalizeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_FINALIZE, receipt);
     }
 
     @Test
     void shouldNotTriggerFinalizeTaskSinceCannotUpdate() {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(false);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(false);
 
         taskFinalizeService.triggerBlockchainCommand(args);
-        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, receipt);
+        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_FINALIZE, receipt);
         verifyNoInteractions(blockchainService);
     }
 
     @Test
     void shouldNotTriggerFinalizeTaskSinceReceiptIsNull() throws Exception {
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID)).thenReturn(true);
+        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(true);
         when(blockchainService.sendBlockchainCommand(args)).thenReturn(null);
 
         taskFinalizeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, null);
+        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_FINALIZE, null);
     }
     // endregion
 
     // region getStatusForCommand
     @Test
     void shouldGetStatusForFinalizeTaskRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(CommandStatus.PROCESSING));
-        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).contains(CommandStatus.PROCESSING);
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.of(CommandStatus.PROCESSING));
+        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).contains(CommandStatus.PROCESSING);
     }
 
     @Test
     void shouldNotGetStatusForFinalizeTaskRequestSinceNoRequest() {
-        when(updaterService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
-        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).isEmpty();
+        when(updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.empty());
+        assertThat(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).isEmpty();
     }
     // endregion
 

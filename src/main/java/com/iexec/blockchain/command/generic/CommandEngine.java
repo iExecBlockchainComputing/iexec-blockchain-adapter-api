@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,17 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import java.util.Optional;
 
 @Slf4j
-public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs> {
+public abstract class CommandEngine<A extends CommandArgs> {
 
     private static final int MAX_ATTEMPTS = 5;
 
     private final CommandBlockchain<A> blockchainService;
-    private final CommandStorage<C, A> updaterService;
+    private final CommandStorage updaterService;
     private final QueueService queueService;
 
     protected CommandEngine(
             CommandBlockchain<A> blockchainService,
-            CommandStorage<C, A> updaterService,
+            CommandStorage updaterService,
             QueueService queueService
     ) {
         this.blockchainService = blockchainService;
@@ -49,7 +49,7 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      * @param args input arguments for the blockchain command
      * @return blockchain object ID if successful
      */
-    public String startBlockchainCommand(A args, boolean isPriority) {
+    public String startBlockchainCommand(final A args, final boolean isPriority) {
         final String chainObjectId = args.getChainObjectId();
         final String messageDetails = String.format("[chainObjectId:%s, commandArgs:%s]", chainObjectId, args);
         if (!blockchainService.canSendBlockchainCommand(args)) {
@@ -76,9 +76,9 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
      *
      * @param args input arguments for the blockchain command
      */
-    public void triggerBlockchainCommand(A args) {
+    public void triggerBlockchainCommand(final A args) {
         String chainObjectId = args.getChainObjectId();
-        if (!updaterService.updateToProcessing(chainObjectId)) {
+        if (!updaterService.updateToProcessing(chainObjectId, args.getCommandName())) {
             log.error("Triggering blockchain command failed (failing update" +
                             " to processing) [chainObjectId:{}, commandArgs:{}]",
                     chainObjectId, args);
@@ -103,17 +103,18 @@ public abstract class CommandEngine<C extends Command<A>, A extends CommandArgs>
                             "[chainObjectId:{}, commandArgs:{}, attempt:{}]",
                     chainObjectId, args, attempt);
         }
-        updaterService.updateToFinal(chainObjectId, receipt);
+        updaterService.updateToFinal(chainObjectId, args.getCommandName(), receipt);
     }
 
     /**
      * Get current status for the async blockchain command.
      *
-     * @param chainObjectId blockchain object ID
+     * @param chainObjectId on-chain object ID
+     * @param commandName   command applied to the on-chain object
      * @return status
      */
-    public Optional<CommandStatus> getStatusForCommand(String chainObjectId) {
-        return updaterService.getStatusForCommand(chainObjectId);
+    public Optional<CommandStatus> getStatusForCommand(final String chainObjectId, final CommandName commandName) {
+        return updaterService.getStatusForCommand(chainObjectId, commandName);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.iexec.blockchain.command.task.finalize;
 
 import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
+import com.iexec.blockchain.command.generic.CommandStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +26,11 @@ import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
 @Slf4j
 @Service
-public class TaskFinalizeService extends CommandEngine<TaskFinalize, TaskFinalizeArgs> {
+public class TaskFinalizeService extends CommandEngine<TaskFinalizeArgs> {
 
     public TaskFinalizeService(
             final TaskFinalizeBlockchainService blockchainService,
-            final TaskFinalizeStorageService storageService,
+            final CommandStorage storageService,
             final QueueService queueService) {
         super(blockchainService, storageService, queueService);
     }
