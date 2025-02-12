@@ -2,8 +2,8 @@
 
 ## Overview
 
-The Blockchain Adapter API enables interacting with iExec smart contracts plus doing other Ethereum things.
-The Blockchain Adapter API accepts incoming requests asking for submitting transactions to iExec smart contracts.
+The Blockchain Adapter API enables interacting with iExec PoCo smart contracts.
+The Blockchain Adapter API accepts incoming requests asking for submitting transactions to iExec PoCo smart contracts.
 Incoming requests are locally stored in a database.
 Transactions related to these requests are being asynchronously sent to a blockchain node.
 At any time, the caller can retrieve the processing status for his request.
@@ -43,6 +43,26 @@ A health endpoint (`/actuator/health`) is enabled by default and can be accessed
 This endpoint allows to define health checks in an orchestrator or
 a [compose file](https://github.com/compose-spec/compose-spec/blob/master/spec.md#healthcheck).
 No default strategy has been implemented in the [Dockerfile](Dockerfile) at the moment.
+
+## Metrics
+
+The Blockchain Adapter API is a Spring Boot application configured to be able to expose metrics through
+the [Prometheus actuator](https://docs.spring.io/spring-boot/docs/3.0.13/reference/html/actuator.html#actuator.metrics.export.prometheus).
+Enabling the actuator allows to expose metrics with the [OpenMetrics](https://openmetrics.io/) format
+on the `/actuator/prometheus` endpoint.
+
+By default, the following kind of metrics are exposed through autoconfiguration:
+- JVM specific metrics
+- MongoDB data source specific metrics
+- iExec specific business metrics
+
+The current iExec specific metrics are:
+
+| Metric name                        | Metric tag      | Description                                                                                           |
+| ---------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------- |
+| `iexec.chain-adapter.block.latest` |                 | Last block number seen in the websocket blockchain listener                                           |
+| `iexec.chain-adapter.tx-count`     | `block=latest`  | Number of transactions sent with the configured wallet and mined in latest block                      |
+| `iexec.chain-adapter.tx-count`     | `block=pending` | Number of transactions sent with the configured wallet, including both mined and pending transactions |
 
 ## Running in development mode
 

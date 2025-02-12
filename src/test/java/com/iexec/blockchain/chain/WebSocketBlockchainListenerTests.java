@@ -1,0 +1,74 @@
+package com.iexec.blockchain.chain;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.io.File;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+import static com.iexec.blockchain.chain.WebSocketBlockchainListener.LATEST_BLOCK_METRIC_NAME;
+import static com.iexec.blockchain.chain.WebSocketBlockchainListener.TX_COUNT_METRIC_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+@Slf4j
+@Testcontainers
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class WebSocketBlockchainListenerTests {
+
+    private static final String CHAIN_SVC_NAME = "ibaa-chain";
+    private static final int CHAIN_SVC_PORT = 8545;
+    private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
+    private static final int MONGO_SVC_PORT = 27017;
+
+    @Container
+    static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
+            .withExposedService(CHAIN_SVC_NAME, CHAIN_SVC_PORT, Wait.forListeningPort())
+            .withExposedService(MONGO_SVC_NAME, MONGO_SVC_PORT, Wait.forListeningPort())
+            .withPull(true);
+
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("chain.id", () -> "65535");
+        registry.add("chain.hubAddress", () -> "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7");
+        registry.add("chain.nodeAddress", () -> getServiceUrl(
+                environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
+                environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
+        registry.add("sprint.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
+        registry.add("spring.data.mongodb.port", () -> environment.getServicePort(MONGO_SVC_NAME, MONGO_SVC_PORT));
+    }
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    private static String getServiceUrl(String serviceHost, int servicePort) {
+        log.info("service url http://{}:{}", serviceHost, servicePort);
+        return "http://" + serviceHost + ":" + servicePort;
+    }
+
+    @Test
+    void shouldConnect() {
+        await().atMost(10L, TimeUnit.SECONDS)
+                .until(() -> Objects.requireNonNull(meterRegistry.find(LATEST_BLOCK_METRIC_NAME).gauge()).value() != 0.0);
+        assertThat(meterRegistry.find(TX_COUNT_METRIC_NAME).tag("block", "latest").gauge())
+                .isNotNull()
+                .extracting(Gauge::value)
+                .isEqualTo(0.0);
+        assertThat(meterRegistry.find(TX_COUNT_METRIC_NAME).tag("block", "pending").gauge())
+                .isNotNull()
+                .extracting(Gauge::value)
+                .isEqualTo(0.0);
+    }
+
+}
