@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### New Features
 
 - All received commands are now stored in a single MongoDB collection. (#166)
-- Add WebSocketBlockchainListener with first iExec specific metrics. (#167)
+- Add **WebSocketBlockchainListener** with first iExec specific metrics. (#167)
 
 ### Quality
 
