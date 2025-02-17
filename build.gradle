@@ -45,10 +45,6 @@ allprojects {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs.add('-parameters')
-}
-
 dependencies {
     // Spring framework
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
