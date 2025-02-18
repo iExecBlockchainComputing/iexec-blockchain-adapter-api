@@ -19,6 +19,10 @@ java {
     withSourcesJar()
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-parameters')
+}
+
 testing {
     suites {
         test {
