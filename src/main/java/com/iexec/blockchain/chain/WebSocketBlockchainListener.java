@@ -72,10 +72,10 @@ public class WebSocketBlockchainListener {
     @Scheduled(fixedRate = 5000)
     private void run() throws ConnectException {
         if (newHeads != null && !newHeads.isDisposed()) {
-            log.debug("nothing to do");
             return;
         }
 
+        log.warn("web socket disconnection detected");
         webSocketService.connect();
 
         final Request<?, EthSubscribe> newHeadsRequest = new Request<>(
@@ -91,14 +91,14 @@ public class WebSocketBlockchainListener {
     }
 
     private void processHead(final NewHeadsNotification event) throws IOException {
-        log.debug("processHead");
         final BigInteger blockNumber = Numeric.toBigInt(event.getParams().getResult().getNumber());
         lastSeenBlock.set(blockNumber.longValue());
         final BigInteger pendingTxCount = web3Client.ethGetTransactionCount(walletAddress,
                 DefaultBlockParameterName.PENDING).send().getTransactionCount();
         final BigInteger latestTxCount = web3Client.ethGetTransactionCount(walletAddress,
                 DefaultBlockParameterName.LATEST).send().getTransactionCount();
-        log.info("Transaction count [pending:{}, latest:{}]", pendingTxCount, latestTxCount);
+        log.info("Transaction count [block:{}, pending:{}, latest:{}]",
+                lastSeenBlock, pendingTxCount, latestTxCount);
         pendingTxGauge.set(pendingTxCount.longValue());
         latestTxGauge.set(latestTxCount.longValue());
     }
