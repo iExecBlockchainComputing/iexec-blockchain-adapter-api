@@ -16,9 +16,9 @@
 
 package com.iexec.blockchain.chain;
 
-import com.iexec.common.worker.result.ResultUtils;
 import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.utils.BytesUtils;
+import com.iexec.commons.poco.utils.HashUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -64,11 +64,8 @@ public class IexecHubService extends IexecHubAbstractService {
                                          final String workerpoolSignature,
                                          final String enclaveChallenge,
                                          final String enclaveSignature) throws Exception {
-        final String resultHash = ResultUtils.computeResultHash(chainTaskId, resultDigest);
-        final String resultSeal =
-                ResultUtils.computeResultSeal(credentials.getAddress(),
-                        chainTaskId,
-                        resultDigest);
+        final String resultHash = HashUtils.concatenateAndHash(chainTaskId, resultDigest);
+        final String resultSeal = HashUtils.concatenateAndHash(credentials.getAddress(), chainTaskId, resultDigest);
 
         return iexecHubContract
                 .contribute(
