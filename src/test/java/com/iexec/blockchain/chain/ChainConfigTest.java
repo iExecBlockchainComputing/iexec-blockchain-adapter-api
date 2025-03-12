@@ -45,10 +45,10 @@ class ChainConfigTest {
     // region Valid data
     static Stream<Arguments> validData() {
         return Stream.of(
-                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 1, 1),
-                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", 10, 2),
-                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 42, 2),
-                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 100, 1)
+                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 1, 1.0f, 1),
+                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", 10, 1.0f, 2),
+                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 42, 1.0f, 2),
+                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 100, 1.0f, 1)
         );
     }
 
@@ -58,12 +58,14 @@ class ChainConfigTest {
                         String nodeAddress,
                         String hubAddress,
                         int blockTime,
+                        float gasPriceMultiplier,
                         int maxAllowedTxPerBlock) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(chainId)
                 .nodeAddress(nodeAddress)
                 .blockTime(blockTime)
                 .hubAddress(hubAddress)
+                .gasPriceMultiplier(gasPriceMultiplier)
                 .maxAllowedTxPerBlock(maxAllowedTxPerBlock)
                 .build();
 

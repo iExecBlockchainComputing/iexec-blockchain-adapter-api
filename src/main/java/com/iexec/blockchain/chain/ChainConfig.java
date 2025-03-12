@@ -19,21 +19,20 @@ package com.iexec.blockchain.chain;
 import com.iexec.common.chain.validation.ValidNonZeroEthereumAddress;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Set;
 
 @Slf4j
 @Value
 @Builder
+@Validated
 @ConfigurationProperties(prefix = "chain")
 public class ChainConfig {
 
@@ -41,21 +40,23 @@ public class ChainConfig {
     @NotNull
     int id;
 
+    boolean sidechain;
+
     @URL
     @NotEmpty
     String nodeAddress;
+
+    @ValidNonZeroEthereumAddress
+    String hubAddress;
 
     @Positive(message = "Block time should be positive")
     @NotNull
     int blockTime;
 
-    @ValidNonZeroEthereumAddress
-    String hubAddress;
-
-    boolean isSidechain;
-
+    @Positive
     float gasPriceMultiplier;
 
+    @PositiveOrZero
     long gasPriceCap;
 
     @Positive
