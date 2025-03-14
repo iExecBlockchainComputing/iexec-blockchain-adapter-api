@@ -44,10 +44,10 @@ class ChainConfigTest {
     // region Valid data
     static Stream<Arguments> validData() {
         return Stream.of(
-                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(1), 1.0f, 1),
-                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", Duration.ofSeconds(10), 1.0f, 2),
-                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(42), 1.0f, 2),
-                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(100), 1.0f, 1)
+                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT0.1S", 1.0f, 1),
+                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", "PT10S", 1.0f, 2),
+                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT20S", 1.0f, 2),
+                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT5S", 1.0f, 1)
         );
     }
 
