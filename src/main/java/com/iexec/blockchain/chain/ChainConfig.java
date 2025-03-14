@@ -17,17 +17,17 @@
 package com.iexec.blockchain.chain;
 
 import com.iexec.commons.poco.chain.validation.ValidNonZeroEthereumAddress;
-import jakarta.annotation.PostConstruct;
-import jakarta.validation.*;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.URL;
+import org.hibernate.validator.constraints.time.DurationMax;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Set;
+import java.time.Duration;
 
 @Slf4j
 @Value
@@ -49,9 +49,10 @@ public class ChainConfig {
     @ValidNonZeroEthereumAddress
     String hubAddress;
 
-    @Positive(message = "Block time should be positive")
+    @DurationMin(millis=100)
+    @DurationMax(seconds=20)
     @NotNull
-    int blockTime;
+    Duration blockTime;
 
     @Positive
     float gasPriceMultiplier;
@@ -63,14 +64,4 @@ public class ChainConfig {
     @Max(value = 4)
     int maxAllowedTxPerBlock;
 
-    @PostConstruct
-    private void validate() {
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            Validator validator = factory.getValidator();
-            Set<ConstraintViolation<ChainConfig>> violations = validator.validate(this);
-            if (!violations.isEmpty()) {
-                throw new ConstraintViolationException(violations);
-            }
-        }
-    }
 }

@@ -16,39 +16,38 @@
 
 package com.iexec.blockchain.chain;
 
-import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.time.Duration;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @Slf4j
 class ChainConfigTest {
     private static final int DEFAULT_CHAIN_ID = 1;
     private static final String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
     private static final String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
-    private static final int DEFAULT_BLOCK_TIME = 1;
+    private static final Duration DEFAULT_BLOCK_TIME = Duration.ofSeconds(1);
 
-    private void validate(ChainConfig chainConfig) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method validateConfig = ChainConfig.class.getDeclaredMethod("validate");
-        validateConfig.setAccessible(true);
-        validateConfig.invoke(chainConfig);
+    private Set<ConstraintViolation<ChainConfig>> validate(ChainConfig chainConfig) {
+        try (final ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            return factory.getValidator().validate(chainConfig);
+        }
     }
 
     // region Valid data
     static Stream<Arguments> validData() {
         return Stream.of(
-                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 1, 1.0f, 1),
-                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", 10, 1.0f, 2),
-                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 42, 1.0f, 2),
-                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", 100, 1.0f, 1)
+                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(1), 1.0f, 1),
+                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", Duration.ofSeconds(10), 1.0f, 2),
+                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(42), 1.0f, 2),
+                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", Duration.ofSeconds(100), 1.0f, 1)
         );
     }
 
@@ -57,7 +56,7 @@ class ChainConfigTest {
     void shouldValidate(Integer chainId,
                         String nodeAddress,
                         String hubAddress,
-                        int blockTime,
+                        Duration blockTime,
                         float gasPriceMultiplier,
                         int maxAllowedTxPerBlock) {
         final ChainConfig chainConfig = ChainConfig.builder()
@@ -95,11 +94,9 @@ class ChainConfigTest {
                 .build();
 
         log.info("{}", chainConfig);
-        assertThatThrownBy(() -> validate(chainConfig))
-                .rootCause()
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining("Chain id should be positive")
-        ;
+        assertThat(validate(chainConfig))
+                .extracting(ConstraintViolation::getMessage)
+                .contains("Chain id should be positive");
     }
     // endregion
 
@@ -124,25 +121,24 @@ class ChainConfigTest {
                 .build();
 
         log.info("{}", chainConfig);
-        assertThatThrownBy(() -> validate(chainConfig))
-                .rootCause()
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining("nodeAddress")
-        ;
+        assertThat(validate(chainConfig))
+                .extracting(v -> v.getPropertyPath().toString())
+                .contains("nodeAddress");
     }
     // endregion
 
     // region Invalid block time
-    static Stream<Integer> invalidBlockTimes() {
+    static Stream<Duration> invalidBlockTimes() {
         return Stream.of(
-                0,    // Block time should be strictly positive
-                -1    // Block time should be strictly positive
+                Duration.ofSeconds(0),    // Block time should be more than 100 milliseconds
+                Duration.ofSeconds(-1),    // Block time should be strictly positive
+                Duration.ofSeconds(25)   // Block time should be less than 20 seconds
         );
     }
 
     @ParameterizedTest
     @MethodSource("invalidBlockTimes")
-    void shouldNotValidateBlockTime(int blockTime) {
+    void shouldNotValidateBlockTime(Duration blockTime) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
@@ -151,11 +147,9 @@ class ChainConfigTest {
                 .build();
 
         log.info("{}", chainConfig);
-        assertThatThrownBy(() -> validate(chainConfig))
-                .rootCause()
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining("blockTime")
-        ;
+        assertThat(validate(chainConfig))
+                .extracting(v -> v.getPropertyPath().toString())
+                .contains("blockTime");
     }
     // endregion
 
@@ -181,11 +175,9 @@ class ChainConfigTest {
                 .build();
 
         log.info("{}", chainConfig);
-        assertThatThrownBy(() -> validate(chainConfig))
-                .rootCause()
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasMessageContaining("hubAddress")
-        ;
+        assertThat(validate(chainConfig))
+                .extracting(v -> v.getPropertyPath().toString())
+                .contains("hubAddress");
     }
     // endregion
 }

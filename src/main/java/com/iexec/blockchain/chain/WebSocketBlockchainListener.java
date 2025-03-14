@@ -63,7 +63,7 @@ public class WebSocketBlockchainListener {
         final String wsUrl = chainConfig.getNodeAddress().replace("http", "ws");
         this.webSocketService = new WebSocketService(wsUrl, false);
         this.web3Client = Web3j.build(new HttpService(chainConfig.getNodeAddress()),
-                chainConfig.getBlockTime(), Async.defaultExecutorService());
+                chainConfig.getBlockTime().toSeconds(), Async.defaultExecutorService());
         lastSeenBlock = Metrics.gauge(LATEST_BLOCK_METRIC_NAME, new AtomicLong(0));
         latestTxGauge = Metrics.gauge(TX_COUNT_METRIC_NAME, List.of(Tag.of("block", "latest")), new AtomicLong(0));
         pendingTxGauge = Metrics.gauge(TX_COUNT_METRIC_NAME, List.of(Tag.of("block", "pending")), new AtomicLong(0));
