@@ -31,9 +31,13 @@ import static org.assertj.core.api.Assertions.*;
 @Slf4j
 class ChainConfigTest {
     private static final int DEFAULT_CHAIN_ID = 1;
+    private static final boolean DEFAULT_IS_SIDECHAIN = true;
     private static final String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
     private static final String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
     private static final Duration DEFAULT_BLOCK_TIME = Duration.ofSeconds(1);
+    private static final float DEFAULT_GAS_PRICE_MULTIPLIER = 0.1f;
+    private static final long DEFAULT_GAS_PRICE_CAP = 22_000_000_000L;
+    private static final int DEFAULT_MAX_ALLOWED_TX_PER_BLOCK = 1;
 
     private Set<ConstraintViolation<ChainConfig>> validate(ChainConfig chainConfig) {
         try (final ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
@@ -44,27 +48,32 @@ class ChainConfigTest {
     // region Valid data
     static Stream<Arguments> validData() {
         return Stream.of(
-                Arguments.of(100, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT0.1S", 1.0f, 1),
-                Arguments.of(42, "https://localhost:8545", "0x0000000000000000000000000000000000000001", "PT10S", 1.0f, 2),
-                Arguments.of(10, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT20S", 1.0f, 2),
-                Arguments.of(1, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT5S", 1.0f, 1)
+                Arguments.of(100, true, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT0.1S", 1.0f, 11_000_000_000L, 1),
+                Arguments.of(42, true, "https://localhost:8545", "0x0000000000000000000000000000000000000001", "PT10S", 1.0f, 22_000_000_000L, 2),
+                Arguments.of(10, true, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT20S", 1.0f, 22_000_000_000L, 2),
+                Arguments.of(1, true, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT5S", 1.0f, 0L, 1),
+                Arguments.of(DEFAULT_CHAIN_ID, DEFAULT_IS_SIDECHAIN, DEFAULT_NODE_ADDRESS, DEFAULT_HUB_ADDRESS, DEFAULT_BLOCK_TIME, DEFAULT_GAS_PRICE_MULTIPLIER, DEFAULT_GAS_PRICE_CAP, DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
         );
     }
 
     @ParameterizedTest
     @MethodSource("validData")
     void shouldValidate(Integer chainId,
+                        boolean sidechain,
                         String nodeAddress,
                         String hubAddress,
                         Duration blockTime,
                         float gasPriceMultiplier,
+                        long gasPriceCap,
                         int maxAllowedTxPerBlock) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(chainId)
+                .sidechain(sidechain)
                 .nodeAddress(nodeAddress)
-                .blockTime(blockTime)
                 .hubAddress(hubAddress)
+                .blockTime(blockTime)
                 .gasPriceMultiplier(gasPriceMultiplier)
+                .gasPriceCap(gasPriceCap)
                 .maxAllowedTxPerBlock(maxAllowedTxPerBlock)
                 .build();
 
@@ -88,15 +97,19 @@ class ChainConfigTest {
 
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(chainId)
+                .sidechain(DEFAULT_IS_SIDECHAIN)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
-                .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .gasPriceMultiplier(DEFAULT_GAS_PRICE_MULTIPLIER)
+                .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
+                .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
 
         log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
-                .extracting(ConstraintViolation::getMessage)
-                .contains("Chain id should be positive");
+                .extracting(v -> v.getPropertyPath().toString())
+                .containsExactly("id");
     }
     // endregion
 
@@ -115,15 +128,19 @@ class ChainConfigTest {
     void shouldNotValidateNodeAddress(String nodeAddress) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
+                .sidechain(DEFAULT_IS_SIDECHAIN)
                 .nodeAddress(nodeAddress)
-                .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .gasPriceMultiplier(DEFAULT_GAS_PRICE_MULTIPLIER)
+                .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
+                .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
 
         log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
-                .contains("nodeAddress");
+                .containsExactly("nodeAddress");
     }
     // endregion
 
@@ -141,15 +158,19 @@ class ChainConfigTest {
     void shouldNotValidateBlockTime(Duration blockTime) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
+                .sidechain(DEFAULT_IS_SIDECHAIN)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
-                .blockTime(blockTime)
                 .hubAddress(DEFAULT_HUB_ADDRESS)
+                .blockTime(blockTime)
+                .gasPriceMultiplier(DEFAULT_GAS_PRICE_MULTIPLIER)
+                .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
+                .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
 
         log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
-                .contains("blockTime");
+                .containsExactly("blockTime");
     }
     // endregion
 
@@ -169,15 +190,19 @@ class ChainConfigTest {
     void shouldNotValidateHubAddress(String hubAddress) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
+                .sidechain(DEFAULT_IS_SIDECHAIN)
                 .nodeAddress(DEFAULT_NODE_ADDRESS)
-                .blockTime(DEFAULT_BLOCK_TIME)
                 .hubAddress(hubAddress)
+                .blockTime(DEFAULT_BLOCK_TIME)
+                .gasPriceMultiplier(DEFAULT_GAS_PRICE_MULTIPLIER)
+                .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
+                .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
 
         log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
-                .contains("hubAddress");
+                .containsExactly("hubAddress");
     }
     // endregion
 }
