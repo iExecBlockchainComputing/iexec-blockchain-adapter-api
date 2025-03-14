@@ -76,8 +76,6 @@ class ChainConfigTest {
                 .gasPriceCap(gasPriceCap)
                 .maxAllowedTxPerBlock(maxAllowedTxPerBlock)
                 .build();
-
-        log.info("{}", chainConfig);
         assertThatCode(() -> validate(chainConfig))
                 .doesNotThrowAnyException();
     }
@@ -105,8 +103,6 @@ class ChainConfigTest {
                 .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
-
-        log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
                 .containsExactly("id");
@@ -136,8 +132,6 @@ class ChainConfigTest {
                 .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
-
-        log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
                 .containsExactly("nodeAddress");
@@ -167,7 +161,6 @@ class ChainConfigTest {
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
 
-        log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
                 .containsExactly("blockTime");
@@ -198,8 +191,6 @@ class ChainConfigTest {
                 .gasPriceCap(DEFAULT_GAS_PRICE_CAP)
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
-
-        log.info("{}", chainConfig);
         assertThat(validate(chainConfig))
                 .extracting(v -> v.getPropertyPath().toString())
                 .containsExactly("hubAddress");
