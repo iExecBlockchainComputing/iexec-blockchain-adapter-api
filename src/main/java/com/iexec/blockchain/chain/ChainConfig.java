@@ -36,32 +36,32 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "chain")
 public class ChainConfig {
 
-    @Positive(message = "Chain id should be positive")
-    @NotNull
+    @Positive(message = "Chain id must be greater than 0")
+    @NotNull(message = "Chain id must not be null")
     int id;
 
     boolean sidechain;
 
-    @URL
-    @NotEmpty
+    @URL(message = "Node address must be a valid URL")
+    @NotEmpty(message = "Node address must not be empty")
     String nodeAddress;
 
-    @ValidNonZeroEthereumAddress
+    @ValidNonZeroEthereumAddress(message = "Hub address must be a valid non zero Ethereum address")
     String hubAddress;
 
-    @DurationMin(millis = 100)
-    @DurationMax(seconds = 20)
-    @NotNull
+    @DurationMin(millis = 100, message = "Block time must be greater than 100ms")
+    @DurationMax(seconds = 20, message = "Block time must be less than 20s")
+    @NotNull(message = "Block time must not be null")
     Duration blockTime;
 
-    @Positive
+    @Positive(message = "Gas price multiplier must be greater than 0")
     float gasPriceMultiplier;
 
-    @PositiveOrZero
+    @PositiveOrZero(message = "Gas price cap must be greater or equal to 0")
     long gasPriceCap;
 
-    @Positive
-    @Max(value = 4)
+    @Positive(message = "Max allowed tx per block must be greater than 0")
+    @Max(value = 4, message = "Max allowed tx per block must be less or equal to 4")
     int maxAllowedTxPerBlock;
 
 }

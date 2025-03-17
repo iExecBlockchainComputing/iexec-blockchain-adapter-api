@@ -89,7 +89,6 @@ class ChainConfigTest {
     @ParameterizedTest
     @MethodSource("invalidChainIds")
     void shouldNotValidateChainId(int chainId) {
-
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(chainId)
                 .sidechain(DEFAULT_IS_SIDECHAIN)
@@ -101,24 +100,24 @@ class ChainConfigTest {
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
         assertThat(validate(chainConfig))
-                .extracting(v -> v.getPropertyPath().toString())
-                .containsExactly("id");
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly("Chain id must be greater than 0");
     }
     // endregion
 
     // region Invalid node addresses
-    static Stream<String> invalidNodeAddresses() {
+    static Stream<Arguments> invalidNodeAddresses() {
         return Stream.of(
-                null,       // Node address should not be null
-                "",         // Node address should be a valid URL
-                "12345",    // Node address should be a valid URL
-                "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002"    // Node address should be a valid URL
+                Arguments.of(null, "Node address must not be empty"),
+                Arguments.of ("", "Node address must not be empty"),
+                Arguments.of ("12345", "Node address must be a valid URL"),
+                Arguments.of ("0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "Node address must be a valid URL")
         );
     }
 
     @ParameterizedTest
     @MethodSource("invalidNodeAddresses")
-    void shouldNotValidateNodeAddress(String nodeAddress) {
+    void shouldNotValidateNodeAddress(String nodeAddress, String errorMessage) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
                 .sidechain(DEFAULT_IS_SIDECHAIN)
@@ -130,23 +129,24 @@ class ChainConfigTest {
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
         assertThat(validate(chainConfig))
-                .extracting(v -> v.getPropertyPath().toString())
-                .containsExactly("nodeAddress");
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly(errorMessage);
     }
     // endregion
 
     // region Invalid block time
-    static Stream<Duration> invalidBlockTimes() {
+    static Stream<Arguments> invalidBlockTimes() {
         return Stream.of(
-                Duration.ofSeconds(0),    // Block time should be more than 100 milliseconds
-                Duration.ofSeconds(-1),    // Block time should be strictly positive
-                Duration.ofSeconds(25)   // Block time should be less than 20 seconds
+                Arguments.of(Duration.ofSeconds(0), "Block time must be greater than 100ms"),
+                Arguments.of(Duration.ofSeconds(25), "Block time must be less than 20s"),
+                Arguments.of(Duration.ofSeconds(-1), "Block time must be greater than 100ms"),
+                Arguments.of(null,  "Block time must not be null")
         );
     }
 
     @ParameterizedTest
     @MethodSource("invalidBlockTimes")
-    void shouldNotValidateBlockTime(Duration blockTime) {
+    void shouldNotValidateBlockTime(Duration blockTime, String errorMessage) {
         final ChainConfig chainConfig = ChainConfig.builder()
                 .id(DEFAULT_CHAIN_ID)
                 .sidechain(DEFAULT_IS_SIDECHAIN)
@@ -159,8 +159,8 @@ class ChainConfigTest {
                 .build();
 
         assertThat(validate(chainConfig))
-                .extracting(v -> v.getPropertyPath().toString())
-                .containsExactly("blockTime");
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly(errorMessage);
     }
     // endregion
 
@@ -189,8 +189,8 @@ class ChainConfigTest {
                 .maxAllowedTxPerBlock(DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
                 .build();
         assertThat(validate(chainConfig))
-                .extracting(v -> v.getPropertyPath().toString())
-                .containsExactly("hubAddress");
+                .extracting(ConstraintViolation::getMessage)
+                .containsExactly("Hub address must be a valid non zero Ethereum address");
     }
     // endregion
 }
