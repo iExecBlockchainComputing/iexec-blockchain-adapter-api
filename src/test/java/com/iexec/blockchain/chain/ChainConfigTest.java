@@ -17,7 +17,6 @@
 package com.iexec.blockchain.chain;
 
 import jakarta.validation.*;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,7 +27,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 
-@Slf4j
 class ChainConfigTest {
     private static final int DEFAULT_CHAIN_ID = 1;
     private static final boolean DEFAULT_IS_SIDECHAIN = true;
@@ -76,8 +74,7 @@ class ChainConfigTest {
                 .gasPriceCap(gasPriceCap)
                 .maxAllowedTxPerBlock(maxAllowedTxPerBlock)
                 .build();
-        assertThatCode(() -> validate(chainConfig))
-                .doesNotThrowAnyException();
+        assertThat(validate(chainConfig)).isEmpty();
     }
     // endregion
 
