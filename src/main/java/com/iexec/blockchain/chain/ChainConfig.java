@@ -16,60 +16,52 @@
 
 package com.iexec.blockchain.chain;
 
-import com.iexec.common.chain.validation.ValidNonZeroEthereumAddress;
-import jakarta.annotation.PostConstruct;
-import jakarta.validation.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.iexec.commons.poco.chain.validation.ValidNonZeroEthereumAddress;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.URL;
+import org.hibernate.validator.constraints.time.DurationMax;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
-import java.util.Set;
+import java.time.Duration;
 
 @Slf4j
 @Value
 @Builder
+@Validated
 @ConfigurationProperties(prefix = "chain")
 public class ChainConfig {
 
-    @Positive(message = "Chain id should be positive")
-    @NotNull
+    @Positive(message = "Chain id must be greater than 0")
+    @NotNull(message = "Chain id must not be null")
     int id;
 
-    @URL
-    @NotEmpty
+    boolean sidechain;
+
+    @URL(message = "Node address must be a valid URL")
+    @NotEmpty(message = "Node address must not be empty")
     String nodeAddress;
 
-    @Positive(message = "Block time should be positive")
-    @NotNull
-    int blockTime;
-
-    @ValidNonZeroEthereumAddress
+    @ValidNonZeroEthereumAddress(message = "Hub address must be a valid non zero Ethereum address")
     String hubAddress;
 
-    boolean isSidechain;
+    @DurationMin(millis = 100, message = "Block time must be greater than 100ms")
+    @DurationMax(seconds = 20, message = "Block time must be less than 20s")
+    @NotNull(message = "Block time must not be null")
+    Duration blockTime;
 
+    @Positive(message = "Gas price multiplier must be greater than 0")
     float gasPriceMultiplier;
 
+    @PositiveOrZero(message = "Gas price cap must be greater or equal to 0")
     long gasPriceCap;
 
-    @Positive
-    @Max(value = 4)
+    @Positive(message = "Max allowed tx per block must be greater than 0")
+    @Max(value = 4, message = "Max allowed tx per block must be less or equal to 4")
     int maxAllowedTxPerBlock;
 
-    @PostConstruct
-    private void validate() {
-        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-            Validator validator = factory.getValidator();
-            Set<ConstraintViolation<ChainConfig>> violations = validator.validate(this);
-            if (!violations.isEmpty()) {
-                throw new ConstraintViolationException(violations);
-            }
-        }
-    }
 }

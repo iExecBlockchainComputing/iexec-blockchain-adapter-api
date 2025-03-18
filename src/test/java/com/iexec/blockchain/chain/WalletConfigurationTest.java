@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.web3j.crypto.WalletUtils;
 
 import java.io.File;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +36,7 @@ class WalletConfigurationTest {
     void shouldCreateBeans() throws Exception {
         final String tempWalletName = WalletUtils.generateFullNewWalletFile("changeit", tempWalletDir);
         final String tempWalletPath = tempWalletDir.getAbsolutePath() + File.separator + tempWalletName;
-        runner.withBean(ChainConfig.class, 65535, "http://localhost:8545", 5, "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca", true, 1.0f, 0L, 2)
+        runner.withBean(ChainConfig.class, 65535, true, "http://localhost:8545", "0xC129e7917b7c7DeDfAa5Fff1FB18d5D7050fE8ca", Duration.ofSeconds(5), 1.0f, 0L, 2)
                 .withBean(IexecHubService.class)
                 .withBean(WalletConfiguration.class, tempWalletPath, "changeit")
                 .withBean(Web3jService.class)

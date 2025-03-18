@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 - Use no more `iexec-commons-poco` deprecated code in integration tests. (#163)
 - Fix Spring Security deprecations after Spring Boot 3.3.8 upgrade. (#169)
+- Harmonize YML internal variables to proper case. (#171)
 
 ### Breaking API changes
 

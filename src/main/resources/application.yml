@@ -14,18 +14,18 @@ spring:
       auto-index-creation: true
 
 chain:
-  id: ${IEXEC_BLOCKCHAIN_ADAPTER_API_CHAIN_ID:134}
-  node-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_NODE_ADDRESS:https://bellecour.iex.ec}
-  block-time: ${IEXEC_BLOCKCHAIN_ADAPTER_API_BLOCK_TIME:5} #in seconds
-  hub-address: ${IEXEC_BLOCKCHAIN_ADAPTER_API_HUB_ADDRESS:0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f}
-  is-sidechain: ${IEXEC_BLOCKCHAIN_ADAPTER_API_IS_SIDECHAIN:true}
-  gas-price-multiplier: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_MULTIPLIER:1.0} # txs will be sent with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
-  gas-price-cap: ${IEXEC_BLOCKCHAIN_ADAPTER_API_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
+  id: ${IEXEC_CHAIN_ID:134}
+  node-address: ${IEXEC_BLOCKCHAIN_NODE_ADDRESS:https://bellecour.iex.ec}
+  block-time: ${IEXEC_BLOCK_TIME:PT5S} #in seconds
+  hub-address: ${IEXEC_HUB_ADDRESS:0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f}
+  sidechain: ${IEXEC_IS_SIDECHAIN:true}
+  gas-price-multiplier: ${IEXEC_GAS_PRICE_MULTIPLIER:1.0} # txs will be sent with networkGasPrice*gasPriceMultiplier, 4.0 means super fast
+  gas-price-cap: ${IEXEC_GAS_PRICE_CAP:22000000000} #in Wei, will be used for txs if networkGasPrice*gasPriceMultiplier > gasPriceCap
   max-allowed-tx-per-block: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MAX_ALLOWED_TX_PER_BLOCK:1} # 1 or 2
 wallet:
   path: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH:src/main/resources/wallet.json}
   password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD:whatever}
 
 springdoc:
-  packagesToScan: com.iexec.blockchain
-  pathsToMatch: /**
+  packages-to-scan: com.iexec.blockchain
+  paths-to-match: /**
