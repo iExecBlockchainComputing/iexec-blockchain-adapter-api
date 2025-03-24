@@ -88,7 +88,7 @@ public class CommandStorage {
      */
     public boolean updateToFinal(final CommandArgs args, final TransactionReceipt receipt) {
         final CommandStatus finalStatus = receipt != null && receipt.isStatusOK() ? CommandStatus.SUCCESS : CommandStatus.FAILURE;
-        log.info("Command final status with transaction receipt [chainObjectId]:{}, command:{}, status:{}, receipt:{}]",
+        log.info("Command final status with transaction receipt [chainObjectId:{}, command:{}, status:{}, receipt:{}]",
                 args.getChainObjectId(), args.getCommandName().name(), finalStatus, receipt);
         final Criteria criteria = createUpdateCriteria(args, CommandStatus.PROCESSING);
         final Update update = new Update();
