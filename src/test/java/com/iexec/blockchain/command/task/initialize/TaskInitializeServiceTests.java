@@ -108,30 +108,30 @@ class TaskInitializeServiceTests {
     @Test
     void triggerInitializeTask() throws Exception {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(true);
+        when(updaterService.updateToProcessing(args)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(receipt);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt);
+        verify(updaterService).updateToFinal(args, receipt);
     }
 
     @Test
     void shouldNotTriggerInitializeTaskSinceCannotUpdate() {
         final TransactionReceipt receipt = mock(TransactionReceipt.class);
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(false);
+        when(updaterService.updateToProcessing(args)).thenReturn(false);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService, never()).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt);
+        verify(updaterService, never()).updateToFinal(args, receipt);
         verifyNoInteractions(blockchainCheckerService);
     }
 
     @Test
     void shouldNotTriggerInitializeTaskSinceReceiptIsNull() throws Exception {
-        when(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(true);
+        when(updaterService.updateToProcessing(args)).thenReturn(true);
         when(blockchainCheckerService.sendBlockchainCommand(args)).thenReturn(null);
 
         taskInitializeService.triggerBlockchainCommand(args);
-        verify(updaterService).updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, null);
+        verify(updaterService).updateToFinal(args, null);
     }
     // endregion
 

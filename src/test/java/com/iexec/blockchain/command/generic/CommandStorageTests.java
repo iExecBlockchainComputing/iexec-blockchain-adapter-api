@@ -84,7 +84,7 @@ class CommandStorageTests {
     void shouldSetProcessing() {
         final TaskInitializeArgs args = getArgs();
         Assertions.assertTrue(updaterService.updateToReceived(args));
-        Assertions.assertTrue(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE));
+        Assertions.assertTrue(updaterService.updateToProcessing(args));
         final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.PROCESSING, status);
     }
@@ -92,31 +92,34 @@ class CommandStorageTests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class, names = "RECEIVED", mode = EnumSource.Mode.EXCLUDE)
     void shouldNotSetProcessingSinceBadStatus(final CommandStatus status) {
+        final TaskInitializeArgs args = getArgs();
         final Command command = createCommand(status);
         mongoTemplate.insert(command);
-        Assertions.assertFalse(updaterService.updateToProcessing(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE));
+        Assertions.assertFalse(updaterService.updateToProcessing(args));
     }
 
     @Test
     void shouldSetFinalSuccess() {
+        final TaskInitializeArgs args = getArgs();
         final TransactionReceipt receipt = new TransactionReceipt();
         receipt.setStatus("0x1");
         final Command command = createCommand(CommandStatus.PROCESSING);
         mongoTemplate.insert(command);
 
-        Assertions.assertTrue(updaterService.updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt));
+        Assertions.assertTrue(updaterService.updateToFinal(args, receipt));
         final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.SUCCESS, status);
     }
 
     @Test
     void shouldSetFinalFailure() {
+        final TaskInitializeArgs args = getArgs();
         final TransactionReceipt receipt = new TransactionReceipt();
         receipt.setStatus("0x0");
         final Command command = createCommand(CommandStatus.PROCESSING);
         mongoTemplate.insert(command);
 
-        Assertions.assertTrue(updaterService.updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt));
+        Assertions.assertTrue(updaterService.updateToFinal(args, receipt));
         final CommandStatus status = updaterService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE).orElseThrow();
         Assertions.assertEquals(CommandStatus.FAILURE, status);
     }
@@ -124,12 +127,13 @@ class CommandStorageTests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class, names = "PROCESSING", mode = EnumSource.Mode.EXCLUDE)
     void shouldNotSetFinalSinceBadStatus(final CommandStatus status) {
+        final TaskInitializeArgs args = getArgs();
         final TransactionReceipt receipt = new TransactionReceipt();
         final Command taskInitialize = new Command();
         taskInitialize.setStatus(status);
         mongoTemplate.insert(taskInitialize);
 
-        Assertions.assertFalse(updaterService.updateToFinal(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE, receipt));
+        Assertions.assertFalse(updaterService.updateToFinal(args, receipt));
     }
 
     private Command createCommand(final CommandStatus status) {
