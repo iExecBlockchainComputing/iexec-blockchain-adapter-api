@@ -41,11 +41,10 @@ public class CommandStorage {
     }
 
     /**
-     * Locally set status to received and store blockchain command arguments for
-     * future use.
+     * Locally set status to received and store blockchain command arguments for future use.
      *
      * @param args input arguments for the blockchain command
-     * @return true on successful update
+     * @return true on successful update, false otherwise
      */
     public boolean updateToReceived(final CommandArgs args) {
         final Command command = new Command();
@@ -66,14 +65,13 @@ public class CommandStorage {
     }
 
     /**
-     * Locally set status to processing just before sending the blockchain command
+     * Locally set status to processing just before sending the blockchain command.
      *
-     * @param chainObjectId blockchain object ID on which the blockchain command
-     *                      is performed
-     * @return true on successful update
+     * @param args Command arguments containing on-chain object ID and command to perform
+     * @return true on successful update, false otherwise
      */
-    public boolean updateToProcessing(final String chainObjectId, final CommandName commandName) {
-        final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.RECEIVED);
+    public boolean updateToProcessing(final CommandArgs args) {
+        final Criteria criteria = createUpdateCriteria(args, CommandStatus.RECEIVED);
         final Update update = new Update();
         update.set(STATUS_FIELD_NAME, CommandStatus.PROCESSING);
         update.set("processingDate", Instant.now());
@@ -82,20 +80,17 @@ public class CommandStorage {
     }
 
     /**
-     * Locally set status both to success or failure, when blockchain command
-     * is completed.
+     * Locally set status both to success or failure, when blockchain command is completed.
      *
-     * @param chainObjectId blockchain object ID on which the blockchain command
-     *                      is performed
-     * @param receipt       blockchain receipt
+     * @param args    Command arguments containing on-chain object ID and command to perform
+     * @param receipt blockchain receipt
+     * @return true on successful update, false otherwise
      */
-    public boolean updateToFinal(final String chainObjectId,
-                                 final CommandName commandName,
-                                 final TransactionReceipt receipt) {
+    public boolean updateToFinal(final CommandArgs args, final TransactionReceipt receipt) {
         final CommandStatus finalStatus = receipt != null && receipt.isStatusOK() ? CommandStatus.SUCCESS : CommandStatus.FAILURE;
         log.info("Command final status with transaction receipt [chainObjectId]:{}, command:{}, status:{}, receipt:{}]",
-                chainObjectId, commandName.name(), finalStatus, receipt);
-        final Criteria criteria = createUpdateCriteria(chainObjectId, commandName, CommandStatus.PROCESSING);
+                args.getChainObjectId(), args.getCommandName().name(), finalStatus, receipt);
+        final Criteria criteria = createUpdateCriteria(args, CommandStatus.PROCESSING);
         final Update update = new Update();
         update.set(STATUS_FIELD_NAME, finalStatus);
         update.set("transactionReceipt", receipt);
@@ -107,14 +102,13 @@ public class CommandStorage {
     /**
      * Creates a criteria, the rule to lookup for a specific entry in the Mongo collection.
      *
-     * @param chainObjectId On-chain ID of the object to look for in collection
-     * @param commandName   Name of the command applied to the on-chain object
-     * @param status        Currently expected status for the on-chain object
+     * @param args   Command arguments containing on-chain object ID and command to perform
+     * @param status Currently expected status for the on-chain object
      * @return A {@code Criteria} instance to use in {@code MongoTemplate} operations
      */
-    private Criteria createUpdateCriteria(final String chainObjectId, final CommandName commandName, final CommandStatus status) {
-        return Criteria.where("chainObjectId").is(chainObjectId)
-                .and("commandName").is(commandName)
+    private Criteria createUpdateCriteria(final CommandArgs args, final CommandStatus status) {
+        return Criteria.where("chainObjectId").is(args.getChainObjectId())
+                .and("commandName").is(args.getCommandName())
                 .and(STATUS_FIELD_NAME).is(status);
     }
 

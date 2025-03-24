@@ -16,7 +16,9 @@
 
 package com.iexec.blockchain.chain;
 
-import jakarta.validation.*;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,7 +27,7 @@ import java.time.Duration;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ChainConfigTest {
     private static final int DEFAULT_CHAIN_ID = 1;
@@ -109,9 +111,9 @@ class ChainConfigTest {
     static Stream<Arguments> invalidNodeAddresses() {
         return Stream.of(
                 Arguments.of(null, "Node address must not be empty"),
-                Arguments.of ("", "Node address must not be empty"),
-                Arguments.of ("12345", "Node address must be a valid URL"),
-                Arguments.of ("0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "Node address must be a valid URL")
+                Arguments.of("", "Node address must not be empty"),
+                Arguments.of("12345", "Node address must be a valid URL"),
+                Arguments.of("0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "Node address must be a valid URL")
         );
     }
 
@@ -140,7 +142,7 @@ class ChainConfigTest {
                 Arguments.of(Duration.ofSeconds(0), "Block time must be greater than 100ms"),
                 Arguments.of(Duration.ofSeconds(25), "Block time must be less than 20s"),
                 Arguments.of(Duration.ofSeconds(-1), "Block time must be greater than 100ms"),
-                Arguments.of(null,  "Block time must not be null")
+                Arguments.of(null, "Block time must not be null")
         );
     }
 

@@ -50,15 +50,14 @@ public abstract class CommandEngine<A extends CommandArgs> {
      * @return blockchain object ID if successful
      */
     public String startBlockchainCommand(final A args, final boolean isPriority) {
-        final String chainObjectId = args.getChainObjectId();
-        final String messageDetails = String.format("[chainObjectId:%s, commandArgs:%s]", chainObjectId, args);
+        final String messageDetails = String.format("chainObjectId:%s, commandArgs:%s", args.getChainObjectId(), args);
         if (!blockchainService.canSendBlockchainCommand(args)) {
-            log.error("Starting blockchain command failed (failing on-chain checks) {}", messageDetails);
+            log.error("Starting blockchain command failed (failing on-chain checks) [{}]", messageDetails);
             return "";
         }
 
         if (!updaterService.updateToReceived(args)) {
-            log.error("Starting blockchain command failed (failing update to received) {}", messageDetails);
+            log.error("Starting blockchain command failed (failing update to received) [{}]", messageDetails);
             return "";
         }
         log.info("Received command {}", messageDetails);
@@ -66,7 +65,7 @@ public abstract class CommandEngine<A extends CommandArgs> {
         final Runnable runnable = () -> triggerBlockchainCommand(args);
         queueService.addExecutionToQueue(runnable, isPriority);
 
-        return chainObjectId;
+        return args.getChainObjectId();
     }
 
     /**
@@ -77,33 +76,29 @@ public abstract class CommandEngine<A extends CommandArgs> {
      * @param args input arguments for the blockchain command
      */
     public void triggerBlockchainCommand(final A args) {
-        String chainObjectId = args.getChainObjectId();
-        if (!updaterService.updateToProcessing(chainObjectId, args.getCommandName())) {
-            log.error("Triggering blockchain command failed (failing update" +
-                            " to processing) [chainObjectId:{}, commandArgs:{}]",
-                    chainObjectId, args);
+        final String messageDetails = String.format("chainObjectId:%s, commandArgs:%s", args.getChainObjectId(), args);
+        if (!updaterService.updateToProcessing(args)) {
+            log.error("Triggering blockchain command failed (failing update to processing) [{}]", messageDetails);
             return;
         }
         int attempt = 0;
-        log.info("Processing command [chainObjectId:{}, commandArgs:{}]",
-                chainObjectId, args);
+        log.info("Processing command [{}]", messageDetails);
         TransactionReceipt receipt = null;
         while (attempt < MAX_ATTEMPTS && receipt == null) {
             attempt++;
             try {
                 receipt = blockchainService.sendBlockchainCommand(args);
             } catch (Exception e) {
-                log.error("Something wrong happened while triggering command [chainObjectId:{}, commandArgs:{}, attempt:{}]",
-                        chainObjectId, args, attempt, e);
+                log.error("Something wrong happened while triggering command [{}, attempt:{}]",
+                        messageDetails, attempt, e);
             }
         }
         if (receipt == null) {
             log.error("Triggering blockchain command failed " +
-                            "(received null receipt after blockchain send) " +
-                            "[chainObjectId:{}, commandArgs:{}, attempt:{}]",
-                    chainObjectId, args, attempt);
+                            "(received null receipt after blockchain send) [{}, attempt:{}]",
+                    messageDetails, attempt);
         }
-        updaterService.updateToFinal(chainObjectId, args.getCommandName(), receipt);
+        updaterService.updateToFinal(args, receipt);
     }
 
     /**
