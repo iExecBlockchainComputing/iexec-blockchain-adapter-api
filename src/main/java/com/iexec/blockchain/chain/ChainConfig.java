@@ -61,7 +61,7 @@ public class ChainConfig {
     long gasPriceCap;
 
     @Positive(message = "Max allowed tx per block must be greater than 0")
-    @Max(value = 4, message = "Max allowed tx per block must be less or equal to 4")
+    @Max(value = 8, message = "Max allowed tx per block must be less or equal to 8")
     int maxAllowedTxPerBlock;
 
 }

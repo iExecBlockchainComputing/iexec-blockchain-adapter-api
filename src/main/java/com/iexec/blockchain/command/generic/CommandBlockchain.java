@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,5 +41,5 @@ public interface CommandBlockchain<A extends CommandArgs> {
      * @param args input arguments for the blockchain command
      * @return transaction receipt
      */
-    TransactionReceipt sendBlockchainCommand(A args) throws Exception;
+    TransactionReceipt sendBlockchainCommand(A args);
 }
