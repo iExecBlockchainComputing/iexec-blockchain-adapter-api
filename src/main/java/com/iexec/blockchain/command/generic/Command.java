@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
@@ -36,28 +36,29 @@ import java.time.Instant;
  * More info can be found at:
  * - https://martinfowler.com/bliki/CQRS.html
  * - https://microservices.io/patterns/microservices.html
- *
- * @param <A> args for the command
  */
 @Document
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class Command<A extends CommandArgs> {
+@CompoundIndex(name = "command_task_idx",
+        def = "{'chainObjectId': 1, 'commandName': 1}",
+        unique = true)
+public class Command {
 
     @Id
     private String id;
-    @Indexed(unique = true)
-    private String chainObjectId;
     @Version
     private Long version;
 
+    private String chainObjectId;
+    private CommandName commandName;
     private CommandStatus status;
     private Instant creationDate;
     private Instant processingDate;
     private Instant finalDate;
     private TransactionReceipt transactionReceipt;
 
-    private A args;
+    private CommandArgs args;
 
 }

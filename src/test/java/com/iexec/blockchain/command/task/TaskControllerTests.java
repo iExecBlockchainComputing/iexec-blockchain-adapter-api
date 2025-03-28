@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.iexec.blockchain.command.task;
 
 import com.iexec.blockchain.api.CommandStatus;
+import com.iexec.blockchain.command.generic.CommandName;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
@@ -35,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskControllerV1Tests {
+class TaskControllerTests {
 
     private static final String CHAIN_DEAL_ID = "0x1";
     private static final int TASK_INDEX = 0;
@@ -46,7 +47,7 @@ class TaskControllerV1Tests {
     @Mock
     private TaskFinalizeService taskFinalizeService;
     @InjectMocks
-    private TaskControllerV1 taskController;
+    private TaskController taskController;
 
     // region requestInitializeTask
     @Test
@@ -68,14 +69,14 @@ class TaskControllerV1Tests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class)
     void shouldReturnInitializeCommandStatusWhenAvailable(CommandStatus status) {
-        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(status));
+        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.of(status));
         assertThat(taskController.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.ok(status));
     }
 
     @Test
     void shouldNotReturnInitializeCommandStatusWhenEmpty() {
-        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
+        when(taskInitializeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_INITIALIZE)).thenReturn(Optional.empty());
         assertThat(taskController.getStatusForInitializeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.notFound().build());
     }
@@ -101,14 +102,14 @@ class TaskControllerV1Tests {
     @ParameterizedTest
     @EnumSource(value = CommandStatus.class)
     void shouldReturnFinalizeCommandStatusWhenAvailable(CommandStatus status) {
-        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.of(status));
+        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.of(status));
         assertThat(taskController.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.ok(status));
     }
 
     @Test
     void shouldNotReturnFinalizeCommandStatusWhenEmpty() {
-        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID)).thenReturn(Optional.empty());
+        when(taskFinalizeService.getStatusForCommand(CHAIN_TASK_ID, CommandName.TASK_FINALIZE)).thenReturn(Optional.empty());
         assertThat(taskController.getStatusForFinalizeTaskRequest(CHAIN_TASK_ID))
                 .isEqualTo(ResponseEntity.notFound().build());
     }

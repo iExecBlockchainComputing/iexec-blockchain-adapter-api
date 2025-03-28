@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,15 @@ import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
 import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.chain.ChainConfig;
 import com.iexec.blockchain.chain.IexecHubService;
+import com.iexec.blockchain.chain.Web3jService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.*;
-import com.iexec.commons.poco.eip712.OrderSigner;
+import com.iexec.commons.poco.eip712.EIP712Domain;
+import com.iexec.commons.poco.eip712.entity.EIP712AppOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712DatasetOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712RequestOrder;
+import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -52,8 +57,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.utils.Numeric;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,9 +69,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.commons.poco.chain.ChainTaskStatus.UNSET;
+import static com.iexec.commons.poco.encoding.AssetDataEncoder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -78,6 +87,10 @@ class IntegrationTests {
     private static final int CHAIN_SVC_PORT = 8545;
     private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
     private static final int MONGO_SVC_PORT = 27017;
+
+    private static final String APP_REGISTRY_ADDRESS = "0xd5Fe43e3cDD29812949dc9b368345537D7B73001";
+    private static final String DATASET_REGISTRY_ADDRESS = "0xf3bd0602fA481230271c5396f146e5695D3750A6";
+    private static final String WORKERPOOL_REGISTRY_ADDRESS = "0x6Cb57fA761812c34645C945cA89AAe3602D42eD3";
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
@@ -108,18 +121,23 @@ class IntegrationTests {
     private int randomServerPort;
 
     private final IexecHubService iexecHubService;
+    private final Web3jService web3jService;
     private final SignerService signerService;
     private final BrokerService brokerService;
-    private final ChainConfig chainConfig;
+    private final EIP712Domain domain;
     private BlockchainAdapterApiClient appClient;
 
     @Autowired
-    IntegrationTests(IexecHubService iexecHubService, SignerService signerService,
-                     BrokerService brokerService, ChainConfig chainConfig) {
+    IntegrationTests(final IexecHubService iexecHubService,
+                     final Web3jService web3jService,
+                     final SignerService signerService,
+                     final BrokerService brokerService,
+                     final ChainConfig chainConfig) {
         this.iexecHubService = iexecHubService;
+        this.web3jService = web3jService;
         this.signerService = signerService;
         this.brokerService = brokerService;
-        this.chainConfig = chainConfig;
+        this.domain = new EIP712Domain(chainConfig.getId(), chainConfig.getHubAddress());
     }
 
     @BeforeEach
@@ -173,7 +191,7 @@ class IntegrationTests {
     }
 
     @Test
-    void shouldBurstTransactionsWithAverageOfOneTxPerBlock() {
+    void shouldBurstTransactionsWithAverageOfOneTxPerBlock() throws IOException {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
         final String dealId = triggerDeal(taskVolume);
         final List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
@@ -203,31 +221,46 @@ class IntegrationTests {
         txCompletionWatchers.forEach(CompletableFuture::join);
     }
 
-    private String triggerDeal(int taskVolume) {
-        final int secondsPollingInterval = POLLING_INTERVAL_MS / 1000;
-        final int secondsTimeout = secondsPollingInterval * MAX_POLLING_ATTEMPTS;
-        final String appAddress = iexecHubService.createApp(buildRandomName("app"),
+    private String triggerDeal(int taskVolume) throws IOException {
+        BigInteger nonce = signerService.getNonce();
+        final String appTxData = encodeApp(
+                signerService.getAddress(),
+                buildRandomName("app"),
                 "docker.io/repo/name:1.0.0",
                 "DOCKER",
-                BytesUtils.EMPTY_HEX_STRING_32,
-                "",
-                secondsTimeout, secondsPollingInterval);
-        log.info("Created app: {}", appAddress);
-        final String workerpool = iexecHubService.createWorkerpool(buildRandomName("pool"),
-                secondsTimeout, secondsPollingInterval);
-        log.info("Created workerpool: {}", workerpool);
-        final String datasetAddress = iexecHubService.createDataset(buildRandomName("data"),
+                Numeric.toHexStringNoPrefix(new byte[32]),
+                "");
+        final String appTxHash = signerService.signAndSendTransaction(
+                nonce, BigInteger.ZERO, APP_REGISTRY_ADDRESS, appTxData);
+        nonce = nonce.add(BigInteger.ONE);
+        final String workerpoolTxData = encodeWorkerpool(
+                signerService.getAddress(),
+                buildRandomName("pool"));
+        final String workerpoolTxHash = signerService.signAndSendTransaction(
+                nonce, BigInteger.ZERO, WORKERPOOL_REGISTRY_ADDRESS, workerpoolTxData);
+        nonce = nonce.add(BigInteger.ONE);
+        final String datasetTxData = encodeDataset(
+                signerService.getAddress(),
+                buildRandomName("data"),
                 "https://abc.com/def.jpeg",
-                BytesUtils.EMPTY_HEX_STRING_32,
-                secondsTimeout, secondsPollingInterval);
-        log.info("Created datasetAddress: {}", datasetAddress);
+                Numeric.toHexStringNoPrefix(new byte[32]));
+        final String datasetTxHash = signerService.signAndSendTransaction(
+                nonce, BigInteger.ZERO, DATASET_REGISTRY_ADDRESS, datasetTxData);
 
-        final OrderSigner orderSigner = new OrderSigner(
-                chainConfig.getId(), chainConfig.getHubAddress(), signerService.getCredentials().getEcKeyPair());
-        final AppOrder signedAppOrder = orderSigner.signAppOrder(buildAppOrder(appAddress, taskVolume));
-        final WorkerpoolOrder signedWorkerpoolOrder = orderSigner.signWorkerpoolOrder(buildWorkerpoolOrder(workerpool, taskVolume));
-        final DatasetOrder signedDatasetOrder = orderSigner.signDatasetOrder(buildDatasetOrder(datasetAddress, taskVolume));
-        final RequestOrder signedRequestOrder = orderSigner.signRequestOrder(buildRequestOrder(signedAppOrder,
+        // Wait for a max of 2 blocks for Transactions to be mined
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> areTxMined(appTxHash, datasetTxHash, workerpoolTxHash));
+
+        final String appAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(appTxHash));
+        final String datasetAddress = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(datasetTxHash));
+        final String workerpool = getAssetAddressFromReceipt(web3jService.getTransactionReceipt(workerpoolTxHash));
+        log.info("Deployed asset addresses [app:{}, dataset:{}, workerpool:{}]", appAddress, datasetAddress, workerpool);
+
+        final AppOrder signedAppOrder = buildAppOrder(appAddress, taskVolume);
+        final WorkerpoolOrder signedWorkerpoolOrder = buildWorkerpoolOrder(workerpool, taskVolume);
+        final DatasetOrder signedDatasetOrder = buildDatasetOrder(datasetAddress, taskVolume);
+        final RequestOrder signedRequestOrder = buildRequestOrder(
+                signedAppOrder,
                 signedWorkerpoolOrder,
                 signedDatasetOrder,
                 signerService.getAddress(),
@@ -235,7 +268,7 @@ class IntegrationTests {
                         .iexecArgs("abc")
                         .iexecResultStorageProvider("ipfs")
                         .iexecResultStorageProxy("https://v6.result.goerli.iex.ec")
-                        .build()));
+                        .build());
         final BrokerOrder brokerOrder = BrokerOrder.builder()
                 .appOrder(signedAppOrder)
                 .workerpoolOrder(signedWorkerpoolOrder)
@@ -252,13 +285,20 @@ class IntegrationTests {
         return dealId;
     }
 
-
     private String buildRandomName(String baseName) {
         return baseName + "-" + RandomStringUtils.randomAlphabetic(10);
     }
 
+    private boolean areTxMined(String... txHashes) {
+        return Stream.of(txHashes)
+                .map(web3jService::getTransactionReceipt)
+                .map(receipt -> receipt != null && receipt.isStatusOK())
+                .reduce(Boolean::logicalAnd)
+                .orElse(false);
+    }
+
     private AppOrder buildAppOrder(String appAddress, int volume) {
-        return AppOrder.builder()
+        final AppOrder appOrder = AppOrder.builder()
                 .app(appAddress)
                 .appprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
@@ -268,10 +308,12 @@ class IntegrationTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
+        final String sig = signerService.signEIP712Entity(new EIP712AppOrder(domain, appOrder));
+        return appOrder.withSignature(sig);
     }
 
     private WorkerpoolOrder buildWorkerpoolOrder(String workerpoolAddress, int volume) {
-        return WorkerpoolOrder.builder()
+        final WorkerpoolOrder workerpoolOrder = WorkerpoolOrder.builder()
                 .workerpool(workerpoolAddress)
                 .workerpoolprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
@@ -283,10 +325,12 @@ class IntegrationTests {
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
+        final String sig = signerService.signEIP712Entity(new EIP712WorkerpoolOrder(domain, workerpoolOrder));
+        return workerpoolOrder.withSignature(sig);
     }
 
     private DatasetOrder buildDatasetOrder(String datasetAddress, int volume) {
-        return DatasetOrder.builder()
+        final DatasetOrder datasetOrder = DatasetOrder.builder()
                 .dataset(datasetAddress)
                 .datasetprice(BigInteger.ZERO)
                 .volume(BigInteger.valueOf(volume))
@@ -296,6 +340,8 @@ class IntegrationTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
+        final String sig = signerService.signEIP712Entity(new EIP712DatasetOrder(domain, datasetOrder));
+        return datasetOrder.withSignature(sig);
     }
 
     private RequestOrder buildRequestOrder(
@@ -311,7 +357,7 @@ class IntegrationTests {
             log.info("Volumes are not compatible");
             return null;
         }
-        return RequestOrder.builder()
+        final RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(appOrder.getAppprice())
                 .workerpool(workerpoolOrder.getWorkerpool())
@@ -329,6 +375,8 @@ class IntegrationTests {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
+        final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
+        return requestOrder.withSignature(sig);
     }
 
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int maxAttempts) {

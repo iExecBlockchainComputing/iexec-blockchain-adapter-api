@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.iexec.blockchain.command.task;
 
 import com.iexec.blockchain.api.CommandStatus;
+import com.iexec.blockchain.command.generic.CommandName;
 import com.iexec.blockchain.command.task.finalize.TaskFinalizeService;
 import com.iexec.blockchain.command.task.initialize.TaskInitializeService;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
@@ -27,16 +28,16 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.iexec.blockchain.swagger.OpenApiConfig.SWAGGER_BASIC_AUTH;
 
-/**
- * @deprecated Call /v1/tasks endpoints in {@code TaskControllerV1}
- */
-@Deprecated(forRemoval = true)
 @RestController
-@RequestMapping("/tasks")
-public class TaskController extends TaskControllerV1 {
+@RequestMapping("/v1/tasks")
+public class TaskController {
 
-    public TaskController(TaskInitializeService taskInitializeService, TaskFinalizeService taskFinalizeService) {
-        super(taskInitializeService, taskFinalizeService);
+    private final TaskInitializeService taskInitializeService;
+    private final TaskFinalizeService taskFinalizeService;
+
+    public TaskController(final TaskInitializeService taskInitializeService, final TaskFinalizeService taskFinalizeService) {
+        this.taskInitializeService = taskInitializeService;
+        this.taskFinalizeService = taskFinalizeService;
     }
 
     /**
@@ -46,13 +47,15 @@ public class TaskController extends TaskControllerV1 {
      * @param taskIndex   index of the task int the bag
      * @return blockchain task ID if successful
      */
-    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/initialize")
-    public ResponseEntity<String> requestInitializeTask(
-            @RequestParam String chainDealId,
-            @RequestParam int taskIndex) {
-        return super.requestInitializeTask(chainDealId, taskIndex);
+    public ResponseEntity<String> requestInitializeTask(@RequestParam String chainDealId,
+                                                        @RequestParam int taskIndex) {
+        final String chainTaskId = taskInitializeService.start(chainDealId, taskIndex);
+        if (!chainTaskId.isEmpty()) {
+            return ResponseEntity.ok(chainTaskId);
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**
@@ -61,12 +64,12 @@ public class TaskController extends TaskControllerV1 {
      * @param chainTaskId blockchain ID of the task
      * @return status
      */
-    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/initialize/{chainTaskId}/status")
-    public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(
-            @PathVariable String chainTaskId) {
-        return super.getStatusForInitializeTaskRequest(chainTaskId);
+    public ResponseEntity<CommandStatus> getStatusForInitializeTaskRequest(@PathVariable String chainTaskId) {
+        return taskInitializeService.getStatusForCommand(chainTaskId, CommandName.TASK_INITIALIZE)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -76,13 +79,14 @@ public class TaskController extends TaskControllerV1 {
      * @param args        input arguments for `finalize task`
      * @return blockchain task ID if successful
      */
-    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @PostMapping("/finalize/{chainTaskId}")
-    public ResponseEntity<String> requestFinalizeTask(
-            @PathVariable String chainTaskId,
-            @RequestBody TaskFinalizeArgs args) {
-        return super.requestFinalizeTask(chainTaskId, args);
+    public ResponseEntity<String> requestFinalizeTask(@PathVariable String chainTaskId,
+                                                      @RequestBody TaskFinalizeArgs args) {
+        if (!taskFinalizeService.start(chainTaskId, args.getResultLink(), args.getCallbackData()).isEmpty()) {
+            return ResponseEntity.ok(chainTaskId);
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**
@@ -91,12 +95,12 @@ public class TaskController extends TaskControllerV1 {
      * @param chainTaskId blockchain ID of the task
      * @return status
      */
-    @Override
     @Operation(security = @SecurityRequirement(name = SWAGGER_BASIC_AUTH))
     @GetMapping("/finalize/{chainTaskId}/status")
-    public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(
-            @PathVariable String chainTaskId) {
-        return super.getStatusForFinalizeTaskRequest(chainTaskId);
+    public ResponseEntity<CommandStatus> getStatusForFinalizeTaskRequest(@PathVariable String chainTaskId) {
+        return taskFinalizeService.getStatusForCommand(chainTaskId, CommandName.TASK_FINALIZE)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }

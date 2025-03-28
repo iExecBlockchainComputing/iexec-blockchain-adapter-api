@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [[9.0.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v9.0.0) 2025-03-28
+
+### New Features
+
+- All received commands are now stored in a single MongoDB collection. (#166)
+- Add `WebSocketBlockchainListener` with first iExec specific metrics. (#167)
+
+### Quality
+
+- Use no more `iexec-commons-poco` deprecated code in integration tests. (#163)
+- Fix Spring Security deprecations after Spring Boot 3.3.8 upgrade. (#169)
+- Use `CommandArgs` instead of split parameters in methods arguments. (#172)
+
+### Breaking API changes
+
+- Remove unversioned /tasks REST endpoints which are deprecated. (#164)
+- Remove exposed public chain configuration, the blockchain adapter is not a configuration service. (#165)
+- Harmonize YML internal variables to proper case. (#171)
+
+### Dependency Upgrades
+
+- Upgrade to `eclipse-temurin:17.0.13_11-jre-focal`. (#162)
+- Upgrade to Spring Doc OpenAPI 2.6.0. (#162)
+- Upgrade to Spring Boot 3.3.8. (#168)
+- Upgrade to `iexec-common` 9.0.0. (#173)
+- Upgrade to `iexec-commons-poco` 5.0.0. (#173)
+
 ## [[8.6.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v8.6.0) 2024-12-20
 
 ### Bug Fixes

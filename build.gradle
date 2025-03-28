@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'io.freefair.lombok' version '8.10.2'
-    id 'org.springframework.boot' version '2.7.18'
+    id 'org.springframework.boot' version '3.3.8'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'jacoco'
     id 'org.sonarqube' version '5.1.0.4882'
@@ -9,7 +9,6 @@ plugins {
 }
 
 ext {
-    openFeignVersion = '11.10'
     testContainersVersion = '1.20.4'
 }
 
@@ -41,8 +40,12 @@ allprojects {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))
         }
-        sourceCompatibility = '11'
-        targetCompatibility = '11'
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.add('-parameters')
     }
 }
 
@@ -55,15 +58,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // Spring Doc
-    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
     // iexec
     implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
     implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
-
-    // feign
-    implementation "io.github.openfeign:feign-jackson:$openFeignVersion"
-    implementation "io.github.openfeign:feign-slf4j:$openFeignVersion"
 
     // observability
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
@@ -87,19 +86,19 @@ testing {
     suites {
         configureEach {
             dependencies {
-                implementation 'org.springframework.boot:spring-boot-starter-test'
                 implementation 'org.awaitility:awaitility'
+                implementation 'org.springframework.boot:spring-boot-starter-test'
+                implementation 'org.springframework.security:spring-security-test'
+                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
             }
         }
         test {
             useJUnitJupiter()
+            dependencies {
+                implementation "org.testcontainers:mongodb:$testContainersVersion"
+            }
         }
         itest(JvmTestSuite) {
-            sources {
-                java {
-                    srcDirs = ['src/itest/java']
-                }
-            }
             dependencies {
                 implementation project()
                 implementation project(':iexec-blockchain-adapter-api-library')
@@ -107,11 +106,23 @@ testing {
                 implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
                 implementation 'org.apache.commons:commons-lang3'
                 implementation 'org.hibernate.validator:hibernate-validator'
-                implementation "org.testcontainers:junit-jupiter:$testContainersVersion"
             }
         }
     }
 }
+
+tasks.withType(Test).configureEach {
+    finalizedBy jacocoTestReport
+    systemProperty "mongo.image", "mongo:7.0.15-jammy"
+}
+
+// sonarqube code coverage requires jacoco XML report
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
 publishing {
     publications {
@@ -130,18 +141,6 @@ publishing {
         }
     }
 }
-
-tasks.withType(Test).configureEach {
-    finalizedBy jacocoTestReport
-}
-
-// sonarqube code coverage requires jacoco XML report
-jacocoTestReport {
-    reports {
-        xml.required = true
-    }
-}
-tasks.sonarqube.dependsOn tasks.jacocoTestReport
 
 ext.jarPathForOCI = relativePath(tasks.bootJar.outputs.files.singleFile)
 ext.gitShortCommit = 'git rev-parse --short=8 HEAD'.execute().text.trim()

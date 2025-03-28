@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,18 @@ package com.iexec.blockchain.command.task.initialize;
 
 import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
+import com.iexec.blockchain.command.generic.CommandStorage;
 import com.iexec.commons.poco.chain.ChainUtils;
 import org.springframework.stereotype.Service;
 
 import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
 @Service
-public class TaskInitializeService extends CommandEngine<TaskInitialize, TaskInitializeArgs> {
+public class TaskInitializeService extends CommandEngine<TaskInitializeArgs> {
 
     public TaskInitializeService(
             final TaskInitializeBlockchainService blockchainService,
-            final TaskInitializeStorageService updaterService,
+            final CommandStorage updaterService,
             final QueueService queueService) {
         super(blockchainService, updaterService, queueService);
     }

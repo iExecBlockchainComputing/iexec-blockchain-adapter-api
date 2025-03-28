@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,18 @@ package com.iexec.blockchain.chain;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class Web3jServiceTests {
     private final ChainConfig chainConfig = ChainConfig
             .builder()
             .id(134)
-            .isSidechain(true)
+            .sidechain(true)
             .nodeAddress("https://bellecour.iex.ec")
             .hubAddress("0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f")
-            .blockTime(5)
+            .blockTime(Duration.ofSeconds(5))
             .gasPriceMultiplier(1.0f)
             .gasPriceCap(22_000_000_000L)
             .build();
