@@ -45,8 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class WebSocketBlockchainListener {
 
-    static final String LATEST_BLOCK_METRIC_NAME = "iexec.chain-adapter.block.latest";
-    static final String TX_COUNT_METRIC_NAME = "iexec.chain-adapter.tx-count";
+    static final String LATEST_BLOCK_METRIC_NAME = "iexec.chain.block.latest";
+    static final String TX_COUNT_METRIC_NAME = "iexec.chain.tx-count";
 
     private static final String SUBSCRIBE_METHOD = "eth_subscribe";
     private static final String UNSUBSCRIBE_METHOD = "eth_unsubscribe";
