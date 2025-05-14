@@ -26,8 +26,6 @@ import java.util.Optional;
 @Slf4j
 public abstract class CommandEngine<A extends CommandArgs> {
 
-    private static final int MAX_ATTEMPTS = 5;
-
     private final CommandBlockchain<A> blockchainService;
     private final CommandStorage updaterService;
     private final QueueService queueService;
@@ -81,22 +79,11 @@ public abstract class CommandEngine<A extends CommandArgs> {
             log.error("Triggering blockchain command failed (failing update to processing) [{}]", messageDetails);
             return;
         }
-        int attempt = 0;
         log.info("Processing command [{}]", messageDetails);
-        TransactionReceipt receipt = null;
-        while (attempt < MAX_ATTEMPTS && receipt == null) {
-            attempt++;
-            try {
-                receipt = blockchainService.sendBlockchainCommand(args);
-            } catch (Exception e) {
-                log.error("Something wrong happened while triggering command [{}, attempt:{}]",
-                        messageDetails, attempt, e);
-            }
-        }
+        final TransactionReceipt receipt = blockchainService.sendBlockchainCommand(args);
         if (receipt == null) {
             log.error("Triggering blockchain command failed " +
-                            "(received null receipt after blockchain send) [{}, attempt:{}]",
-                    messageDetails, attempt);
+                    "(received null receipt after blockchain send) [{}]", messageDetails);
         }
         updaterService.updateToFinal(args, receipt);
     }

@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class WebSocketBlockchainListener {
 
     static final String LATEST_BLOCK_METRIC_NAME = "iexec.chain.block.latest";
-    static final String TX_COUNT_METRIC_NAME = "iexec.chain.tx-count";
+    static final String TX_COUNT_METRIC_NAME = "iexec.chain.wallet.tx-count";
 
     private static final String SUBSCRIBE_METHOD = "eth_subscribe";
     private static final String UNSUBSCRIBE_METHOD = "eth_unsubscribe";
@@ -84,7 +84,7 @@ public class WebSocketBlockchainListener {
                 webSocketService,
                 EthSubscribe.class
         );
-        log.info("subscribe to receive newHeads");
+
         final Flowable<NewHeadsNotification> newHeadsEvents = webSocketService.subscribe(
                 newHeadsRequest, UNSUBSCRIBE_METHOD, NewHeadsNotification.class);
         newHeads = newHeadsEvents.subscribe(this::processHead, this::handleError);
@@ -104,12 +104,7 @@ public class WebSocketBlockchainListener {
     }
 
     private void handleError(final Throwable t) {
-        log.error("something happened", t);
-        try {
-            run();
-        } catch (Exception e) {
-            log.error("Tried to reconnect", e);
-        }
+        log.error("An error happened during subscription", t);
     }
 
 }
