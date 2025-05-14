@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.0...v9.0.1) (2025-05-14)
+
+
+### Bug Fixes
+
+* use same metric names than in worker in WebSocketBlockchainListener ([#176](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/176)) ([fc47d46](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/fc47d467f1db30f7210929d1d68013af150df704))
+
 ## [[9.0.0]](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/releases/tag/v9.0.0) 2025-03-28
 
 ### New Features
