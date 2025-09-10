@@ -131,10 +131,10 @@ public class IexecHubService extends IexecHubAbstractService {
         final TransactionReceipt receipt = txReceiptProcessor.waitForTransactionReceipt(submittedTx.hash());
         log.info("Transaction receipt [nonce:{}, hash:{}, status:{}, revert-reason:{}]",
                 submittedTx.nonce(), submittedTx.hash(), receipt.getStatus(), receipt.getRevertReason());
-        if (!receipt.isStatusOK()) {
-            failureCounter.increment();
-        } else {
+        if (receipt.isStatusOK()) {
             successCounter.increment();
+        } else {
+            failureCounter.increment();
         }
         return receipt;
     }
