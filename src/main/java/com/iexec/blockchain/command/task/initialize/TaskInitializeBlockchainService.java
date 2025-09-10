@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
 
     private final IexecHubService iexecHubService;
 
-    public TaskInitializeBlockchainService(IexecHubService iexecHubService) {
+    public TaskInitializeBlockchainService(final IexecHubService iexecHubService) {
         this.iexecHubService = iexecHubService;
     }
 
     @Override
-    public boolean canSendBlockchainCommand(TaskInitializeArgs args) {
+    public boolean canSendBlockchainCommand(final TaskInitializeArgs args) {
         String chainTaskId = args.getChainTaskId();
         if (!iexecHubService.hasEnoughGas()) {
             logError(chainTaskId, args, "task is not revealing");
@@ -50,13 +50,13 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
         return true;
     }
 
-    private void logError(String chainTaskId, TaskInitializeArgs args, String error) {
-        log.error("Initialize task blockchain call is likely to revert ({}) " +
-                "[chainTaskId:{}, args:{}]", error, chainTaskId, args);
+    private void logError(final String chainTaskId, final TaskInitializeArgs args, final String error) {
+        log.error("Initialize task blockchain call is likely to revert ({}) [chainTaskId:{}, args:{}]",
+                error, chainTaskId, args);
     }
 
     @Override
-    public TransactionReceipt sendBlockchainCommand(TaskInitializeArgs args) throws Exception {
+    public TransactionReceipt sendBlockchainCommand(final TaskInitializeArgs args) throws Exception {
         return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex());
     }
 

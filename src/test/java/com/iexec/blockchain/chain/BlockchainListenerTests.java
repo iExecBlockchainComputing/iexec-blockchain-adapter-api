@@ -57,8 +57,8 @@ class BlockchainListenerTests {
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("chain.id", () -> "65535");
-        registry.add("chain.hubAddress", () -> "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7");
-        registry.add("chain.nodeAddress", () -> getServiceUrl(
+        registry.add("chain.hub-address", () -> "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7");
+        registry.add("chain.node-address", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
         registry.add("sprint.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
