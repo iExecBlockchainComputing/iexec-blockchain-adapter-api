@@ -127,7 +127,7 @@ public class IexecHubService extends IexecHubAbstractService {
         return new SubmittedTx(nonce, gasLimit, txData, txHash);
     }
 
-    private TransactionReceipt waitForTxMined(final SubmittedTx submittedTx) throws IOException, TransactionException {
+    public TransactionReceipt waitForTxMined(final SubmittedTx submittedTx) throws IOException, TransactionException {
         final TransactionReceipt receipt = txReceiptProcessor.waitForTransactionReceipt(submittedTx.hash());
         log.info("Transaction receipt [nonce:{}, hash:{}, status:{}, revert-reason:{}]",
                 submittedTx.nonce(), submittedTx.hash(), receipt.getStatus(), receipt.getRevertReason());
