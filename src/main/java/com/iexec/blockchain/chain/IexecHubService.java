@@ -65,7 +65,7 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public TransactionReceipt initializeTask(final String chainDealId,
-                                             final int taskIndex) throws Exception {
+                                             final int taskIndex) throws IOException, TransactionException {
         final String txData = PoCoDataEncoder.encodeInitialize(chainDealId, taskIndex);
         final SubmittedTx submittedTx = submit("initialize", txData);
         return waitForTxMined(submittedTx);
@@ -75,7 +75,7 @@ public class IexecHubService extends IexecHubAbstractService {
                                          final String resultDigest,
                                          final String workerpoolSignature,
                                          final String enclaveChallenge,
-                                         final String enclaveSignature) throws Exception {
+                                         final String enclaveSignature) throws IOException, TransactionException {
         final String resultHash = HashUtils.concatenateAndHash(chainTaskId, resultDigest);
         final String resultSeal = HashUtils.concatenateAndHash(credentials.getAddress(), chainTaskId, resultDigest);
 
@@ -87,7 +87,7 @@ public class IexecHubService extends IexecHubAbstractService {
 
 
     public TransactionReceipt reveal(final String chainTaskId,
-                                     final String resultDigest) throws Exception {
+                                     final String resultDigest) throws IOException, TransactionException {
         final String txData = PoCoDataEncoder.encodeReveal(chainTaskId, resultDigest);
         final SubmittedTx submittedTx = submit("reveal", txData);
         return waitForTxMined(submittedTx);
@@ -95,7 +95,7 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public TransactionReceipt finalizeTask(final String chainTaskId,
                                            final String resultLink,
-                                           final String callbackData) throws Exception {
+                                           final String callbackData) throws IOException, TransactionException {
         final byte[] results = StringUtils.isNotEmpty(resultLink) ?
                 resultLink.getBytes(StandardCharsets.UTF_8) : new byte[0];
         final byte[] resultsCallback = StringUtils.isNotEmpty(callbackData) ?

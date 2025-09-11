@@ -21,6 +21,9 @@ import com.iexec.blockchain.command.generic.CommandBlockchain;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
+
+import java.io.IOException;
 
 @Slf4j
 @Service
@@ -56,7 +59,7 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
     }
 
     @Override
-    public TransactionReceipt sendBlockchainCommand(final TaskInitializeArgs args) throws Exception {
+    public TransactionReceipt sendBlockchainCommand(final TaskInitializeArgs args) throws IOException, TransactionException {
         return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex());
     }
 

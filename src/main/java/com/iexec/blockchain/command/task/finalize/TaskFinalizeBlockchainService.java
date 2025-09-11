@@ -23,7 +23,9 @@ import com.iexec.commons.poco.chain.ChainTaskStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
 
+import java.io.IOException;
 import java.time.Instant;
 
 @Slf4j
@@ -68,7 +70,7 @@ public class TaskFinalizeBlockchainService implements CommandBlockchain<TaskFina
     }
 
     @Override
-    public TransactionReceipt sendBlockchainCommand(final TaskFinalizeArgs args) throws Exception {
+    public TransactionReceipt sendBlockchainCommand(final TaskFinalizeArgs args) throws IOException, TransactionException {
         return iexecHubService.finalizeTask(args.getChainTaskId(),
                 args.getResultLink(),
                 args.getCallbackData());

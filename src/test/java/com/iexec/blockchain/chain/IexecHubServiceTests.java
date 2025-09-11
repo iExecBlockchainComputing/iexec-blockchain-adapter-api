@@ -91,44 +91,44 @@ class IexecHubServiceTests {
     // region initializeTask
 
     @Test
-    void shouldInitializeTask() throws Exception {
+    void shouldInitializeTask() throws IOException, TransactionException {
         mockTransaction();
         assertThat(iexecHubService.initializeTask(chainDealId, 0))
                 .isEqualTo(receipt);
     }
 
     @Test
-    void shouldNotInitializeTask() throws Exception {
+    void shouldNotInitializeTask() throws IOException {
         when(signerService.estimateGas(any(), any())).thenReturn(BigInteger.valueOf(100_000L));
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(IOException.class);
     }
 
     // endregion
 
     @Test
-    void shouldNotContribute() throws Exception {
+    void shouldNotContribute() throws IOException {
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.contribute(chainTaskId, resultDigest,
                 "workerpoolSignature", enclaveChallenge, "enclaveSignature"))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(IOException.class);
     }
 
     @Test
-    void shouldNotReveal() throws Exception {
+    void shouldNotReveal() throws IOException {
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.reveal(chainTaskId, resultDigest))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(IOException.class);
     }
 
     // region finalizeTask
 
     @Test
-    void shouldFinalizeTask() throws Exception {
+    void shouldFinalizeTask() throws IOException, TransactionException {
         mockTransaction();
         when(txManager.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
         assertThat(iexecHubService.finalizeTask(chainTaskId, "resultLink", "callbackData"))
@@ -136,13 +136,13 @@ class IexecHubServiceTests {
     }
 
     @Test
-    void shouldNotFinalizeTask() throws Exception {
+    void shouldNotFinalizeTask() throws IOException {
         when(signerService.estimateGas(any(), any())).thenReturn(BigInteger.valueOf(100_000L));
         when(txManager.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.finalizeTask(chainTaskId, "resultLink", "callbackData"))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(IOException.class);
     }
 
     // endregion
