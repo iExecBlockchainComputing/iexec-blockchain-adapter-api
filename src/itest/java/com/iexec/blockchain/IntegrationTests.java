@@ -114,7 +114,7 @@ class IntegrationTests {
         registry.add("chain.nodeAddress", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
-        registry.add("sprint.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
+        registry.add("spring.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
         registry.add("spring.data.mongodb.port", () -> environment.getServicePort(MONGO_SVC_NAME, MONGO_SVC_PORT));
     }
 
