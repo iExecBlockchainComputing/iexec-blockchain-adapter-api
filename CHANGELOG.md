@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.2](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.1...v9.0.2) (2025-09-12)
+
+
+### Bug Fixes
+
+* estimate gas before sending transactions to avoid intrinsic gas too low errors ([#183](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/183)) ([4633024](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/46330241a63c6e65078e0eaa3dbb5844d705f63a))
+* use less RPC calls to listen on the blockchain ([#179](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/179)) ([2fc977b](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/2fc977b84a65a70f959fdc326b7dde182a1e641d))
+
 ## [9.0.1](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.0...v9.0.1) (2025-05-14)
 
 
