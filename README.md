@@ -33,7 +33,7 @@ To run properly, the iExec Blockchain Adapter API requires:
 | `IEXEC_HUB_ADDRESS`                                     | Proxy contract address to interact with the iExec on-chain protocol.                                   | Ethereum Address | `0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f` |
 | `IEXEC_GAS_PRICE_MULTIPLIER`                            | Transactions will be sent with `networkGasPrice * gasPriceMultiplier`.                                 | Float            | `1.0`                                        |
 | `IEXEC_GAS_PRICE_CAP`                                   | In Wei, will be used for transactions if `networkGasPrice * gasPriceMultiplier > gasPriceCap`.         | Positive integer | `22000000000`                                |
-| `IEXEC_BLOCKCHAIN_ADAPTER_API_MAX_ALLOWED_TX_PER_BLOCK` | Max number of transactions per block, between `1` and `4`.                                             | Positive integer | `1`                                          |
+| `IEXEC_BLOCKCHAIN_ADAPTER_API_MAX_ALLOWED_TX_PER_BLOCK` | Max number of transactions per block, between `1` and `8`.                                             | Positive integer | `1`                                          |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PATH`              | Path to the wallet of the server.                                                                      | String           | `src/main/resources/wallet.json`             |
 | `IEXEC_BLOCKCHAIN_ADAPTER_API_WALLET_PASSWORD`          | Password to unlock the wallet of the server.                                                           | String           | `whatever`                                   |
 

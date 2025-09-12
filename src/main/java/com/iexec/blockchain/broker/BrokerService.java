@@ -16,9 +16,13 @@
 
 package com.iexec.blockchain.broker;
 
+import com.iexec.blockchain.chain.ChainConfig;
 import com.iexec.blockchain.chain.IexecHubService;
+import com.iexec.blockchain.command.generic.SubmittedTx;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
+import com.iexec.commons.poco.chain.SignerService;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -46,11 +50,16 @@ public class BrokerService {
 
     static final String SCHEDULER_NOTICE = Hash.sha3String("SchedulerNotice(address,bytes32)");
 
+    private final ChainConfig chainConfig;
     private final IexecHubService iexecHubService;
+    private final SignerService signerService;
 
-
-    public BrokerService(IexecHubService iexecHubService) {
+    public BrokerService(final ChainConfig chainConfig,
+                         final IexecHubService iexecHubService,
+                         final SignerService signerService) {
+        this.chainConfig = chainConfig;
         this.iexecHubService = iexecHubService;
+        this.signerService = signerService;
     }
 
     void checkBrokerOrder(BrokerOrder brokerOrder) {
@@ -133,14 +142,13 @@ public class BrokerService {
             WorkerpoolOrder workerpoolOrder,
             RequestOrder requestOrder) {
         try {
-            final TransactionReceipt receipt = iexecHubService.
-                    getHubContract()
-                    .matchOrders(
-                            appOrder.toHubContract(),
-                            datasetOrder.toHubContract(),
-                            workerpoolOrder.toHubContract(),
-                            requestOrder.toHubContract()
-                    ).send();
+            final BigInteger nonce = signerService.getNonce();
+            final String matchOrdersTxData = MatchOrdersDataEncoder.encode(appOrder, datasetOrder, workerpoolOrder, requestOrder);
+            final BigInteger gasLimit = signerService.estimateGas(chainConfig.getHubAddress(), matchOrdersTxData);
+            final String matchOrdersTxHash = signerService.signAndSendTransaction(
+                    nonce, BigInteger.ZERO, gasLimit, chainConfig.getHubAddress(), matchOrdersTxData);
+            final TransactionReceipt receipt = iexecHubService.waitForTxMined(
+                    new SubmittedTx(nonce, gasLimit, matchOrdersTxData, matchOrdersTxHash));
             log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
             log.info("logs count {}", receipt.getLogs().size());
 

@@ -57,6 +57,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.utils.Numeric;
 
 import java.io.File;
@@ -113,7 +114,7 @@ class IntegrationTests {
         registry.add("chain.nodeAddress", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
-        registry.add("sprint.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
+        registry.add("spring.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
         registry.add("spring.data.mongodb.port", () -> environment.getServicePort(MONGO_SVC_NAME, MONGO_SVC_PORT));
     }
 
@@ -153,7 +154,7 @@ class IntegrationTests {
     }
 
     @Test
-    void shouldBeFinalized() throws Exception {
+    void shouldBeFinalized() throws IOException, TransactionException {
         TransactionReceipt receipt;
         final String dealId = triggerDeal(1);
 

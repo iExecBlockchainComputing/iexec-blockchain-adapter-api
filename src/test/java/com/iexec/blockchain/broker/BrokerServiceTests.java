@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 IEXEC BLOCKCHAIN TECH
+ * Copyright 2022-2025 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package com.iexec.blockchain.broker;
 
+import com.iexec.blockchain.chain.ChainConfig;
 import com.iexec.blockchain.chain.IexecHubService;
+import com.iexec.blockchain.command.generic.SubmittedTx;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.ChainAccount;
-import com.iexec.commons.poco.contract.generated.IexecHubContract;
+import com.iexec.commons.poco.chain.SignerService;
 import com.iexec.commons.poco.order.*;
 import com.iexec.commons.poco.utils.BytesUtils;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,7 +57,11 @@ import static org.mockito.Mockito.when;
 class BrokerServiceTests {
 
     @Mock
+    private ChainConfig chainConfig;
+    @Mock
     private IexecHubService iexecHubService;
+    @Mock
+    private SignerService signerService;
     @InjectMocks
     private BrokerService brokerService;
 
@@ -420,10 +425,7 @@ class BrokerServiceTests {
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = generateRequestOrder(
                 appOrder, datasetOrder, workerpoolOrder);
-        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
-        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
-        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
-        when(remoteCall.send()).thenThrow(IOException.class);
+        when(signerService.signAndSendTransaction(any(), any(), any(), any(), any())).thenThrow(IOException.class);
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
@@ -435,10 +437,7 @@ class BrokerServiceTests {
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = generateRequestOrder(
                 appOrder, datasetOrder, workerpoolOrder);
-        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
-        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
-        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
-        when(remoteCall.send()).thenThrow(IOException.class);
+        when(signerService.signAndSendTransaction(any(), any(), any(), any(), any())).thenThrow(IOException.class);
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isEmpty();
     }
@@ -451,9 +450,7 @@ class BrokerServiceTests {
         WorkerpoolOrder workerpoolOrder = generateWorkerpoolOrder();
         RequestOrder requestOrder = generateRequestOrder(
                 appOrder, datasetOrder, workerpoolOrder);
-        IexecHubContract iexecHubContract = mock(IexecHubContract.class);
-        when(iexecHubService.getHubContract()).thenReturn(iexecHubContract);
-        when(iexecHubContract.matchOrders(any(), any(), any(), any())).thenReturn(remoteCall);
+        when(signerService.signAndSendTransaction(any(), any(), any(), any(), any())).thenReturn("txHash");
         String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
                 Numeric.toBigInt(workerpoolOrder.getWorkerpool()), 64);
         Log web3Log = new Log();
@@ -464,7 +461,7 @@ class BrokerServiceTests {
         receipt.setBlockNumber("0x1");
         receipt.setStatus("1");
         receipt.setLogs(List.of(web3Log));
-        when(remoteCall.send()).thenReturn(receipt);
+        when(iexecHubService.waitForTxMined(any(SubmittedTx.class))).thenReturn(receipt);
         assertThat(brokerService.fireMatchOrders(appOrder, datasetOrder, workerpoolOrder, requestOrder))
                 .isNotEmpty()
                 .contains(dealId);
