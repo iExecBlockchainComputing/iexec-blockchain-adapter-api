@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.4](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.3...v9.0.4) (2025-11-25)
+
+
+### Bug Fixes
+
+* update integration tests after poco-chain upgrade ([#186](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/186)) ([112a509](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/112a509bb03902df51c6ce0a031442d3f69d836e))
+
 ## [9.0.3](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.2...v9.0.3) (2025-11-25)
 
 
