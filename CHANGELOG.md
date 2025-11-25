@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.3](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.2...v9.0.3) (2025-11-25)
+
+
+### Bug Fixes
+
+* upgrade to commons-poco 5.3.1 for latest eth_call fix ([#184](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/184)) ([26d1058](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/26d1058ef439f035bc201b449f3d99d8be5dda98))
+
 ## [9.0.2](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.1...v9.0.2) (2025-09-12)
 
 
