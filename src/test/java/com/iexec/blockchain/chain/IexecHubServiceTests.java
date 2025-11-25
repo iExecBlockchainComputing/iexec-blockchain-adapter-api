@@ -29,13 +29,13 @@ import org.web3j.crypto.ECKeyPair;
 import org.web3j.crypto.Keys;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
-import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,8 +59,6 @@ class IexecHubServiceTests {
     @Mock
     private PollingTransactionReceiptProcessor txReceiptProcessor;
     @Mock
-    private RawTransactionManager txManager;
-    @Mock
     private Web3jService web3jService;
     @Mock
     private TransactionReceipt receipt;
@@ -72,7 +70,6 @@ class IexecHubServiceTests {
         when(signerService.getCredentials()).thenReturn(credentials);
         iexecHubService = spy(new IexecHubService(signerService, web3jService, chainConfig));
         ReflectionTestUtils.setField(iexecHubService, "txReceiptProcessor", txReceiptProcessor);
-        ReflectionTestUtils.setField(iexecHubService, "txManager", txManager);
     }
 
     @SneakyThrows
@@ -130,7 +127,7 @@ class IexecHubServiceTests {
     @Test
     void shouldFinalizeTask() throws IOException, TransactionException {
         mockTransaction();
-        when(txManager.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
+        when(web3jService.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
         assertThat(iexecHubService.finalizeTask(chainTaskId, "resultLink", "callbackData"))
                 .isEqualTo(receipt);
     }
@@ -138,7 +135,7 @@ class IexecHubServiceTests {
     @Test
     void shouldNotFinalizeTask() throws IOException {
         when(signerService.estimateGas(any(), any())).thenReturn(BigInteger.valueOf(100_000L));
-        when(txManager.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
+        when(web3jService.sendCall(any(), any(), any())).thenReturn("0x30D40"); // hexadecimal value for 200_000
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.finalizeTask(chainTaskId, "resultLink", "callbackData"))
@@ -176,9 +173,10 @@ class IexecHubServiceTests {
     @Test
     void shouldBeBeforeContributionDeadline() {
         final BigInteger startTime = BigInteger.valueOf(Instant.now().getEpochSecond());
-        final ChainCategory category = ChainCategory.builder().id(0).maxExecutionTime(1000L).build();
-        doReturn(Optional.of(ChainDeal.builder().chainCategory(category).startTime(startTime).build()))
-                .when(iexecHubService).getChainDeal("dealId");
+        final ChainCategory category = ChainCategory.builder().maxExecutionTime(1000L).build();
+        ReflectionTestUtils.setField(iexecHubService, "categories", Map.of(0L, category));
+        when(iexecHubService.getChainDeal("dealId"))
+                .thenReturn(Optional.of(ChainDeal.builder().chainCategory(category).startTime(startTime).build()));
         assertThat(iexecHubService.isBeforeContributionDeadline("dealId"))
                 .isTrue();
     }
