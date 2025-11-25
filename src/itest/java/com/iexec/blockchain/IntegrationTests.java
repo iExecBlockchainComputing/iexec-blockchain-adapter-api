@@ -26,10 +26,6 @@ import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
 import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.eip712.EIP712Domain;
-import com.iexec.commons.poco.eip712.entity.EIP712AppOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712DatasetOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712RequestOrder;
-import com.iexec.commons.poco.eip712.entity.EIP712WorkerpoolOrder;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -74,6 +70,7 @@ import java.util.stream.Stream;
 
 import static com.iexec.commons.poco.chain.ChainTaskStatus.ACTIVE;
 import static com.iexec.commons.poco.chain.ChainTaskStatus.UNSET;
+import static com.iexec.commons.poco.chain.Web3jAbstractService.toEthereumAddress;
 import static com.iexec.commons.poco.encoding.AssetDataEncoder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -89,9 +86,10 @@ class IntegrationTests {
     private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
     private static final int MONGO_SVC_PORT = 27017;
 
-    private static final String APP_REGISTRY_ADDRESS = "0xd5Fe43e3cDD29812949dc9b368345537D7B73001";
-    private static final String DATASET_REGISTRY_ADDRESS = "0xf3bd0602fA481230271c5396f146e5695D3750A6";
-    private static final String WORKERPOOL_REGISTRY_ADDRESS = "0x6Cb57fA761812c34645C945cA89AAe3602D42eD3";
+    private static final String IEXEC_HUB_ADDRESS = "0xeB196D71Bf359bfDB7Ee54429236A09DBF3966B3";
+    private static final String APP_REGISTRY_SELECTOR = "0x45b637a9";
+    private static final String DATASET_REGISTRY_SELECTOR = "0xb1b11d2c";
+    private static final String WORKERPOOL_REGISTRY_SELECTOR = "0x90a0f546";
 
     public static final String USER = "admin";
     public static final String PASSWORD = "whatever";
@@ -110,7 +108,7 @@ class IntegrationTests {
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("chain.id", () -> "65535");
-        registry.add("chain.hubAddress", () -> "0xc4b11f41746D3Ad8504da5B383E1aB9aa969AbC7");
+        registry.add("chain.hubAddress", () -> IEXEC_HUB_ADDRESS);
         registry.add("chain.nodeAddress", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
@@ -128,17 +126,24 @@ class IntegrationTests {
     private final EIP712Domain domain;
     private BlockchainAdapterApiClient appClient;
 
+    private final String appRegistryAddress;
+    private final String datasetRegistryAddress;
+    private final String workerpoolRegistryAddress;
+
     @Autowired
     IntegrationTests(final IexecHubService iexecHubService,
                      final Web3jService web3jService,
                      final SignerService signerService,
                      final BrokerService brokerService,
-                     final ChainConfig chainConfig) {
+                     final ChainConfig chainConfig) throws IOException {
         this.iexecHubService = iexecHubService;
         this.web3jService = web3jService;
         this.signerService = signerService;
         this.brokerService = brokerService;
         this.domain = new EIP712Domain(chainConfig.getId(), chainConfig.getHubAddress());
+        this.appRegistryAddress = toEthereumAddress(signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
+        this.datasetRegistryAddress = toEthereumAddress(signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
+        this.workerpoolRegistryAddress = toEthereumAddress(signerService.sendCall(IEXEC_HUB_ADDRESS, WORKERPOOL_REGISTRY_SELECTOR));
     }
 
     @BeforeEach
@@ -232,13 +237,13 @@ class IntegrationTests {
                 Numeric.toHexStringNoPrefix(new byte[32]),
                 "");
         final String appTxHash = signerService.signAndSendTransaction(
-                nonce, BigInteger.ZERO, APP_REGISTRY_ADDRESS, appTxData);
+                nonce, BigInteger.ZERO, appRegistryAddress, appTxData);
         nonce = nonce.add(BigInteger.ONE);
         final String workerpoolTxData = encodeWorkerpool(
                 signerService.getAddress(),
                 buildRandomName("pool"));
         final String workerpoolTxHash = signerService.signAndSendTransaction(
-                nonce, BigInteger.ZERO, WORKERPOOL_REGISTRY_ADDRESS, workerpoolTxData);
+                nonce, BigInteger.ZERO, workerpoolRegistryAddress, workerpoolTxData);
         nonce = nonce.add(BigInteger.ONE);
         final String datasetTxData = encodeDataset(
                 signerService.getAddress(),
@@ -246,7 +251,7 @@ class IntegrationTests {
                 "https://abc.com/def.jpeg",
                 Numeric.toHexStringNoPrefix(new byte[32]));
         final String datasetTxHash = signerService.signAndSendTransaction(
-                nonce, BigInteger.ZERO, DATASET_REGISTRY_ADDRESS, datasetTxData);
+                nonce, BigInteger.ZERO, datasetRegistryAddress, datasetTxData);
 
         // Wait for a max of 2 blocks for Transactions to be mined
         await().atMost(10, TimeUnit.SECONDS)
@@ -309,8 +314,7 @@ class IntegrationTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712AppOrder(domain, appOrder));
-        return appOrder.withSignature(sig);
+        return (AppOrder) signerService.signOrderForDomain(appOrder, domain);
     }
 
     private WorkerpoolOrder buildWorkerpoolOrder(String workerpoolAddress, int volume) {
@@ -326,8 +330,7 @@ class IntegrationTests {
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712WorkerpoolOrder(domain, workerpoolOrder));
-        return workerpoolOrder.withSignature(sig);
+        return (WorkerpoolOrder) signerService.signOrderForDomain(workerpoolOrder, domain);
     }
 
     private DatasetOrder buildDatasetOrder(String datasetAddress, int volume) {
@@ -341,8 +344,7 @@ class IntegrationTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712DatasetOrder(domain, datasetOrder));
-        return datasetOrder.withSignature(sig);
+        return (DatasetOrder) signerService.signOrderForDomain(datasetOrder, domain);
     }
 
     private RequestOrder buildRequestOrder(
@@ -376,8 +378,7 @@ class IntegrationTests {
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
-        final String sig = signerService.signEIP712Entity(new EIP712RequestOrder(domain, requestOrder));
-        return requestOrder.withSignature(sig);
+        return (RequestOrder) signerService.signOrderForDomain(requestOrder, domain);
     }
 
     private void waitStatus(String chainTaskId, ChainTaskStatus statusToWait, int maxAttempts) {
