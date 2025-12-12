@@ -1,0 +1,93 @@
+name: Rust CI
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    name: Determine image tag
+    #runs-on: ubuntu-latest
+    runs-on:
+      group: Azure_runners
+    #if: |
+    #  github.ref_name == 'main' ||
+    #  startsWith(github.head_ref, 'feature/') ||
+    #  startsWith(github.head_ref, 'bugfix/') ||
+    #  (github.event_name == 'workflow_dispatch' && (startsWith(github.ref_name, 'feature/') || startsWith(github.ref_name, 'bugfix/')))
+    outputs:
+      image_tag: ${{ steps.determine-tag.outputs.image_tag }}
+      jar_path: ${{ steps.jar-path.outputs.jar_path }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Determine base tag
+        id: determine-tag
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] ; then
+            SHORT_SHA=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-8)
+          else
+            SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-8)
+          fi
+
+          if [ "${{ github.ref_name }}" = "main" ] ; then
+            echo "Processing main branch"
+            echo "image_tag=dev-${SHORT_SHA}" | tee -a $GITHUB_OUTPUT
+          else
+            # This covers feature/ and bugfix/ branches
+            echo "Processing feature/bugfix branch ${{ github.head_ref }}"
+            echo "image_tag=feature-${SHORT_SHA}" | tee -a $GITHUB_OUTPUT
+          fi
+
+      - name: Docker Regis login
+        uses: docker/login-action@v3
+        with:
+          registry: docker-regis.iex.ec
+          username: ${{ secrets.NEXUS_USERNAME }}
+          password: ${{ secrets.NEXUS_PASSWORD }}
+
+      - name: Pull dependency
+        run: docker compose pull
+
+      - name: Build jar
+        id: jar-path
+        run: |
+          ./gradlew build
+          echo "jar_path=$(./gradlew properties | grep jarPathForOCI | cut -d" " -f2)" | tee -a $GITHUB_OUTPUT
+        env:
+          ORG_GRADLE_PROJECT_nexusUser: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+
+  build-oci-image:
+    name: Build OCI images
+    needs: prepare
+    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/docker-build.yml@feature/improve-docker-build
+    with:
+      image-name: docker-regis.iex.ec/iexec-blockchain-adpter-api
+      image-tag: ${{ needs.prepare.outputs.image_tag }}
+      dockerfile: Dockerfile
+      context: .
+      registry: docker-regis.iex.ec
+      push: false
+      security-scan: true
+      security-report: "sarif"
+      hadolint: true
+      platforms: linux/amd64
+      build-args: |
+        jar=${{ needs.prepare.outputs.jar_path }}
+    secrets:
+      username: ${{ secrets.NEXUS_USERNAME }}
+      password: ${{ secrets.NEXUS_PASSWORD }}

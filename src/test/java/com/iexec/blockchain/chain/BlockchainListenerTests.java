@@ -16,14 +16,17 @@
 
 package com.iexec.blockchain.chain;
 
+import com.github.dockerjava.api.model.AuthConfig;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.ComposeContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -47,6 +50,21 @@ class BlockchainListenerTests {
     private static final int CHAIN_SVC_PORT = 8545;
     private static final String MONGO_SVC_NAME = "ibaa-blockchain-adapter-mongo";
     private static final int MONGO_SVC_PORT = 27017;
+
+    @BeforeAll
+    static void setupAuth() {
+        final AuthConfig authConfig = new AuthConfig()
+                .withUsername(System.getProperty("registryUsername"))
+                .withPassword(System.getProperty("registryPassword"))
+                .withRegistryAddress(System.getProperty("registryAddress"));
+
+        // Configure Docker client with auth
+        DockerClientFactory.instance()
+                .client()
+                .authCmd()
+                .withAuthConfig(authConfig)
+                .exec();
+    }
 
     @Container
     static ComposeContainer environment = new ComposeContainer(new File("docker-compose.yml"))
