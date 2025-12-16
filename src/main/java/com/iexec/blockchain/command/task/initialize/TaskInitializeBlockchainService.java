@@ -37,13 +37,13 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
 
     @Override
     public boolean canSendBlockchainCommand(final TaskInitializeArgs args) {
-        String chainTaskId = args.getChainTaskId();
+        final String chainTaskId = args.getChainTaskId();
         if (!iexecHubService.hasEnoughGas()) {
-            logError(chainTaskId, args, "task is not revealing");
+            logError(chainTaskId, args, "insufficient gas");
             return false;
         }
         if (!iexecHubService.isTaskInUnsetStatusOnChain(args.getChainTaskId())) {
-            logError(chainTaskId, args, "task is not unset");
+            logError(chainTaskId, args, "task already exist on-chain");
             return false;
         }
         if (!iexecHubService.isBeforeContributionDeadline(args.getChainDealId())) {
