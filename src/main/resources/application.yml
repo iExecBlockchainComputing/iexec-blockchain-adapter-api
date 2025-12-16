@@ -2,16 +2,20 @@ server:
   port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PORT:13010}
 
 spring:
-  security:
-    user:
-      name: ${IEXEC_BLOCKCHAIN_ADAPTER_API_USERNAME:admin}
-      password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PASSWORD:whatever}
+  cloud.config:
+    profile: ${IEXEC_PLATFORM_REGISTRY_STACK:} # mainnet, bellecour3, 1234, ..
+    label: ${IEXEC_PLATFORM_REGISTRY_LABEL:} # main, develop, v10, 07998be
+  config.import: "optional:configserver:${IEXEC_PLATFORM_REGISTRY:http://localhost:8888}" # configserver:http://platform-registry:8888
   data:
     mongodb:
       database: iexec-blockchain-adapter-api
       host: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_HOST:localhost}
       port: ${IEXEC_BLOCKCHAIN_ADAPTER_API_MONGO_PORT:13012}
       auto-index-creation: true
+  security:
+    user:
+      name: ${IEXEC_BLOCKCHAIN_ADAPTER_API_USERNAME:admin}
+      password: ${IEXEC_BLOCKCHAIN_ADAPTER_API_PASSWORD:whatever}
 
 chain:
   id: ${IEXEC_CHAIN_ID:134}
