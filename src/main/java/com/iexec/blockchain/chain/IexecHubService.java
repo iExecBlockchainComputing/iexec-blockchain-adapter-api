@@ -139,10 +139,6 @@ public class IexecHubService extends IexecHubAbstractService {
         return receipt;
     }
 
-    public boolean hasEnoughGas() {
-        return hasEnoughGas(credentials.getAddress());
-    }
-
     /**
      * Check if the task is defined on-chain and has the {@link ChainTaskStatus#UNSET} status.
      *
