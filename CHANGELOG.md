@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.5](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.4...v9.0.5) (2025-12-16)
+
+
+### Bug Fixes
+
+* call new hasEnoughGas method to fall back on cached value on communication failure ([#188](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/188)) ([59a97f6](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/59a97f62b7c1dcf189d89162c1180097e50c0a10))
+
 ## [9.0.4](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.3...v9.0.4) (2025-11-25)
 
 
