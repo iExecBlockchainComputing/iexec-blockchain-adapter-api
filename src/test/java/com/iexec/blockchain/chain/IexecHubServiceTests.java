@@ -105,7 +105,8 @@ class IexecHubServiceTests {
 
     @Test
     void shouldDetectAlreadyInitializedTask() throws IOException, TransactionException {
-        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(anyString());
+        final String initializedChainTaskId = ChainUtils.generateChainTaskId(chainDealId, 0);
+        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(initializedChainTaskId);
         assertThat(iexecHubService.initializeTask(chainDealId, 0))
                 .isEqualTo(new TransactionReceipt());
     }
