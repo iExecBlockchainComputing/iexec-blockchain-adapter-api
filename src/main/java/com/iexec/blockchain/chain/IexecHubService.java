@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,11 @@ public class IexecHubService extends IexecHubAbstractService {
 
     public TransactionReceipt initializeTask(final String chainDealId,
                                              final int taskIndex) throws IOException, TransactionException {
+        final String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
+        if (!isTaskInUnsetStatusOnChain(chainTaskId)) {
+            log.warn("task is already initialized [chainTaskId:{}]", chainTaskId);
+            return new TransactionReceipt();
+        }
         final String txData = PoCoDataEncoder.encodeInitialize(chainDealId, taskIndex);
         final SubmittedTx submittedTx = submit("initialize", txData);
         return waitForTxMined(submittedTx);

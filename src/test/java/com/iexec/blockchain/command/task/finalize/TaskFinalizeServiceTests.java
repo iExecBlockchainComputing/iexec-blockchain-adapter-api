@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2024-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,17 @@ import com.iexec.blockchain.api.CommandStatus;
 import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandName;
 import com.iexec.blockchain.command.generic.CommandStorage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -46,8 +47,6 @@ class TaskFinalizeServiceTests {
             "0xe90fc4654b5ea32ad8689091e7610cad7ee5c8b9b1a6e39401b57d90343bfcaa";
     private static final String RESULT_LINK = "/ipfs/QmeQHGKFAkEkA5tm3kuXqBM9zz9JorkvCsAJ2bzAAh6NX4";
 
-    @InjectMocks
-    private TaskFinalizeService taskFinalizeService;
     @Mock
     private TaskFinalizeBlockchainService blockchainService;
     @Mock
@@ -55,7 +54,14 @@ class TaskFinalizeServiceTests {
     @Mock
     private QueueService queueService;
 
+    private TaskFinalizeService taskFinalizeService;
     private final TaskFinalizeArgs args = new TaskFinalizeArgs(CHAIN_TASK_ID, RESULT_LINK, EMPTY_ADDRESS);
+
+    @BeforeEach
+    void init() {
+        taskFinalizeService = new TaskFinalizeService(
+                blockchainService, updaterService, queueService, Duration.ofMillis(100L));
+    }
 
     // region start
     @Test

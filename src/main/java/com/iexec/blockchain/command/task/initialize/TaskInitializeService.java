@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,21 @@ import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
 import com.iexec.blockchain.command.generic.CommandStorage;
 import com.iexec.commons.poco.chain.ChainUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
 @Service
 public class TaskInitializeService extends CommandEngine<TaskInitializeArgs> {
 
-    public TaskInitializeService(
-            final TaskInitializeBlockchainService blockchainService,
-            final CommandStorage updaterService,
-            final QueueService queueService) {
-        super(blockchainService, updaterService, queueService);
+    public TaskInitializeService(final TaskInitializeBlockchainService blockchainService,
+                                 final CommandStorage updaterService,
+                                 final QueueService queueService,
+                                 @Value("${chain.tx-backoff-delay}") final Duration backoffDelay) {
+        super(blockchainService, updaterService, queueService, backoffDelay);
     }
 
     public String start(final String chainDealId, final int taskIndex) {

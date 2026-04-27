@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,14 @@ class IexecHubServiceTests {
                 .thenThrow(IOException.class);
         assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0))
                 .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void shouldDetectAlreadyInitializedTask() throws IOException, TransactionException {
+        final String initializedChainTaskId = ChainUtils.generateChainTaskId(chainDealId, 0);
+        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(initializedChainTaskId);
+        assertThat(iexecHubService.initializeTask(chainDealId, 0))
+                .isEqualTo(new TransactionReceipt());
     }
 
     // endregion

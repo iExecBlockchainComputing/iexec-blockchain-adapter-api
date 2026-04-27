@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.iexec.blockchain.chain.QueueService;
 import lombok.extern.slf4j.Slf4j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Slf4j
@@ -31,15 +32,16 @@ public abstract class CommandEngine<A extends CommandArgs> {
     private final CommandBlockchain<A> blockchainService;
     private final CommandStorage updaterService;
     private final QueueService queueService;
+    private final Duration backoffDelay;
 
-    protected CommandEngine(
-            CommandBlockchain<A> blockchainService,
-            CommandStorage updaterService,
-            QueueService queueService
-    ) {
+    protected CommandEngine(final CommandBlockchain<A> blockchainService,
+                            final CommandStorage updaterService,
+                            final QueueService queueService,
+                            final Duration backoffDelay) {
         this.blockchainService = blockchainService;
         this.updaterService = updaterService;
         this.queueService = queueService;
+        this.backoffDelay = backoffDelay;
     }
 
     /**
@@ -85,6 +87,15 @@ public abstract class CommandEngine<A extends CommandArgs> {
         log.info("Processing command [{}]", messageDetails);
         TransactionReceipt receipt = null;
         while (attempt < MAX_ATTEMPTS && receipt == null) {
+            if (attempt != 0) {
+                try {
+                    log.warn("Backoff delay before retrying tx");
+                    Thread.sleep(backoffDelay.toMillis());
+                } catch (InterruptedException e) {
+                    log.warn("Thread has been interrupted", e);
+                    Thread.currentThread().interrupt();
+                }
+            }
             attempt++;
             try {
                 receipt = blockchainService.sendBlockchainCommand(args);

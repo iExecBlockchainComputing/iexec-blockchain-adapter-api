@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.utils.Numeric;
 
@@ -160,7 +159,6 @@ class IntegrationTests {
 
     @Test
     void shouldBeFinalized() throws IOException, TransactionException {
-        TransactionReceipt receipt;
         final String dealId = triggerDeal(1);
 
         final String chainTaskId = appClient.requestInitializeTask(dealId, 0);
@@ -174,18 +172,16 @@ class IntegrationTests {
         final String enclaveSignature = BytesUtils.bytesToString(new byte[65]);
         final WorkerpoolAuthorization workerpoolAuthorization =
                 mockAuthorization(chainTaskId, enclaveChallenge);
-        receipt = iexecHubService.contribute(
+        iexecHubService.contribute(
                 chainTaskId,
                 someBytes32Payload,
                 workerpoolAuthorization.getSignature().getValue(),
                 enclaveChallenge,
                 enclaveSignature);
-        log.info("contribute {}", receipt);
         waitStatus(chainTaskId, ChainTaskStatus.REVEALING,
                 MAX_POLLING_ATTEMPTS);
 
-        receipt = iexecHubService.reveal(chainTaskId, someBytes32Payload);
-        log.info("reveal {}", receipt);
+        iexecHubService.reveal(chainTaskId, someBytes32Payload);
 
         waitBeforeFinalizing(chainTaskId);
         final TaskFinalizeArgs taskFinalizeArgs = new TaskFinalizeArgs("", "");

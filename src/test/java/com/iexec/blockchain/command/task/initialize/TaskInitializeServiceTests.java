@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,17 @@ import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandName;
 import com.iexec.blockchain.command.generic.CommandStorage;
 import com.iexec.commons.poco.chain.ChainUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -46,8 +47,6 @@ class TaskInitializeServiceTests {
     public static final String CHAIN_TASK_ID =
             ChainUtils.generateChainTaskId(CHAIN_DEAL_ID, TASK_INDEX);
 
-    @InjectMocks
-    private TaskInitializeService taskInitializeService;
     @Mock
     private TaskInitializeBlockchainService blockchainCheckerService;
     @Mock
@@ -55,7 +54,14 @@ class TaskInitializeServiceTests {
     @Mock
     private QueueService queueService;
 
+    private TaskInitializeService taskInitializeService;
     private final TaskInitializeArgs args = new TaskInitializeArgs(CHAIN_TASK_ID, CHAIN_DEAL_ID, TASK_INDEX);
+
+    @BeforeEach
+    void init() {
+        taskInitializeService = new TaskInitializeService(
+                blockchainCheckerService, updaterService, queueService, Duration.ofMillis(100L));
+    }
 
     // region start
     @Test
