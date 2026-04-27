@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2020-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ import com.iexec.blockchain.chain.QueueService;
 import com.iexec.blockchain.command.generic.CommandEngine;
 import com.iexec.blockchain.command.generic.CommandStorage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 
@@ -28,11 +31,11 @@ import static com.iexec.blockchain.chain.IexecHubService.isByte32;
 @Service
 public class TaskFinalizeService extends CommandEngine<TaskFinalizeArgs> {
 
-    public TaskFinalizeService(
-            final TaskFinalizeBlockchainService blockchainService,
-            final CommandStorage storageService,
-            final QueueService queueService) {
-        super(blockchainService, storageService, queueService);
+    public TaskFinalizeService(final TaskFinalizeBlockchainService blockchainService,
+                               final CommandStorage storageService,
+                               final QueueService queueService,
+                               @Value("${chain.tx-backoff-delay}") final Duration backoffDelay) {
+        super(blockchainService, storageService, queueService, backoffDelay);
     }
 
     public String start(final String chainTaskId, final String resultLink, final String callbackData) {

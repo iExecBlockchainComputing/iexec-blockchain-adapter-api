@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ class IexecHubServiceTests {
     @Test
     void shouldInitializeTask() throws IOException, TransactionException {
         mockTransaction();
-        assertThat(iexecHubService.initializeTask(chainDealId, 0))
+        assertThat(iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
                 .isEqualTo(receipt);
     }
 
@@ -99,7 +99,7 @@ class IexecHubServiceTests {
         when(signerService.estimateGas(any(), any())).thenReturn(BigInteger.valueOf(100_000L));
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
-        assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0))
+        assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
                 .isInstanceOf(IOException.class);
     }
 
