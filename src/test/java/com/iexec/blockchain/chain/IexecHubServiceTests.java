@@ -90,7 +90,7 @@ class IexecHubServiceTests {
     @Test
     void shouldInitializeTask() throws IOException, TransactionException {
         mockTransaction();
-        assertThat(iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
+        assertThat(iexecHubService.initializeTask(chainDealId, 0))
                 .isEqualTo(receipt);
     }
 
@@ -99,14 +99,14 @@ class IexecHubServiceTests {
         when(signerService.estimateGas(any(), any())).thenReturn(BigInteger.valueOf(100_000L));
         when(signerService.signAndSendTransaction(any(), any(), any(), any(), any()))
                 .thenThrow(IOException.class);
-        assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
+        assertThatThrownBy(() -> iexecHubService.initializeTask(chainDealId, 0))
                 .isInstanceOf(IOException.class);
     }
 
     @Test
     void shouldDetectAlreadyInitializedTask() throws IOException, TransactionException {
-        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(chainTaskId);
-        assertThat(iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
+        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(anyString());
+        assertThat(iexecHubService.initializeTask(chainDealId, 0))
                 .isEqualTo(new TransactionReceipt());
     }
 

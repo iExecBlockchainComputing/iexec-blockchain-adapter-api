@@ -60,7 +60,7 @@ public class TaskInitializeBlockchainService implements CommandBlockchain<TaskIn
 
     @Override
     public TransactionReceipt sendBlockchainCommand(final TaskInitializeArgs args) throws IOException, TransactionException {
-        return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex(), args.getChainTaskId());
+        return iexecHubService.initializeTask(args.getChainDealId(), args.getTaskIndex());
     }
 
 }

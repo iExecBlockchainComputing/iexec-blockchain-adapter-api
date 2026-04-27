@@ -65,8 +65,8 @@ public class IexecHubService extends IexecHubAbstractService {
     }
 
     public TransactionReceipt initializeTask(final String chainDealId,
-                                             final int taskIndex,
-                                             final String chainTaskId) throws IOException, TransactionException {
+                                             final int taskIndex) throws IOException, TransactionException {
+        final String chainTaskId = ChainUtils.generateChainTaskId(chainDealId, taskIndex);
         if (!isTaskInUnsetStatusOnChain(chainTaskId)) {
             log.warn("task is already initialized [chainTaskId:{}]", chainTaskId);
             return new TransactionReceipt();
