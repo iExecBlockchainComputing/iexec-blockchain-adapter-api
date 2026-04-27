@@ -103,6 +103,13 @@ class IexecHubServiceTests {
                 .isInstanceOf(IOException.class);
     }
 
+    @Test
+    void shouldDetectAlreadyInitializedTask() throws IOException, TransactionException {
+        doReturn(false).when(iexecHubService).isTaskInUnsetStatusOnChain(chainTaskId);
+        assertThat(iexecHubService.initializeTask(chainDealId, 0, chainTaskId))
+                .isEqualTo(new TransactionReceipt());
+    }
+
     // endregion
 
     @Test
