@@ -18,14 +18,15 @@ package com.iexec.blockchain;
 
 import com.iexec.blockchain.api.BlockchainAdapterApiClient;
 import com.iexec.blockchain.api.BlockchainAdapterApiClientBuilder;
-import com.iexec.blockchain.broker.BrokerService;
 import com.iexec.blockchain.chain.ChainConfig;
 import com.iexec.blockchain.chain.IexecHubService;
 import com.iexec.blockchain.chain.Web3jService;
+import com.iexec.blockchain.command.generic.SubmittedTx;
 import com.iexec.common.chain.adapter.args.TaskFinalizeArgs;
-import com.iexec.common.sdk.broker.BrokerOrder;
 import com.iexec.commons.poco.chain.*;
 import com.iexec.commons.poco.eip712.EIP712Domain;
+import com.iexec.commons.poco.encoding.LogTopic;
+import com.iexec.commons.poco.encoding.MatchOrdersDataEncoder;
 import com.iexec.commons.poco.order.AppOrder;
 import com.iexec.commons.poco.order.DatasetOrder;
 import com.iexec.commons.poco.order.RequestOrder;
@@ -44,7 +45,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.ComposeContainer;
@@ -52,6 +52,8 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.web3j.crypto.Hash;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.utils.Numeric;
 
@@ -76,7 +78,6 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @Testcontainers
-@ActiveProfiles("itest")
 @SpringBootTest(properties = {"chain.max-allowed-tx-per-block=2"}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegrationTests {
 
@@ -107,8 +108,8 @@ class IntegrationTests {
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("chain.id", () -> "65535");
-        registry.add("chain.hubAddress", () -> IEXEC_HUB_ADDRESS);
-        registry.add("chain.nodeAddress", () -> getServiceUrl(
+        registry.add("chain.hub-address", () -> IEXEC_HUB_ADDRESS);
+        registry.add("chain.node-address", () -> getServiceUrl(
                 environment.getServiceHost(CHAIN_SVC_NAME, CHAIN_SVC_PORT),
                 environment.getServicePort(CHAIN_SVC_NAME, CHAIN_SVC_PORT)));
         registry.add("spring.data.mongodb.host", () -> environment.getServiceHost(MONGO_SVC_NAME, MONGO_SVC_PORT));
@@ -121,7 +122,6 @@ class IntegrationTests {
     private final IexecHubService iexecHubService;
     private final Web3jService web3jService;
     private final SignerService signerService;
-    private final BrokerService brokerService;
     private final EIP712Domain domain;
     private BlockchainAdapterApiClient appClient;
 
@@ -133,12 +133,10 @@ class IntegrationTests {
     IntegrationTests(final IexecHubService iexecHubService,
                      final Web3jService web3jService,
                      final SignerService signerService,
-                     final BrokerService brokerService,
                      final ChainConfig chainConfig) throws IOException {
         this.iexecHubService = iexecHubService;
         this.web3jService = web3jService;
         this.signerService = signerService;
-        this.brokerService = brokerService;
         this.domain = new EIP712Domain(chainConfig.getId(), chainConfig.getHubAddress());
         this.appRegistryAddress = toEthereumAddress(signerService.sendCall(IEXEC_HUB_ADDRESS, APP_REGISTRY_SELECTOR));
         this.datasetRegistryAddress = toEthereumAddress(signerService.sendCall(IEXEC_HUB_ADDRESS, DATASET_REGISTRY_SELECTOR));
@@ -193,7 +191,7 @@ class IntegrationTests {
     }
 
     @Test
-    void shouldBurstTransactionsWithAverageOfOneTxPerBlock() throws IOException {
+    void shouldBurstTransactionsWithAverageOfOneTxPerBlock() throws IOException, TransactionException {
         int taskVolume = 10;//small volume ensures reasonable execution time on CI/CD
         final String dealId = triggerDeal(taskVolume);
         final List<CompletableFuture<Void>> txCompletionWatchers = new ArrayList<>();
@@ -223,7 +221,7 @@ class IntegrationTests {
         txCompletionWatchers.forEach(CompletableFuture::join);
     }
 
-    private String triggerDeal(int taskVolume) throws IOException {
+    private String triggerDeal(int taskVolume) throws IOException, TransactionException {
         BigInteger nonce = signerService.getNonce();
         final String appTxData = encodeApp(
                 signerService.getAddress(),
@@ -271,14 +269,30 @@ class IntegrationTests {
                         .iexecResultStorageProvider("ipfs")
                         .iexecResultStorageProxy("https://v6.result.goerli.iex.ec")
                         .build());
-        final BrokerOrder brokerOrder = BrokerOrder.builder()
-                .appOrder(signedAppOrder)
-                .workerpoolOrder(signedWorkerpoolOrder)
-                .requestOrder(signedRequestOrder)
-                .datasetOrder(signedDatasetOrder)
-                .build();
 
-        final String dealId = brokerService.matchOrders(brokerOrder);
+        nonce = nonce.add(BigInteger.ONE);
+        final String matchOrdersTxData = MatchOrdersDataEncoder.encode(
+                signedAppOrder, signedDatasetOrder, signedWorkerpoolOrder, signedRequestOrder);
+        final BigInteger gasLimit = signerService.estimateGas(IEXEC_HUB_ADDRESS, matchOrdersTxData);
+        final String matchOrdersTxHash = signerService.signAndSendTransaction(
+                nonce, BigInteger.ZERO, gasLimit, IEXEC_HUB_ADDRESS, matchOrdersTxData);
+        final TransactionReceipt receipt = iexecHubService.waitForTxMined(
+                new SubmittedTx(nonce, gasLimit, matchOrdersTxData, matchOrdersTxHash));
+        log.info("block {}, hash {}, status {}", receipt.getBlockNumber(), receipt.getTransactionHash(), receipt.getStatus());
+        log.info("logs count {}", receipt.getLogs().size());
+
+        final String workerpoolAddress = Numeric.toHexStringWithPrefixZeroPadded(
+                Numeric.toBigInt(signedWorkerpoolOrder.getWorkerpool()), 64);
+        final List<String> expectedTopics = List.of(LogTopic.SCHEDULER_NOTICE_EVENT, workerpoolAddress);
+        List<String> events = receipt.getLogs().stream()
+                .filter(log -> expectedTopics.equals(log.getTopics()))
+                .map(Log::getData)
+                .toList();
+        log.info("logs {}", events);
+        if (events.size() != 1) {
+            throw new IllegalStateException("A single deal should have been created, not " + events.size());
+        }
+        final String dealId = events.get(0);
         assertThat(dealId).isNotEmpty();
         log.info("Created deal: {}", dealId);
         // no need to wait since broker is synchronous, just checking deal existence
@@ -349,13 +363,6 @@ class IntegrationTests {
             DatasetOrder datasetOrder,
             String requesterAddress,
             DealParams dealParams) {
-        boolean isCompatibleVolume =
-                appOrder.getVolume().equals(workerpoolOrder.getVolume())
-                        && appOrder.getVolume().equals(datasetOrder.getVolume());
-        if (!isCompatibleVolume) {
-            log.info("Volumes are not compatible");
-            return null;
-        }
         final RequestOrder requestOrder = RequestOrder.builder()
                 .app(appOrder.getApp())
                 .appmaxprice(appOrder.getAppprice())
@@ -370,7 +377,6 @@ class IntegrationTests {
                 .beneficiary(BytesUtils.EMPTY_ADDRESS)
                 .requester(requesterAddress)
                 .callback(BytesUtils.EMPTY_ADDRESS)
-                //.params("{\"iexec_result_storage_provider\":\"ipfs\",\"iexec_result_storage_proxy\":\"https://v6.result.goerli.iex.ec\",\"iexec_args\":\"abc\"}")
                 .params(dealParams.toJsonString())
                 .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
                 .build();
