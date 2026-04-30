@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.5](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.4...v9.0.5) (2026-04-30)
+
+
+### Bug Fixes
+
+* call new hasEnoughGas method to fall back on cached value on communication failure ([#188](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/188)) ([59a97f6](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/59a97f62b7c1dcf189d89162c1180097e50c0a10))
+* remove BrokerService only used for IntegrationTests ([#191](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/191)) ([de4b267](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/de4b267cf9e805cbff4857a8c53e4f0064ac098a))
+* retry tx with backoff delay ([#190](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/190)) ([f7b6627](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/f7b6627c9f36101e8e5183187378c9fdb00cbae5))
+
 ## [9.0.4](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.3...v9.0.4) (2025-11-25)
 
 
