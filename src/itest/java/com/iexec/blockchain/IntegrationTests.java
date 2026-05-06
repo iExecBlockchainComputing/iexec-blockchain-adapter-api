@@ -302,7 +302,7 @@ class IntegrationTests {
     }
 
     private String buildRandomName(String baseName) {
-        return baseName + "-" + RandomStringUtils.randomAlphabetic(10);
+        return baseName + "-" + RandomStringUtils.secure().nextAlphabetic(10);
     }
 
     private boolean areTxMined(String... txHashes) {
@@ -322,7 +322,7 @@ class IntegrationTests {
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (AppOrder) signerService.signOrderForDomain(appOrder, domain);
     }
@@ -338,7 +338,7 @@ class IntegrationTests {
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .datasetrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (WorkerpoolOrder) signerService.signOrderForDomain(workerpoolOrder, domain);
     }
@@ -352,7 +352,7 @@ class IntegrationTests {
                 .apprestrict(BytesUtils.EMPTY_ADDRESS)
                 .workerpoolrestrict(BytesUtils.EMPTY_ADDRESS)
                 .requesterrestrict(BytesUtils.EMPTY_ADDRESS)
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (DatasetOrder) signerService.signOrderForDomain(datasetOrder, domain);
     }
@@ -378,7 +378,7 @@ class IntegrationTests {
                 .requester(requesterAddress)
                 .callback(BytesUtils.EMPTY_ADDRESS)
                 .params(dealParams.toJsonString())
-                .salt(Hash.sha3String(RandomStringUtils.randomAlphanumeric(20)))
+                .salt(Hash.sha3String(RandomStringUtils.secure().nextAlphanumeric(20)))
                 .build();
         return (RequestOrder) signerService.signOrderForDomain(requestOrder, domain);
     }
