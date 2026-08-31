@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2021-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ChainConfigTest {
-    private static final int DEFAULT_CHAIN_ID = 1;
-    private static final boolean DEFAULT_IS_SIDECHAIN = true;
-    private static final String DEFAULT_NODE_ADDRESS = "http://localhost:8545";
-    private static final String DEFAULT_HUB_ADDRESS = "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002";
-    private static final Duration DEFAULT_BLOCK_TIME = Duration.ofSeconds(1);
-    private static final float DEFAULT_GAS_PRICE_MULTIPLIER = 0.1f;
+    private static final int DEFAULT_CHAIN_ID = 421614;
+    private static final boolean DEFAULT_IS_SIDECHAIN = false;
+    private static final String DEFAULT_NODE_ADDRESS = "https://sepolia-rollup.arbitrum.io/rpc";
+    private static final String DEFAULT_HUB_ADDRESS = "0xB2157BF2fAb286b2A4170E3491Ac39770111Da3E";
+    private static final Duration DEFAULT_BLOCK_TIME = Duration.ofSeconds(5);
+    private static final float DEFAULT_GAS_PRICE_MULTIPLIER = 1.1f;
     private static final long DEFAULT_GAS_PRICE_CAP = 22_000_000_000L;
     private static final int DEFAULT_MAX_ALLOWED_TX_PER_BLOCK = 1;
 
@@ -48,10 +48,10 @@ class ChainConfigTest {
     // region Valid data
     static Stream<Arguments> validData() {
         return Stream.of(
-                Arguments.of(100, true, "http://localhost:8545", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT0.1S", 1.0f, 11_000_000_000L, 1),
-                Arguments.of(42, true, "https://localhost:8545", "0x0000000000000000000000000000000000000001", "PT10S", 1.0f, 22_000_000_000L, 2),
-                Arguments.of(10, true, "https://www.classic-url.com", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT20S", 1.0f, 22_000_000_000L, 2),
-                Arguments.of(1, true, "http://ibaa.iex.ec:443/test?validation=should:be@OK", "0xBF6B2B07e47326B7c8bfCb4A5460bef9f0Fd2002", "PT5S", 1.0f, 0L, 1),
+                Arguments.of(100, false, "http://localhost:8545", DEFAULT_HUB_ADDRESS, "PT0.1S", 1.0f, 11_000_000_000L, 1),
+                Arguments.of(42, false, "https://localhost:8545", "0x0000000000000000000000000000000000000001", "PT10S", 1.0f, 22_000_000_000L, 2),
+                Arguments.of(10, false, "https://www.classic-url.com", DEFAULT_HUB_ADDRESS, "PT20S", 1.0f, 22_000_000_000L, 2),
+                Arguments.of(1, false, "http://ibaa.iex.ec:443/test?validation=should:be@OK", DEFAULT_HUB_ADDRESS, "PT5S", 1.0f, 0L, 1),
                 Arguments.of(DEFAULT_CHAIN_ID, DEFAULT_IS_SIDECHAIN, DEFAULT_NODE_ADDRESS, DEFAULT_HUB_ADDRESS, DEFAULT_BLOCK_TIME, DEFAULT_GAS_PRICE_MULTIPLIER, DEFAULT_GAS_PRICE_CAP, DEFAULT_MAX_ALLOWED_TX_PER_BLOCK)
         );
     }
