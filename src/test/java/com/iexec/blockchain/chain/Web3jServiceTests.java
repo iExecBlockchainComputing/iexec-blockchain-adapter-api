@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 IEXEC BLOCKCHAIN TECH
+ * Copyright 2023-2026 IEXEC BLOCKCHAIN TECH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,46 @@
 package com.iexec.blockchain.chain;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SpringExtension.class)
+@EnableConfigurationProperties(value = ChainConfig.class)
+@TestPropertySource(properties = {
+        "chain.id=421614",
+        "chain.sidechain=false",
+        "chain.node-address=https://sepolia-rollup.arbitrum.io/rpc",
+        "chain.hub-address=0xB2157BF2fAb286b2A4170E3491Ac39770111Da3E",
+        "chain.block-time=PT5S",
+        "chain.gas-price-multiplier=1.1",
+        "chain.gas-price-cap=22000000000",
+        "chain.max-allowed-tx-per-block=1"})
 class Web3jServiceTests {
-    private final ChainConfig chainConfig = ChainConfig
-            .builder()
-            .id(134)
-            .sidechain(true)
-            .nodeAddress("https://bellecour.iex.ec")
-            .hubAddress("0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f")
-            .blockTime(Duration.ofSeconds(5))
-            .gasPriceMultiplier(1.0f)
-            .gasPriceCap(22_000_000_000L)
-            .build();
+    @Autowired
+    private ChainConfig chainConfig;
+
+    @Test
+    void checkChainConfig() {
+        final ChainConfig expectedChainConfig = ChainConfig
+                .builder()
+                .id(421614)
+                .sidechain(false)
+                .nodeAddress("https://sepolia-rollup.arbitrum.io/rpc")
+                .hubAddress("0xB2157BF2fAb286b2A4170E3491Ac39770111Da3E")
+                .blockTime(Duration.ofSeconds(5))
+                .gasPriceMultiplier(1.1f)
+                .gasPriceCap(22_000_000_000L)
+                .maxAllowedTxPerBlock(1)
+                .build();
+        assertThat(chainConfig).isEqualTo(expectedChainConfig);
+    }
 
     @Test
     void shouldCreateInstance() {
