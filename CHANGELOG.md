@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.5...v9.1.0) (2026-09-01)
+
+
+### Features
+
+* start application on Arbitrum Sepolia by default ([#197](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/197)) ([56eb34c](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/56eb34c25f6ae49327a40e4649f5ac3e26bd54d5))
+* upgrade to Java 21 ([#195](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/195)) ([56d87c4](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/56d87c4926d24190d6d5c4d42894f4b833cf33ae))
+* upgrade to Spring Boot 3.5.8 ([#193](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/193)) ([6e80317](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/6e80317285d47f9e707b2a78494c7eb91d2f1605))
+
 ## [9.0.5](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.4...v9.0.5) (2026-04-30)
 
 
