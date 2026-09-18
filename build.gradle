@@ -90,8 +90,8 @@ testing {
             dependencies {
                 implementation project()
                 implementation project(':iexec-blockchain-adapter-api-library')
-                implementation "com.iexec.commons:iexec-commons-poco:$iexecCommonsPocoVersion"
-                implementation "com.iexec.common:iexec-common:$iexecCommonVersion"
+                implementation "com.github.iexecblockchaincomputing:iexec-commons-poco:$iexecCommonsPocoVersion"
+                implementation "com.github.iexecblockchaincomputing:iexec-common:$iexecCommonVersion"
                 implementation 'org.apache.commons:commons-lang3'
                 implementation 'org.hibernate.validator:hibernate-validator'
             }
