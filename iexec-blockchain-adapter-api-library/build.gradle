@@ -5,10 +5,12 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.github.iExecBlockchainComputing.iexec-blockchain-adapter-api'
+
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.8')
-    implementation "com.github.iexecblockchaincomputing:iexec-commons-poco:$iexecCommonsPocoVersion"
-    implementation "com.github.iexecblockchaincomputing:iexec-common:$iexecCommonVersion"
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.16')
+    implementation "com.github.iExecBlockchainComputing:iexec-commons-poco:$iexecCommonsPocoVersion"
+    implementation "com.github.iExecBlockchainComputing:iexec-common:$iexecCommonVersion"
     implementation 'org.apache.commons:commons-lang3'
 }
 
