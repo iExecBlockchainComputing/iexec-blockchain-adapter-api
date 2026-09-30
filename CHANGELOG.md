@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.1](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.1.0...v9.1.1) (2026-09-30)
+
+
+### Bug Fixes
+
+* jitpack iExec dependencies group syntax and Github Actions migration ([#203](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/issues/203)) ([3dc06d9](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/commit/3dc06d92bc9cdb1497dc9ec713f252f017399aad))
+
 ## [9.1.0](https://github.com/iExecBlockchainComputing/iexec-blockchain-adapter-api/compare/v9.0.5...v9.1.0) (2026-09-18)
 
 
